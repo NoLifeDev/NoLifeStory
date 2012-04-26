@@ -85,10 +85,14 @@
   <ItemGroup>
     <ClInclude Include="aes.h" />
     <ClInclude Include="wz.h" />
+    <ClInclude Include="wzimg.h" />
+    <ClInclude Include="wzmain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="aes.cpp" />
-    <ClCompile Include="wz.cpp" />
+    <ClCompile Include="wzmain.cpp" />
+    <ClCompile Include="wzimg.cpp" />
+    <ClCompile Include="wznode.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

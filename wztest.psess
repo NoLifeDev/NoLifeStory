@@ -9,7 +9,7 @@
     <ResourceBasedAnalysisSelected>true</ResourceBasedAnalysisSelected>
     <UniqueReport>Timestamp</UniqueReport>
     <SamplingMethod>Cycles</SamplingMethod>
-    <CycleCount>100000</CycleCount>
+    <CycleCount>10000000</CycleCount>
     <PageFaultCount>10</PageFaultCount>
     <SysCallCount>10</SysCallCount>
     <SamplingCounter Name="" ReloadValue="00000000000f4240" DisplayName="" />
@@ -83,6 +83,27 @@
     </Report>
     <Report>
       <Path>wztest120424(4).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120425.vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120425(1).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120425(2).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120426.vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120426(1).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120426(2).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120426(3).vsp</Path>
     </Report>
   </Reports>
   <Launches>

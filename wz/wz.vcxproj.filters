@@ -18,11 +18,17 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="wz.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="aes.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wzimg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wzmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wznode.cpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -30,6 +36,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="aes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wzimg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wzmain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
