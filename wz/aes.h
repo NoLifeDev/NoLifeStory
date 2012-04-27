@@ -32,6 +32,7 @@
 // headed to implement Advanced Encryption Standard - Rijndael2
 #ifndef _AES_H
 #define _AES_H
+#include <cstdint>
 
 /* USAGE:
 	1. Create a AES class (or more as necessary)

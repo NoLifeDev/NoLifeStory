@@ -1,23 +1,25 @@
-#include "wz.h"
+///////////////////////////////////
+// Copyright 2012 Peter Atechian //
+// Licensed under GPLv3          //
+///////////////////////////////////
+
 #include "wzmain.h"
-#include "wzimg.h"
 
 namespace WZ {
     class Node::Data {
     public:
         Data(const Node& parent, string name)
-            :intValue(0), floatValue(0), parent(parent), name(name) {}
+            :realValue(0), parent(parent), name(name) {}
         string stringValue;
-        double floatValue;
-        int intValue;
+        double realValue;
         //Sprite sprite;
         //Sound sound;
         Node parent;
         string name;
-        map <string, Node> children;
+        map<string, Node> children;
     private:
         Data()
-            :intValue(0), floatValue(0) {}
+            :realValue(0) {}
         Data(const Node::Data&);
     };
 
@@ -100,12 +102,7 @@ namespace WZ {
 
     Node::operator double() const {
         if (!data) return 0;
-        return data->floatValue;
-    }
-
-    Node::operator int() const {
-        if (!data) return 0;
-        return data->intValue;
+        return data->realValue;
     }
 
     /*Node::operator Sprite() const {
@@ -121,20 +118,12 @@ namespace WZ {
     void Node::Set(const string v) {
         //data->intValue = stoi(v);
         //data->floatValue = stod(v);
-        data->intValue = 0;
-        data->floatValue = 0;
+        data->realValue = 0;
         data->stringValue = v;
     }
 
     void Node::Set(const double v) {
-        data->intValue = (int)v;
-        data->floatValue = v;
-        data->stringValue = to_string(v);
-    }
-
-    void Node::Set(const int v) {
-        data->intValue = v;
-        data->floatValue = v;
+        data->realValue = v;
         data->stringValue = to_string(v);
     }
 
@@ -148,8 +137,9 @@ namespace WZ {
 
     void Node::Recurse() {
         if (!data) return;
-        string s = data->children["UOL"];
-        if (!s.empty()) {
+        auto it = data->children.find("UOL");
+        if (it != data->children.end()) {
+            string s = it->second;
 	        vector<string> parts;
             string str;
 	        for (char c : s) {

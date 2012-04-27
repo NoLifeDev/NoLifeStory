@@ -1,159 +1,139 @@
-#include "wz.h"
+///////////////////////////////////
+// Copyright 2012 Peter Atechian //
+// Licensed under GPLv3          //
+///////////////////////////////////
+
 #include "wzmain.h"
-#include "wzimg.h"
+
 namespace WZ {
-    uint8_t Img::data[0x4000000];
-    vector<Img> Img::Imgs;
-//
-//    void Img::ExtendedProperty(Node n) {
-//        string name;
-//        uint8_t a = Read<uint8_t>(file);
-//        if (a == 0x1B) {
-//            int32_t inc = Read<int32_t>(file);
-//            uint32_t pos = offset+inc;
-//            streamoff p = file->tellg();
-//            file->seekg(pos);
-//            name = ReadEncString(file);
-//            file->seekg(p);
-//        } else {
-//            name = ReadEncString(file);
-//        }
-//        if (name == "Property") {
-//            file->ignore(2);
-//            SubProperty(n);
-//        } else if (name == "Canvas") {
-//            file->ignore(1);
-//            uint8_t b = Read<uint8_t>(file);
-//            if (b == 1) {
-//                file->ignore(2);
-//                SubProperty(n);
-//            }
-//            new PNGProperty(file, n);
-//        } else if (name == "Shape2D#Vector2D") {
-//            n.g("x").Set(ReadCInt(file));
-//            n.g("y").Set(ReadCInt(file));
-//        } else if (name == "Shape2D#Convex2D") {
-//            int32_t ec = ReadCInt(file);
-//            for (int i = 0; i < ec; ++i) ExtendedProperty(n.g(to_string(ec)));
-//        } else if (name == "Sound_DX8") {
-//            new SoundProperty(file, n);
-//        } else if (name == "UOL") {
-//            file->ignore(1);
-//            uint8_t b = Read<uint8_t>(file);
-//            switch (b) {
-//            case 0:
-//                n.g(name).Set(ReadEncString(file));
-//                break;
-//            case 1:
-//                {
-//                    uint32_t off = Read<uint32_t>(file);
-//                    n.g(name).Set(ReadStringOffset(file, offset+off));
-//                    break;
-//                }
-//            default:
-//                die();
-//            }
-//        } else {
-//            die();
-//            return;
-//        };
-//    };
-//
-//    void Img::SubProperty(Node n) {
-//        int32_t count = ReadCInt(file);
-//        for (int i = 0; i < count; ++i) {
-//            string name = ReadString(file, offset);
-//            uint8_t a = Read<uint8_t>(file);
-//            switch (a) {
-//            case 0x00:
-//                n.g(name).Set(i);
-//                break;
-//            case 0x0B:
-//            case 0x02:
-//                n.g(name).Set(Read<uint16_t>(file));
-//                break;
-//            case 0x03:
-//                n.g(name).Set(ReadCInt(file));
-//                break;
-//            case 0x04:
-//                if (Read<uint8_t>(file) == 0x80) n.g(name).Set(Read<float>(file));
-//                break;
-//            case 0x05:
-//                n.g(name).Set(Read<double>(file));
-//                break;
-//            case 0x08:
-//                n.g(name).Set(ReadString(file, offset));
-//                break;
-//            case 0x09:
-//                {
-//                    streamoff temp = Read<uint32_t>(file);
-//                    temp += file->tellg();
-//                    ExtendedProperty(n.g(name));
-//                    file->seekg(temp);
-//                    break;
-//                }
-//            default:
-//                die();
-//                return;
-//            }
-//        }
-//    };
+    vector<Img*> Img::Imgs;
+    void Img::ExtendedProperty(Node n) {
+        string name = file.ReadTypeString();
+        if (name == "Property") {
+            file.Skip(2);
+            SubProperty(n);
+        } else if (name == "Canvas") {
+            file.Skip(1);
+            uint8_t b = file.Read<uint8_t>();
+            if (b == 1) {
+                file.Skip(2);
+                SubProperty(n);
+            }
+            new PNGProperty(file, n, offset);
+        } else if (name == "Shape2D#Vector2D") {
+            n.g("x").Set(file.ReadCInt());
+            n.g("y").Set(file.ReadCInt());
+        } else if (name == "Shape2D#Convex2D") {
+            int32_t ec = file.ReadCInt();
+            for (int i = 0; i < ec; ++i) ExtendedProperty(n.g(to_string(ec)));
+        } else if (name == "Sound_DX8") {
+            new SoundProperty(file, n, offset);
+        } else if (name == "UOL") {
+            file.Skip(1);
+            n.g(name).Set(file.ReadTypeString());
+        } else {
+            die();
+            return;
+        };
+    };
+
+    void Img::SubProperty(Node n) {
+        int32_t count = file.ReadCInt();
+        for (int i = 0; i < count; ++i) {
+            string name = file.ReadTypeString();
+            uint8_t a = file.Read<uint8_t>();
+            switch (a) {
+            case 0x00:
+                n.g(name).Set(i);
+                break;
+            case 0x0B:
+            case 0x02:
+                n.g(name).Set(file.Read<uint16_t>());
+                break;
+            case 0x03:
+                n.g(name).Set(file.ReadCInt());
+                break;
+            case 0x04:
+                if (file.Read<uint8_t>() == 0x80) n.g(name).Set(file.Read<float>());
+                break;
+            case 0x05:
+                n.g(name).Set(file.Read<double>());
+                break;
+            case 0x08:
+                n.g(name).Set(file.ReadTypeString());
+                break;
+            case 0x09:
+                {
+                    uint32_t p = file.Read<uint32_t>();
+                    p += file.Tell();
+                    ExtendedProperty(n.g(name));
+                    file.Seek(p);
+                    break;
+                }
+            default:
+                die();
+                return;
+            }
+        }
+    };
 
     void Img::ParseAll() {
-        for (Img& img : Imgs) {
-            img.Parse();
+        int last = 0;
+        int i = 0;
+        int total = Imgs.size();
+        for (Img* img : Imgs) {
+            img->Parse();
+            ++i;
+            if (i*100/total > last) {
+                last += 1;
+                cout << last << "%" << endl;
+            }
+            delete img;
         }
         Imgs.clear();
         WZ.Recurse();
     }
 
     void Img::Parse() {
-        clearerr(file);
-        if (size > 0x4000000) die();
-        fread(data, 1, size, file);
-        //cout << n.Name() << ".img" << endl;
-        return;
-        /*
-        uint8_t a = Read<uint8_t>(file);
+        file.Map(offset, size);
+        uint8_t a = file.Read<uint8_t>();
         if (a != 0x73) {
             die();
-            delete this;
             return;
         }
-        string s = ReadEncString(file);
+        string s = file.ReadEncString();
         if (s != "Property") {
             die();
-            delete this;
             return;
         }
-        uint16_t b = Read<uint16_t>(file);
+        uint16_t b = file.Read<uint16_t>();
         if (b != 0) {
             die();
-            delete this;
             return;
         }
         SubProperty(n);
-        delete this;*/
+        file.Unmap();
     }
-//
-//    PNGProperty::PNGProperty(ifstream* file, Node n) {
-//        this->file = file;
-//        //sprite.data = new SpriteData;
-//        //sprite.data->loaded = false;
-//        //sprite.data->width = ReadCInt(file);
-//        //sprite.data->height = ReadCInt(file);
-//        //sprite.data->png = this;
-//        //sprite.data->originx = n["origin"]["x"];
-//        //sprite.data->originy = n["origin"]["y"];
-//        //n.Set(sprite);
-//        format = ReadCInt(file);
-//        format2 = Read<uint8_t>(file);
-//        file->ignore(4);
-//        length = Read<int32_t>(file);
-//        if (length <= 0) die();
-//        offset = (uint32_t)file->tellg();
-//        offset++;
-//    }
+
+    PNGProperty::PNGProperty(MapFile file, Node n, uint32_t off) {
+        this->file = file;
+        //sprite.data = new SpriteData;
+        //sprite.data->loaded = false;
+        //sprite.data->width = ReadCInt(file);
+        file.ReadCInt();
+        //sprite.data->height = ReadCInt(file);
+        file.ReadCInt();
+        //sprite.data->png = this;
+        //sprite.data->originx = n["origin"]["x"];
+        //sprite.data->originy = n["origin"]["y"];
+        //n.Set(sprite);
+        format = file.ReadCInt();
+        format2 = file.Read<uint8_t>();
+        file.Skip(4);
+        length = file.Read<int32_t>();
+        if (length <= 0) die();
+        offset = file.Tell()+off+1;
+    }
 //
 //    void PNGProperty::Parse() {
 //        /*static uint8_t Buf1[0x1000000];
@@ -293,16 +273,15 @@ namespace WZ {
 //        sprite.data->loaded = true;*/
 //    }
 //
-//    SoundProperty::SoundProperty(ifstream* file, Node n) {
-//        this->file = file;
-//        file->ignore(1);
-//        len = ReadCInt(file);
-//        ReadCInt(file);
-//        offset = (uint32_t)file->tellg();
-//        offset += 82;
-//        data = 0;
-//        //n.Set(Sound(this));
-//    }
+    SoundProperty::SoundProperty(MapFile file, Node n, uint32_t off) {
+        this->file = file;
+        file.Skip(1);
+        len = file.ReadCInt();
+        file.ReadCInt();
+        offset = file.Tell()+off+82;
+        data = 0;
+        //n.Set(Sound(this));
+    }
 //
 //    uint32_t SoundProperty::GetStream(bool loop) {
 //        if (!data) {

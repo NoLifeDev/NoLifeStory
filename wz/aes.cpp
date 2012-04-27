@@ -31,7 +31,6 @@
 
 // code to implement Advanced Encryption Standard - Rijndael
 // speed optimized version
-#include <cstdint>
 #include "aes.h"
 #include <cassert>
 #include <cstdio>

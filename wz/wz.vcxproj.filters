@@ -27,8 +27,14 @@
     <ClCompile Include="wzmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mapfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wzcrypto.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="wznode.cpp">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +48,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wzmain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mapfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wzcrypto.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

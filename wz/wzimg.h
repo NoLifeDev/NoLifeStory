@@ -1,10 +1,15 @@
+///////////////////////////////////
+// Copyright 2012 Peter Atechian //
+// Licensed under GPLv3          //
+///////////////////////////////////
+
 namespace WZ {
     class PNGProperty {
     public:
-        PNGProperty(ifstream* file, Node n);
+        PNGProperty(MapFile file, Node n, uint32_t off);
         void Parse();
     private:
-        ifstream* file;
+        MapFile file;
         //Sprite sprite;
         int32_t format;
         int32_t length;
@@ -13,36 +18,30 @@ namespace WZ {
     };
     class SoundProperty {
     public:
-        SoundProperty(ifstream* file, Node n);
+        SoundProperty(MapFile file, Node n, uint32_t off);
         uint32_t GetStream(bool loop);
     private:
         int32_t len;
         uint8_t* data;
         uint32_t offset;
-        ifstream* file;
+        MapFile file;
     };
     class Img {
     public:
-        static void New(FILE* file, Node n, uint32_t size) {
-            Imgs.emplace_back(file, n, size);
-        }
         static void ParseAll();
-        Img(FILE* file, Node n, uint32_t size)
-            :file(file), n(n), size(size), filepos(0) {}
+        Img(MapFile file, Node n, uint32_t size, uint32_t offset)
+            :file(file), n(n), size(size), offset(offset) {
+                Imgs.push_back(this);
+        }
     private:
         void Parse();
         Node n;
-        FILE* file;
-        uint32_t filepos;
+        MapFile file;
         uint32_t size;
+        uint32_t offset;
         void ExtendedProperty(Node n);
         void SubProperty(Node n);
-        static vector<Img> Imgs;
-        static uint8_t data[0x4000000];
-        template <class T>
-        T Read() {
-            filepos += sizeof(T);
-        }
+        static vector<Img*> Imgs;
     };
     
 }
