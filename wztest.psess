@@ -68,56 +68,6 @@
       <ProjName>wztest</ProjName>
     </ProjBinary>
   </Binaries>
-  <Reports>
-    <Report>
-      <Path>wztest120427.vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(1).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(2).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(3).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(4).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(5).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(6).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(7).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120427(8).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120428.vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120428(1).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120428(2).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120428(3).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120428(4).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120428(5).vsp</Path>
-    </Report>
-    <Report>
-      <Path>wztest120428(6).vsp</Path>
-    </Report>
-  </Reports>
   <Launches>
     <ProjBinary>
       <Path>:PB:{384B74B5-FA3F-737C-007A-036B0B5FAD10}|wztest\wztest.vcxproj</Path>

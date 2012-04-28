@@ -146,9 +146,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="aes.h" />
     <ClInclude Include="mapfile.h" />
     <ClInclude Include="wz.h" />
