@@ -96,7 +96,8 @@ namespace WZ {
             new File(n);
             return;
         }
-        vector<string> dirs;
+        vector<Node> dirs;
+        n.Reserve(count);
         for (int i = 0; i < count; ++i) {
             string name;
             uint8_t type = file.Read<uint8_t>();
@@ -118,7 +119,7 @@ namespace WZ {
             uint32_t checksum = file.ReadCInt();
             uint32_t off = file.ReadOffset(fileStart);
             if (type == 3) {
-                dirs.emplace_back(name);
+                dirs.emplace_back(n.g(name, i));
             } else if (type == 4) {
                 name.erase(name.size()-4, 4);
                 if (!big) {
@@ -127,11 +128,11 @@ namespace WZ {
                     file.Map(0, off);
                     file.Seek(p);
                 }
-                new Img(file, n.g(name), fsize, off);
+                new Img(file, n.g(name, i), fsize, off);
             } else die();
         }
-        for (string str : dirs) {
-            Directory(n.g(str));
+        for (Node nn : dirs) {
+            Directory(nn);
         }
     }
 

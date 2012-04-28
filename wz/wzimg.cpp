@@ -19,18 +19,20 @@ namespace WZ {
                 file.Skip(2);
                 SubProperty(n);
             }
-            new PNGProperty(file, n, offset);
+            //new PNGProperty(file, n, offset);
         } else if (name == "Shape2D#Vector2D") {
-            n.g("x").Set(file.ReadCInt());
-            n.g("y").Set(file.ReadCInt());
+            n.Reserve(2);
+            n.g("x", 0).Set(file.ReadCInt());
+            n.g("y", 1).Set(file.ReadCInt());
         } else if (name == "Shape2D#Convex2D") {
             int32_t ec = file.ReadCInt();
-            for (int i = 0; i < ec; ++i) ExtendedProperty(n.g(to_string(ec)));
+            n.Reserve(ec);
+            for (int i = 0; i < ec; ++i) ExtendedProperty(n.g(to_string(ec), i));
         } else if (name == "Sound_DX8") {
-            new SoundProperty(file, n, offset);
+            //new SoundProperty(file, n, offset);
         } else if (name == "UOL") {
             file.Skip(1);
-            n.g(name).Set(file.ReadTypeString());
+            n.SetUOL(file.ReadTypeString());
         } else {
             die();
             return;
@@ -39,34 +41,35 @@ namespace WZ {
 
     void Img::SubProperty(Node n) {
         int32_t count = file.ReadCInt();
+        n.Reserve(count);
         for (int i = 0; i < count; ++i) {
             string name = file.ReadTypeString();
             uint8_t a = file.Read<uint8_t>();
             switch (a) {
             case 0x00:
-                n.g(name).Set(i);
+                n.g(name, i).Set(i);
                 break;
             case 0x0B:
             case 0x02:
-                n.g(name).Set(file.Read<uint16_t>());
+                n.g(name, i).Set(file.Read<uint16_t>());
                 break;
             case 0x03:
-                n.g(name).Set(file.ReadCInt());
+                n.g(name, i).Set(file.ReadCInt());
                 break;
             case 0x04:
-                if (file.Read<uint8_t>() == 0x80) n.g(name).Set(file.Read<float>());
+                if (file.Read<uint8_t>() == 0x80) n.g(name, i).Set(file.Read<float>());
                 break;
             case 0x05:
-                n.g(name).Set(file.Read<double>());
+                n.g(name, i).Set(file.Read<double>());
                 break;
             case 0x08:
-                n.g(name).Set(file.ReadTypeString());
+                n.g(name, i).Set(file.ReadTypeString());
                 break;
             case 0x09:
                 {
                     uint32_t p = file.Read<uint32_t>();
                     p += file.Tell();
-                    ExtendedProperty(n.g(name));
+                    ExtendedProperty(n.g(name, i));
                     file.Seek(p);
                     break;
                 }
@@ -91,7 +94,7 @@ namespace WZ {
             delete img;
         }
         Imgs.clear();
-        WZ.Recurse();
+        WZ.Resolve();
     }
 
     void Img::Parse() {

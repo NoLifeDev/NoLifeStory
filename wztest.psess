@@ -37,7 +37,7 @@
   </PostinstrumentEvent>
   <Binaries>
     <ProjBinary>
-      <Path>Release\wztest.exe</Path>
+      <Path>x64\Release\wztest.exe</Path>
       <ArgumentTimestamp>01/01/0001 00:00:00</ArgumentTimestamp>
       <Instrument>true</Instrument>
       <Sample>true</Sample>
@@ -49,7 +49,7 @@
       <LaunchProject>true</LaunchProject>
       <OverrideProjectSettings>false</OverrideProjectSettings>
       <LaunchMethod>Executable</LaunchMethod>
-      <ExecutablePath>Release\wztest.exe</ExecutablePath>
+      <ExecutablePath>x64\Release\wztest.exe</ExecutablePath>
       <StartupDirectory>wztest\</StartupDirectory>
       <Arguments>
       </Arguments>
@@ -95,6 +95,27 @@
     </Report>
     <Report>
       <Path>wztest120427(8).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120428.vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120428(1).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120428(2).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120428(3).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120428(4).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120428(5).vsp</Path>
+    </Report>
+    <Report>
+      <Path>wztest120428(6).vsp</Path>
     </Report>
   </Reports>
   <Launches>

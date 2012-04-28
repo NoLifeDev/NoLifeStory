@@ -8,74 +8,60 @@
 namespace WZ {
     class Node::Data {
     public:
-        Data(const Node& parent, string name)
-            :realValue(0), parent(parent), name(name) {}
-        string stringValue;
-        double realValue;
-        //Sprite sprite;
-        //Sound sound;
+        Data()
+            :parent(), name(), num(0), children(0) {}
+        uint64_t value;
         Node parent;
         string name;
-        map<string, Node> children;
+        Data* children;
+        uint16_t num;
+        enum class Type : uint8_t {
+            none,
+            real,
+            string,
+            uol
+        } type;
     private:
-        Data()
-            :realValue(0) {}
         Data(const Node::Data&);
     };
 
     Node::Node() : data(nullptr) {}
+    
+    Node::Node(Data* data) : data(data) {}
+
+    Node::Node(Data& data) : data(&data) {}
 
     Node::Node(const Node& other) : data(other.data) {}
 
-    Node::Node(const Node& other, string name) : data(new Data(other, name)) {}
-
-    Node& Node::operator= (const Node& other) {
-        data = other.data;
-        return *this;
+    Node Node::operator= (const Node& other) {
+        return data = other.data;
     }
 
-    Node Node::operator[] (const string key) const {
+    Node Node::operator[] (string key) const {
         if (!data) return Node();
         if (key == "..") return data->parent;
         if (key == ".") return *this;
-        auto n = data->children.find(key);
-        if (n == data->children.end()) return Node();
-        return n->second;
+        if (!data->children) return Node();
+        auto it = find_if(data->children, data->children+data->num, [&](const Data& d){return d.name == key;});
+        if (it == data->children+data->num) return Node();
+        return *it;
     }
 
     Node Node::operator[] (const char key[]) const {
         return (*this)[(string)key];
     }
 
-    Node Node::operator[] (const int key) const {
+    Node Node::operator[] (int key) const {
         return (*this)[to_string(key)];
     }
-    Node Node::operator[] (const Node key) const {
+    Node Node::operator[] (const Node& key) const {
         return (*this)[(string)key];
     }
 
-    Node Node::g(const string key) {
-        return data->children.emplace(key, Node(*this, key)).first->second;
-    }
-
-    map<string, Node>::const_iterator Node::begin() const {
-        if (!data) return map<string, Node>::const_iterator();
-        return data->children.begin();
-    }
-
-    map<string, Node>::const_iterator Node::end() const {
-        if (!data) return map<string, Node>::const_iterator();
-        return data->children.end();
-    }
-
-    map<string, Node>::const_reverse_iterator Node::rbegin() const {
-        if (!data) return map<string, Node>::const_reverse_iterator();
-        return data->children.rbegin();
-    }
-
-    map<string, Node>::const_reverse_iterator Node::rend() const {
-        if (!data) return map<string, Node>::const_reverse_iterator();
-        return data->children.rend();
+    Node Node::g(string key, int n) {
+        data->children[n].name = key;
+        data->children[n].parent = *this;
+        return data->children[n];
     }
 
     string Node::Name() const {
@@ -83,11 +69,13 @@ namespace WZ {
         return data->name;
     }
 
-    void Node::InitTop(const string s) {
-        data = new Data(Node(), s);
+    void Node::InitTop(string s) {
+        data = new Data();
+        data->name = s;
+        data->parent = *this;
     }
 
-    void Node::Assign(const Node other) {
+    void Node::Assign(const Node& other) {
         data = other.data;
     }
 
@@ -97,12 +85,27 @@ namespace WZ {
 
     Node::operator string() const {
         if (!data) return string();
-        return data->stringValue;
+        switch (data->type) {
+        case Data::Type::real:
+            return to_string(*(double*)&data->value);
+        case Data::Type::string:
+            return string((char*)data->value); 
+        default:
+            return string();
+            //return *(double*)&data->value;
+        }
     }
 
     Node::operator double() const {
         if (!data) return 0;
-        return data->realValue;
+        if (data->type == Data::Type::real) return *(double*)&data->value;
+        else return 0;
+    }
+
+    Node::operator int() const {
+        if (!data) return 0;
+        if (data->type == Data::Type::real) return *(double*)&data->value;
+        else return 0;
     }
 
     /*Node::operator Sprite() const {
@@ -116,15 +119,25 @@ namespace WZ {
     }*/
 
     void Node::Set(const string v) {
-        //data->intValue = stoi(v);
-        //data->floatValue = stod(v);
-        data->realValue = 0;
-        data->stringValue = v;
+        void* ptr = malloc(v.length()+1);
+        memcpy(ptr, v.c_str(), v.length()+1);
+        data->type = Data::Type::string;
+    }
+
+    void Node::SetUOL(const string v) {
+        void* ptr = malloc(v.length()+1);
+        memcpy(ptr, v.c_str(), v.length()+1);
+        data->type = Data::Type::uol;
     }
 
     void Node::Set(const double v) {
-        data->realValue = v;
-        data->stringValue = to_string(v);
+        *(double*)&data->value = v;
+        data->type = Data::Type::real;
+    }
+
+    void Node::Set(const int v) {
+        *(double*)&data->value = v;
+        data->type = Data::Type::real;
     }
 
     /*void Node::Set(const Sprite& v) {
@@ -135,11 +148,10 @@ namespace WZ {
         data->sound = v;
     }*/
 
-    void Node::Recurse() {
+    void Node::Resolve() {
         if (!data) return;
-        auto it = data->children.find("UOL");
-        if (it != data->children.end()) {
-            string s = it->second;
+        if (data->type == Data::Type::uol) {
+            string s = string((char*)data->value); ;
 	        vector<string> parts;
             string str;
 	        for (char c : s) {
@@ -156,9 +168,11 @@ namespace WZ {
             }
             if (nn) nn.data = data;
         } else {
-            for (pair<string, Node> n : data->children) {
-                n.second.Recurse();
-            }
+            for_each(data->children, data->children+data->num, [&](Data& d){Node(d).Resolve();});
         }
+    }
+    
+    void Node::Reserve(int n) {
+        data->children = new Data[n];
     }
 }
