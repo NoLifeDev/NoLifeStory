@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <cstdint>
 #include <vector>
+#include "sprite.h"
 
 namespace WZ {
     class Node {

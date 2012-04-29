@@ -4,12 +4,13 @@
 ///////////////////////////////////
 
 #include "wzmain.h"
+#include <ppl.h>
 
 namespace WZ {
     path Path;
     Node WZ;
     vector<path> Paths;
-
+    vector<thread> threads;
     class File {
     public:
         File(Node n);
@@ -19,7 +20,7 @@ namespace WZ {
         uint32_t fileStart;
         MapFile file;
         bool big;
-        
+        //vector<Img*> Imgs;
     };
     vector<File*> File::Files;
     File::File(Node n) {
@@ -88,12 +89,13 @@ namespace WZ {
         if (file.ReadCInt() == 0) die();
         file.Seek(fileStart+2);
         Directory(n);
+        file.Unmap();
     }
 
     void File::Directory(Node n) {
         int32_t count = file.ReadCInt();
         if (count == 0) {
-            new File(n);
+            threads.emplace_back([n](){new File(n);});
             return;
         }
         vector<Node> dirs;
@@ -139,7 +141,13 @@ namespace WZ {
     void Load(string name) {
         WZ.InitTop(name);
         new File(WZ);
-        Img::ParseAll();
+        for (thread& t : threads) {
+            while (!t.joinable()) this_thread::yield();
+            t.join();
+        }
+        Concurrency::parallel_for_each(Imgs.begin(), Imgs.end(), [](Img* img) {img->Parse();});
+        //for (Img* img : Imgs) img->Parse();
+        WZ::WZ.Resolve();
     }
 
     void Init() {

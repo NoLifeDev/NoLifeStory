@@ -6,7 +6,8 @@
 #include "wzmain.h"
 
 namespace WZ {
-    vector<Img*> Img::Imgs;
+    vector<Img*> Imgs;
+    atomic_flag flag;
     void Img::ExtendedProperty(Node n) {
         string name = file.ReadTypeString();
         if (name == "Property") {
@@ -80,23 +81,6 @@ namespace WZ {
         }
     };
 
-    void Img::ParseAll() {
-        int last = 0;
-        int i = 0;
-        int total = Imgs.size();
-        for (Img* img : Imgs) {
-            img->Parse();
-            ++i;
-            if (i*100/total > last) {
-                last += 1;
-                cout << last << "%" << endl;
-            }
-            delete img;
-        }
-        Imgs.clear();
-        WZ.Resolve();
-    }
-
     void Img::Parse() {
         file.Map(offset, size);
         uint8_t a = file.Read<uint8_t>();
@@ -116,6 +100,7 @@ namespace WZ {
         }
         SubProperty(n);
         file.Unmap();
+        delete this;
     }
 
     PNGProperty::PNGProperty(MapFile file, Node n, uint32_t off) {

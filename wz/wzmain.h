@@ -5,13 +5,14 @@
 
 #include <filesystem>
 #include <string>
-#include <map>
 #include <vector>
 #include <algorithm>
 #include <cstdint>
 #include <codecvt>
 #include <sstream>
 #include <iostream>
+#include <thread>
+#include <atomic>
 using namespace std;
 using namespace std::tr1;
 using namespace std::tr2;

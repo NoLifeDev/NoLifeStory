@@ -11,7 +11,7 @@ namespace WZ {
         Data()
             :parent(), name(), num(0), children(0) {}
         uint64_t value;
-        Node parent;
+        Data* parent;
         string name;
         Data* children;
         uint16_t num;
@@ -19,7 +19,9 @@ namespace WZ {
             none,
             real,
             string,
-            uol
+            uol,
+            sprite,
+            sound
         } type;
     private:
         Data(const Node::Data&);
@@ -42,25 +44,25 @@ namespace WZ {
         if (key == "..") return data->parent;
         if (key == ".") return *this;
         if (!data->children) return Node();
-        auto it = find_if(data->children, data->children+data->num, [&](const Data& d){return d.name == key;});
+        auto it = find_if(data->children, data->children+data->num, [&](const Data& d){return data->name == key;});
         if (it == data->children+data->num) return Node();
         return *it;
     }
 
     Node Node::operator[] (const char key[]) const {
-        return (*this)[(string)key];
+        return (*this)[string(key)];
     }
 
     Node Node::operator[] (int key) const {
         return (*this)[to_string(key)];
     }
     Node Node::operator[] (const Node& key) const {
-        return (*this)[(string)key];
+        return (*this)[string(key)];
     }
 
     Node Node::g(string key, int n) {
         data->children[n].name = key;
-        data->children[n].parent = *this;
+        data->children[n].parent = this->data;
         return data->children[n];
     }
 
@@ -72,7 +74,7 @@ namespace WZ {
     void Node::InitTop(string s) {
         data = new Data();
         data->name = s;
-        data->parent = *this;
+        data->parent = this->data;
     }
 
     void Node::Assign(const Node& other) {

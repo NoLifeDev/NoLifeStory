@@ -7,15 +7,11 @@
 #include "wzmain.h"
 
 struct MapFile::Data {
-    Data() :file(0), map(0), off(0), moff(0), data(0) {}
+    Data() :file(0) {}
     HANDLE file;
     HANDLE map;
-    uint32_t off;
-    uint32_t moff;
     uint32_t size;
-    uint32_t delta;
     uint32_t gran;
-    char* data;
 };
 
 void MapFile::Open(string filename) {
@@ -27,44 +23,44 @@ void MapFile::Open(string filename) {
     if (d->file == INVALID_HANDLE_VALUE) die();
     d->size = GetFileSize(d->file, NULL);
     d->map = CreateFileMappingA(d->file, NULL, PAGE_READONLY, 0, 0, NULL);
-    d->off = 0;
-    d->moff = 0;
-    d->delta = 0;
-    d->data = nullptr;
+    off = 0;
+    moff = 0;
+    delta = 0;
+    data = nullptr;
 }
 
 void MapFile::Map(uint32_t base, uint32_t len) {
-    if (d->data) {
-        UnmapViewOfFile(d->data-d->delta);
+    if (data) {
+        UnmapViewOfFile(data-delta);
     }
-    d->delta = base%d->gran;
-    d->moff = base-d->delta;
-    d->off = 0;
-    d->data = (char*)MapViewOfFile(d->map, FILE_MAP_READ, 0, d->moff, min(len+d->delta, d->size-d->moff))+d->delta;
+    delta = base%d->gran;
+    moff = base-delta;
+    off = 0;
+    data = (char*)MapViewOfFile(d->map, FILE_MAP_READ, 0, moff, min(len+delta, d->size-moff))+delta;
 }
 
 void MapFile::Unmap() {
-    if (d->data) {
-        UnmapViewOfFile(d->data-d->delta);
-        d->data = nullptr;
+    if (data) {
+        UnmapViewOfFile(data-delta);
+        data = nullptr;
     }
 }
 
 uint32_t MapFile::Tell() {
-    return d->off;
+    return off;
 }
 
 void MapFile::Seek(uint32_t o) {
-    d->off = o;
+    off = o;
 }
 
 void MapFile::Skip(uint32_t o) {
-    d->off += o;
+    off += o;
 }
 
 void* MapFile::ReadBin(uint32_t size) {
-    void* a = &d->data[d->off];
-    d->off += size;
+    void* a = &data[off];
+    off += size;
     return a;
 }
 
@@ -77,7 +73,7 @@ int32_t MapFile::ReadCInt() {
 string MapFile::ReadString() {
     string s;
     while(true) {
-        char c = d->data[d->off++];
+        char c = data[off++];
         if (c == '\0') break;
         s += c;
     }
@@ -85,14 +81,14 @@ string MapFile::ReadString() {
 }
 
 string MapFile::ReadString(int32_t len) {
-    string s = string(&d->data[d->off], len);
-    d->off += len;
+    string s = string(&data[off], len);
+    off += len;
     return s;
 }
 
 wstring MapFile::ReadWString(int32_t len) {
-    wstring s = wstring((wchar_t*)&d->data[d->off], len);
-    d->off += len*2;
+    wstring s = wstring((wchar_t*)&data[off], len);
+    off += len*2;
     return s;
 }
 
@@ -111,7 +107,7 @@ string MapFile::ReadEncString() {
             ws[i] ^= *(uint16_t*)(WZ::Key+2*i);
             mask++;
         }
-        wstring_convert<codecvt_utf8<wchar_t>> conv;
+        static wstring_convert<codecvt_utf8<wchar_t>> conv;
         return conv.to_bytes(ws);
     } else {
         int32_t len;
@@ -152,7 +148,7 @@ string MapFile::ReadTypeString() {
 }
 
 uint32_t MapFile::ReadOffset(uint32_t fileStart) {
-    uint32_t p = d->off;
+    uint32_t p = off;
     p = (p-fileStart)^0xFFFFFFFF;
     p *= WZ::VersionHash;
     p -= WZ::OffsetKey;

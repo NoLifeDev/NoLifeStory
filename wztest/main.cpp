@@ -10,6 +10,7 @@
 using namespace std;
 
 int main() {
+    this_thread::sleep_for(chrono::seconds(1));
     clock_t start = clock();
     WZ::Paths.push_back("");
     //WZ::Paths.push_back("C:/Nexon/MapleStory 40b/");
@@ -18,6 +19,6 @@ int main() {
     WZ::Paths.push_back("D:/Program Files (x86)/MapleStory_gms_109/");
     WZ::Init();
     clock_t end = clock();
-    cout << "Time taken: " << end - start << "ms" << endl;
+    cout << "Time taken: " << double(end-start)/CLOCKS_PER_SEC << " seconds" << endl;
     cin.get();
 }
