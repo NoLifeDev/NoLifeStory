@@ -57,7 +57,7 @@ namespace WZ {
                 WKey = WKeys[j];
                 for (Version = 0; Version < 512; ++Version) {
                     string s = to_string(Version);
-                    int l = s.length();
+                    size_t l = s.length();
                     VersionHash = 0;
                     for (int i = 0; i < l; ++i) VersionHash = 32*VersionHash+s[i]+1;
                     uint32_t result = 0xFF^(VersionHash>>24)^(VersionHash<<8>>24)^(VersionHash<<16>>24)^(VersionHash<<24>>24);

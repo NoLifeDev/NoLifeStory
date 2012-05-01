@@ -27,8 +27,8 @@ namespace WZ {
         operator int() const;
         //operator Sprite() const;
         //operator Sound() const;
-        Data* begin();
-        Data* end();
+        Data* begin() const;
+        Data* end() const;
 
         //For internal use only
         Node(Data*);

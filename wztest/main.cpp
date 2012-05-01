@@ -11,9 +11,9 @@ using namespace std;
 int main() {
     chrono::high_resolution_clock clock;
     WZ::AddPath("");
+    WZ::AddPath("C:/Nexon/MapleStory/");
     //WZ::AddPath("C:/Nexon/MapleStory 40b/");
     WZ::AddPath("C:/Nexon/MapleStory 109/");
-    WZ::AddPath("C:/Nexon/MapleStory/");
     WZ::AddPath("D:/Program Files (x86)/MapleStory_gms_109/");
     chrono::high_resolution_clock::time_point start = clock.now();
     WZ::Init(false);

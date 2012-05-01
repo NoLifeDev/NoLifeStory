@@ -7,22 +7,25 @@
 #include <Windows.h>
 #include "wzmain.h"
 
+codecvt_utf8<wchar_t> conv;
+
 char* to_cstring(int n) {
     char* s = new char[0x20];
     sprintf(s, "%i", n);
     return s;
 }
 
+static char* adata = nullptr;
+static size_t aremain = 0;
+
 char* AllocString(size_t len) {
-    static char* data = nullptr;
-    static size_t remain = 0;
-    if (remain < len) {
-        data = new char[0x10000];
-        remain = 0x10000;
+    if (aremain < len) {
+        adata = (char*)malloc(0x10000);
+        aremain = 0x10000;
     }
-    char* r = data;
-    remain -= len;
-    data += len;
+    char* r = adata;
+    aremain -= len;
+    adata += len;
     return r;
 }
 
@@ -109,11 +112,11 @@ char* MapFile::ReadString(int32_t len) {
 
 wchar_t* MapFile::ReadWString(int32_t len) {
     char* s = AllocString(2*len+3);
-    if ((long)s&1) ++s;
+    if ((intptr_t)s&1) ++s;
     wchar_t* ws = (wchar_t*)s;
     memcpy(s, data+off, 2*len);
-    ws[len] = '\0';
-    off += len*2;
+    ws[len] = L'\0';
+    off += 2*len;
     return ws;
 }
 
@@ -129,9 +132,12 @@ char* MapFile::ReadEncString() {
         for (int i = 0; i < len; ++i) {
             ws[i] ^= WZ::WKey[i];
         }
-        size_t mlen = wcsrtombs(nullptr, (const wchar_t**)&ws, len+1, nullptr);
-        char* s = AllocString(mlen);
-        wcsrtombs(s, (const wchar_t**)&ws, len+1, nullptr);
+        char* s = AllocString(len*conv.max_length());
+        mbstate_t state;
+        const wchar_t* fnext;
+        char* tnext;
+        conv.out(state, ws, ws+len, fnext, s, s+len*conv.max_length(), tnext);
+        *tnext = '\0';
         return s;
     } else {
         int32_t len;

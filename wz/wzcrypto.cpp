@@ -13,7 +13,7 @@ namespace WZ {
     uint16_t Version = 0;
     uint32_t VersionHash;
     uint8_t Keys[3][0x10000];
-    uint16_t WKeys[3][0x10000];
+    uint16_t WKeys[3][0x8000];
     uint8_t AKeys[3][0x10000];
     AES AESGen;
     const uint8_t GMSKeyIV[4] = {
@@ -49,10 +49,10 @@ namespace WZ {
             AKeys[2][i] = amask^Keys[2][i];
         }
         uint16_t wmask = 0xAAAA;
-        for (int i = 0; i < 0x10000; i += 2, ++wmask) {
-            WKeys[0][i] = wmask^*(uint16_t*)(Keys[0]+i);
-            WKeys[1][i] = wmask^*(uint16_t*)(Keys[1]+i);
-            WKeys[2][i] = wmask^*(uint16_t*)(Keys[2]+i);
+        for (int i = 0; i < 0x8000; ++i, ++wmask) {
+            WKeys[0][i] = wmask^*(uint16_t*)(Keys[0]+2*i);
+            WKeys[1][i] = wmask^*(uint16_t*)(Keys[1]+2*i);
+            WKeys[2][i] = wmask^*(uint16_t*)(Keys[2]+2*i);
         }
         Key = Keys[0];
         AKey = AKeys[0];

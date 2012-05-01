@@ -8,8 +8,6 @@
 namespace WZ {
     class Node::Data {
     public:
-        Data()
-            :parent(nullptr), name(nullptr), num(0), children(nullptr), type(Type::none) {}
         union vt {
             double dreal;
             int ireal;
@@ -87,7 +85,7 @@ namespace WZ {
     }
 
     void Node::InitTop(string s) {
-        data = new Data();
+        data = (Data*)calloc(1, sizeof(Data));
         data->name = new char[s.length()+1];
         strcpy(data->name, s.data());
         data->parent = this->data;
@@ -125,7 +123,7 @@ namespace WZ {
     Node::operator int() const {
         if (!data) return 0;
         if (data->type == Data::Type::ireal) return data->value.ireal;
-        else if (data->type == Data::Type::dreal) return data->value.dreal;
+        else if (data->type == Data::Type::dreal) return (int)data->value.dreal;
         else return 0;
     }
 
@@ -205,7 +203,7 @@ namespace WZ {
         static Data* d = nullptr;
         static size_t remain = 0;
         if (remain < n) {
-            d = new Data[0x10000];
+            d = (Data*)calloc(0x10000, sizeof(Data));
             remain = 0x10000;
         }
         data->children = d;
@@ -214,12 +212,12 @@ namespace WZ {
         data->num = n;
     }
 
-    Node::Data* Node::begin() {
+    Node::Data* Node::begin() const {
         if (!data) return nullptr;
         return data->children;
     }
 
-    Node::Data* Node::end() {
+    Node::Data* Node::end() const {
         if (!data) return nullptr;
         return data->children + data->num;
     }

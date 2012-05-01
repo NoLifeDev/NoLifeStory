@@ -14,6 +14,7 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <fstream>
 using namespace std;
 using namespace std::tr1;
 using namespace std::tr2;

@@ -87,11 +87,19 @@ namespace WZ {
             die();
             return;
         }
-        string s = file.ReadEncString();
-        if (s != "Property") {
-            die();
-            return;
+        bool success = false;
+        for (int i = 0; i < 3; ++i) {
+            file.Seek(1);
+            Key = Keys[i];
+            AKey = AKeys[i];
+            WKey = WKeys[i];
+            string s = file.ReadEncString();
+            if (s == "Property") {
+                success = true;
+                break;
+            }
         }
+        if (!success) die();
         uint16_t b = file.Read<uint16_t>();
         if (b != 0) {
             die();
