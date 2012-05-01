@@ -35,3 +35,4 @@ private:
 };
 
 char* to_cstring(int);
+char* AllocString(size_t len);

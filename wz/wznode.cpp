@@ -85,7 +85,7 @@ namespace WZ {
 
     void Node::InitTop(string s) {
         data = (Data*)calloc(1, sizeof(Data));
-        data->name = new char[s.length()+1];
+        data->name = AllocString(s.length()+1);
         strcpy(data->name, s.data());
         data->parent = this->data;
     }
@@ -137,6 +137,7 @@ namespace WZ {
     }*/
 
     void Node::Set(char* v) {
+        if (!v) v = AllocString(1);
         data->value.string = v;
         data->type = Data::Type::string;
     }

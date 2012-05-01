@@ -20,7 +20,7 @@ static size_t aremain = 0;
 
 char* AllocString(size_t len) {
     if (aremain < len) {
-        adata = (char*)malloc(0x10000);
+        adata = (char*)calloc(0x10000, 1);
         aremain = 0x10000;
     }
     char* r = adata;
