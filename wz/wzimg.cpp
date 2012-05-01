@@ -106,6 +106,9 @@ namespace WZ {
             return;
         }
         SubProperty(n);
+        if (Lazy) {
+            n.Resolve();
+        }
         file.Unmap();
         delete this;
     }

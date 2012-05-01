@@ -27,8 +27,13 @@ namespace WZ {
         operator int() const;
         //operator Sprite() const;
         //operator Sound() const;
-        Data* begin() const;
-        Data* end() const;
+        Node begin() const;
+        Node end() const;
+        Node& operator++();
+        Node& operator--();
+        bool operator==(const Node&) const;
+        bool operator!=(const Node&) const;
+        Node& operator*();
 
         //For internal use only
         Node(Data*);
@@ -48,7 +53,7 @@ namespace WZ {
     private:
         Data* data;
     };
-    extern Node WZ;
+    extern Node Base;
     extern uint16_t Version;
     void Init(bool lazy = true);
     void AddPath(std::string);

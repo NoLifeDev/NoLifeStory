@@ -48,13 +48,12 @@ namespace WZ {
         if (!data) return Node();
         if (strcmp(key, "..") == 0) return data->parent;
         if (strcmp(key, ".") == 0) return *this;
-#ifdef WZ_LAZY
-        if (data->type == Data::Type::img) {
-            data->type = Data::Type::none;
-            data->value.img->Parse();
-            ((Node*)this)->Resolve();
+        if (Lazy) {
+            if (data->type == Data::Type::img) {
+                data->type = Data::Type::none;
+                data->value.img->Parse();
+            }
         }
-#endif
         if (!data->children) return Node();
         for (int i = 0; i < data->num; ++i) {
             if (strcmp(data->children[i].name, key) == 0) return data->children[i];
@@ -212,13 +211,31 @@ namespace WZ {
         data->num = n;
     }
 
-    Node::Data* Node::begin() const {
+    Node Node::begin() const {
         if (!data) return nullptr;
         return data->children;
     }
 
-    Node::Data* Node::end() const {
+    Node Node::end() const {
         if (!data) return nullptr;
         return data->children + data->num;
+    }
+
+    Node& Node::operator++() {
+        ++data;
+        return *this;
+    }
+    Node& Node::operator--() {
+        --data;
+        return *this;
+    }
+    bool Node::operator==(const Node& other) const {
+        return data == other.data;
+    }
+    bool Node::operator!=(const Node& other) const {
+        return data != other.data;
+    }
+    Node& Node::operator*() {
+        return *this;
     }
 }

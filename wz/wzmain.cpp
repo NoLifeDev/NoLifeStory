@@ -7,7 +7,7 @@
 
 namespace WZ {
     path Path;
-    Node WZ;
+    Node Base;
     vector<path> Paths;
     bool Lazy;
     class File {
@@ -138,11 +138,11 @@ namespace WZ {
     }
 
     void Load(string name) {
-        WZ.InitTop(name);
-        new File(WZ);
+        Base.InitTop(name);
+        new File(Base);
         if (!Lazy) {
             for (Img* img : Img::Imgs) img->Parse();
-            WZ::WZ.Resolve();
+            Base.Resolve();
         }
     }
 

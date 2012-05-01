@@ -31,7 +31,8 @@ namespace WZ {
         static vector<Img*> Imgs;
         Img(MapFile file, Node n, uint32_t size, uint32_t offset)
             :file(file), n(n), size(size), offset(offset) {
-                Imgs.push_back(this);
+                if (!Lazy) Imgs.push_back(this);
+                else n.Set(this);
         }
         void Parse();
     private:
