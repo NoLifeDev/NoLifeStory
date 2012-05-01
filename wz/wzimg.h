@@ -26,15 +26,12 @@ namespace WZ {
         uint32_t offset;
         MapFile file;
     };
-    extern atomic_flag flag;
-    extern vector<Img*> Imgs;
     class Img {
     public:
+        static vector<Img*> Imgs;
         Img(MapFile file, Node n, uint32_t size, uint32_t offset)
             :file(file), n(n), size(size), offset(offset) {
-                while (flag.test_and_set());
                 Imgs.push_back(this);
-                flag.clear();
         }
         void Parse();
     private:

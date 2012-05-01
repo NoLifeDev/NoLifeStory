@@ -4,33 +4,28 @@
 ///////////////////////////////////
 
 #include "wzmain.h"
-#include <ppl.h>
 
 namespace WZ {
     path Path;
     Node WZ;
     vector<path> Paths;
-    vector<thread> threads;
+    bool Lazy;
     class File {
     public:
         File(Node n);
-        static vector<File*> Files;
     private:
         void Directory(Node n);
         uint32_t fileStart;
         MapFile file;
         bool big;
-        //vector<Img*> Imgs;
     };
-    vector<File*> File::Files;
     File::File(Node n) {
         big = false;
-        Files.push_back(this);
         path filename = Path/path(n.Name()+".wz");
         if (!exists(filename)) die();
         file.Open(filename);
         file.Map(0, 0x100);
-        if (file.ReadString(4) != "PKG1") die();
+        if (strcmp(file.ReadString(4), "PKG1") != 0) die();
         uint64_t fileSize = file.Read<uint64_t>();
         fileStart = file.Read<uint32_t>();
         file.ReadString();
@@ -58,6 +53,8 @@ namespace WZ {
             bool success = false;
             for (uint8_t j = 0; j < 3 && !success; ++j) {
                 Key = Keys[j];
+                AKey = AKeys[j];
+                WKey = WKeys[j];
                 for (Version = 0; Version < 512; ++Version) {
                     string s = to_string(Version);
                     int l = s.length();
@@ -90,18 +87,19 @@ namespace WZ {
         file.Seek(fileStart+2);
         Directory(n);
         file.Unmap();
+        delete this;
     }
 
     void File::Directory(Node n) {
         int32_t count = file.ReadCInt();
         if (count == 0) {
-            threads.emplace_back([n](){new File(n);});
+            new File(n);
             return;
         }
         vector<Node> dirs;
         n.Reserve(count);
         for (int i = 0; i < count; ++i) {
-            string name;
+            char* name;
             uint8_t type = file.Read<uint8_t>();
             if (type == 1) {
                 file.Skip(10);
@@ -123,7 +121,8 @@ namespace WZ {
             if (type == 3) {
                 dirs.emplace_back(n.g(name, i));
             } else if (type == 4) {
-                name.erase(name.size()-4, 4);
+                size_t len = strlen(name);
+                name[len-4] = '\0';
                 if (!big) {
                     big = true;
                     uint32_t p = file.Tell();
@@ -141,17 +140,15 @@ namespace WZ {
     void Load(string name) {
         WZ.InitTop(name);
         new File(WZ);
-        for (thread& t : threads) {
-            while (!t.joinable()) this_thread::yield();
-            t.join();
+        if (!Lazy) {
+            for (Img* img : Img::Imgs) img->Parse();
+            WZ::WZ.Resolve();
         }
-        Concurrency::parallel_for_each(Imgs.begin(), Imgs.end(), [](Img* img) {img->Parse();});
-        //for (Img* img : Imgs) img->Parse();
-        WZ::WZ.Resolve();
     }
 
-    void Init() {
+    void Init(bool lazy) {
         GenKeys();
+        Lazy = lazy;
         for (path p : Paths) {
             Path = p;
             if (exists(Path/path("Data.wz"))) {
@@ -164,5 +161,9 @@ namespace WZ {
             }
         }
         die();
+    }
+
+    void AddPath(string path) {
+        Paths.push_back(path);
     }
 }

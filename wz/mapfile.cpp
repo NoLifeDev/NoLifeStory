@@ -3,8 +3,28 @@
 // Licensed under GPLv3          //
 ///////////////////////////////////
 
+#define _CRT_SECURE_NO_WARNINGS 1
 #include <Windows.h>
 #include "wzmain.h"
+
+char* to_cstring(int n) {
+    char* s = new char[0x20];
+    sprintf(s, "%i", n);
+    return s;
+}
+
+char* AllocString(size_t len) {
+    static char* data = nullptr;
+    static size_t remain = 0;
+    if (remain < len) {
+        data = new char[0x10000];
+        remain = 0x10000;
+    }
+    char* r = data;
+    remain -= len;
+    data += len;
+    return r;
+}
 
 struct MapFile::Data {
     Data() :file(0) {}
@@ -70,62 +90,63 @@ int32_t MapFile::ReadCInt() {
     else return Read<int32_t>();
 }
 
-string MapFile::ReadString() {
-    string s;
-    while(true) {
-        char c = data[off++];
-        if (c == '\0') break;
-        s += c;
-    }
+char* MapFile::ReadString() {
+    int len = 0;
+    for (;data[off+len] != '\0'; ++len);
+    char* s = AllocString(len+1);
+    memcpy(s, data+off, len+1);
+    off += len+1;
     return s;
 }
 
-string MapFile::ReadString(int32_t len) {
-    string s = string(&data[off], len);
+char* MapFile::ReadString(int32_t len) {
+    char* s = AllocString(len+1);
+    memcpy(s, data+off, len);
+    s[len] = '\0';
     off += len;
     return s;
 }
 
-wstring MapFile::ReadWString(int32_t len) {
-    wstring s = wstring((wchar_t*)&data[off], len);
+wchar_t* MapFile::ReadWString(int32_t len) {
+    char* s = AllocString(2*len+3);
+    if ((long)s&1) ++s;
+    wchar_t* ws = (wchar_t*)s;
+    memcpy(s, data+off, 2*len);
+    ws[len] = '\0';
     off += len*2;
-    return s;
+    return ws;
 }
 
-string MapFile::ReadEncString() {
+char* MapFile::ReadEncString() {
     int8_t slen = Read<int8_t>();
-    if (slen == 0) return string();
+    if (slen == 0) return nullptr;
     else if (slen > 0) {
         int32_t len;
         if (slen == 127) len = Read<int32_t>();
         else len = slen;
-        if (len <= 0) return string();
-        uint16_t mask = 0xAAAA;
-        wstring ws = ReadWString(len);
+        if (len <= 0) return nullptr;
+        wchar_t* ws = ReadWString(len);
         for (int i = 0; i < len; ++i) {
-            ws[i] ^= mask;
-            ws[i] ^= *(uint16_t*)(WZ::Key+2*i);
-            mask++;
+            ws[i] ^= WZ::WKey[i];
         }
-        static wstring_convert<codecvt_utf8<wchar_t>> conv;
-        return conv.to_bytes(ws);
+        size_t mlen = wcsrtombs(nullptr, (const wchar_t**)&ws, len+1, nullptr);
+        char* s = AllocString(mlen);
+        wcsrtombs(s, (const wchar_t**)&ws, len+1, nullptr);
+        return s;
     } else {
         int32_t len;
         if (slen == -128) len = Read<int32_t>();
         else len = -slen;
-        if (len <= 0) return string();
-        uint8_t mask = 0xAA;
-        string s = ReadString(len);
+        if (len <= 0) return nullptr;
+        char* s = ReadString(len);
         for (int i = 0; i < len; ++i) {
-            s[i] ^= mask;
-            s[i] ^= WZ::Key[i];
-            mask++;
+            s[i] ^= WZ::AKey[i];
         }
         return s;
     }
 }
 
-string MapFile::ReadTypeString() {
+char* MapFile::ReadTypeString() {
     uint8_t a = Read<uint8_t>();
     switch (a) {
     case 0x00:
@@ -137,13 +158,13 @@ string MapFile::ReadTypeString() {
             uint32_t o = Read<int32_t>();
             uint32_t p = Tell();
             Seek(o);
-            string s = ReadEncString();
+            char* s = ReadEncString();
             Seek(p);
             return s;
         }
     default:
         die();
-        return string();
+        return nullptr;
     }
 }
 

@@ -9,26 +9,33 @@ namespace WZ {
     class Node::Data {
     public:
         Data()
-            :parent(), name(), num(0), children(0) {}
-        uint64_t value;
+            :parent(nullptr), name(nullptr), num(0), children(nullptr), type(Type::none) {}
+        union vt {
+            double dreal;
+            int ireal;
+            char* string;
+            Img* img;
+        } value;
         Data* parent;
-        string name;
+        char* name;
         Data* children;
         uint16_t num;
         enum class Type : uint8_t {
             none,
-            real,
+            dreal,
+            ireal,
             string,
             uol,
             sprite,
-            sound
+            sound,
+            img
         } type;
     private:
         Data(const Node::Data&);
     };
 
     Node::Node() : data(nullptr) {}
-    
+
     Node::Node(Data* data) : data(data) {}
 
     Node::Node(Data& data) : data(&data) {}
@@ -39,28 +46,36 @@ namespace WZ {
         return data = other.data;
     }
 
-    Node Node::operator[] (string key) const {
+    Node Node::operator[] (const char* key) const {
         if (!data) return Node();
-        if (key == "..") return data->parent;
-        if (key == ".") return *this;
+        if (strcmp(key, "..") == 0) return data->parent;
+        if (strcmp(key, ".") == 0) return *this;
+#ifdef WZ_LAZY
+        if (data->type == Data::Type::img) {
+            data->type = Data::Type::none;
+            data->value.img->Parse();
+            ((Node*)this)->Resolve();
+        }
+#endif
         if (!data->children) return Node();
-        auto it = find_if(data->children, data->children+data->num, [&](const Data& d){return data->name == key;});
-        if (it == data->children+data->num) return Node();
-        return *it;
+        for (int i = 0; i < data->num; ++i) {
+            if (strcmp(data->children[i].name, key) == 0) return data->children[i];
+        }
+        return Node();
     }
 
-    Node Node::operator[] (const char key[]) const {
-        return (*this)[string(key)];
+    Node Node::operator[] (string key) const {
+        return operator[](key.c_str());
+    }
+    Node Node::operator[] (char* key) const {
+        return operator[]((const char*)key);
     }
 
     Node Node::operator[] (int key) const {
-        return (*this)[to_string(key)];
-    }
-    Node Node::operator[] (const Node& key) const {
-        return (*this)[string(key)];
+        return operator[](to_string(key).c_str());
     }
 
-    Node Node::g(string key, int n) {
+    Node Node::g(char* key, int n) {
         data->children[n].name = key;
         data->children[n].parent = this->data;
         return data->children[n];
@@ -73,7 +88,8 @@ namespace WZ {
 
     void Node::InitTop(string s) {
         data = new Data();
-        data->name = s;
+        data->name = new char[s.length()+1];
+        strcpy(data->name, s.data());
         data->parent = this->data;
     }
 
@@ -82,99 +98,129 @@ namespace WZ {
     }
 
     Node::operator bool() const {
-        return (bool)data;
+        return data == nullptr;
     }
 
     Node::operator string() const {
         if (!data) return string();
         switch (data->type) {
-        case Data::Type::real:
-            return to_string(*(double*)&data->value);
+        case Data::Type::ireal:
+            return to_string(data->value.ireal);
+        case Data::Type::dreal:
+            return to_string(data->value.dreal);
         case Data::Type::string:
-            return string((char*)data->value); 
+            return data->value.string; 
         default:
             return string();
-            //return *(double*)&data->value;
         }
     }
 
     Node::operator double() const {
         if (!data) return 0;
-        if (data->type == Data::Type::real) return *(double*)&data->value;
+        if (data->type == Data::Type::ireal) return data->value.ireal;
+        else if (data->type == Data::Type::dreal) return data->value.dreal;
         else return 0;
     }
 
     Node::operator int() const {
         if (!data) return 0;
-        if (data->type == Data::Type::real) return *(double*)&data->value;
+        if (data->type == Data::Type::ireal) return data->value.ireal;
+        else if (data->type == Data::Type::dreal) return data->value.dreal;
         else return 0;
     }
 
     /*Node::operator Sprite() const {
-        if (!data) return Sprite();
-        return data->sprite;
+    if (!data) return Sprite();
+    return data->sprite;
     }
 
     Node::operator Sound() const {
-        if (!data) return Sound();
-        return data->sound;
+    if (!data) return Sound();
+    return data->sound;
     }*/
 
-    void Node::Set(const string v) {
-        void* ptr = malloc(v.length()+1);
-        memcpy(ptr, v.c_str(), v.length()+1);
+    void Node::Set(char* v) {
+        data->value.string = v;
         data->type = Data::Type::string;
     }
 
-    void Node::SetUOL(const string v) {
-        void* ptr = malloc(v.length()+1);
-        memcpy(ptr, v.c_str(), v.length()+1);
+    void Node::SetUOL(char* v) {
+        data->value.string = v;
         data->type = Data::Type::uol;
     }
 
-    void Node::Set(const double v) {
-        *(double*)&data->value = v;
-        data->type = Data::Type::real;
+    void Node::Set(double v) {
+        data->value.dreal = v;
+        data->type = Data::Type::dreal;
     }
 
-    void Node::Set(const int v) {
-        *(double*)&data->value = v;
-        data->type = Data::Type::real;
+    void Node::Set(int v) {
+        data->value.ireal = v;
+        data->type = Data::Type::ireal;
     }
 
     /*void Node::Set(const Sprite& v) {
-        data->sprite = v;
+    data->sprite = v;
     }
 
     void Node::Set(const Sound& v) {
-        data->sound = v;
+    data->sound = v;
     }*/
+
+    void Node::Set(Img* img) {
+        data->value.img = img;
+        data->type = Data::Type::img;
+    }
 
     void Node::Resolve() {
         if (!data) return;
         if (data->type == Data::Type::uol) {
-            string s = string((char*)data->value); ;
-	        vector<string> parts;
-            string str;
-	        for (char c : s) {
-		        if (c == '/') {
-                    parts.push_back(str);
-                    str.clear();
-                } else str += c;
-	        }
-            parts.push_back(str);
-            Node nn = data->parent;
-            for (string str : parts) {
-                if (!nn) break;
-                nn = nn[str];
+            char* s = data->value.string;
+            static char* parts[10];
+            int n = 1;
+            char* it = s;
+            parts[0] = s;
+            while (*it != '\0') {
+                if (*it == '/') {
+                    *it = '\0';
+                    parts[n] = it+1;
+                    ++n;
+                }
+                ++it;
             }
-            if (nn) nn.data = data;
+            Node nn = data->parent;
+            for (int i = 0; i < n; ++i) {
+                if (!nn) break;
+                nn = nn[parts[i]];
+            }
+            if (nn) data = nn.data;
         } else {
-            for_each(data->children, data->children+data->num, [&](Data& d){Node(d).Resolve();});
+            for (Node n : *this) {
+                n.Resolve();
+            }
         }
     }
-    
+
     void Node::Reserve(int n) {
-        data->children = new Data[n];
+        static Data* d = nullptr;
+        static size_t remain = 0;
+        if (remain < n) {
+            d = new Data[0x10000];
+            remain = 0x10000;
+        }
+        data->children = d;
+        remain -= n;
+        d += n;
+        data->num = n;
+    }
+
+    Node::Data* Node::begin() {
+        if (!data) return nullptr;
+        return data->children;
+    }
+
+    Node::Data* Node::end() {
+        if (!data) return nullptr;
+        return data->children + data->num;
     }
 }

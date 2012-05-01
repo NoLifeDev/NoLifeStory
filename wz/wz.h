@@ -4,36 +4,39 @@
 ///////////////////////////////////
 
 #include <string>
-#include <filesystem>
 #include <cstdint>
-#include <vector>
 #include "sprite.h"
 
 namespace WZ {
     class Node {
     public:
         class Data;
+
+        //Public functions
         Node();
         Node(const Node&);
-        Node(Data*);
-        Node(Data&);
         Node operator= (const Node&);
         Node operator[] (std::string) const;
-        Node operator[] (const char[]) const;
+        Node operator[] (const char*) const;
+        Node operator[] (char*) const;
         Node operator[] (int) const;
-        Node operator[] (const Node&) const;
-        Node g(std::string, int n);
         std::string Name() const;
-        void InitTop(std::string);
-        void Assign(const Node&);
         operator bool() const;
         operator std::string() const;
         operator double() const;
         operator int() const;
         //operator Sprite() const;
         //operator Sound() const;
-        void Set(std::string);
-        void SetUOL(std::string);
+        Data* begin();
+        Data* end();
+
+        //For internal use only
+        Node(Data*);
+        Node(Data&);
+        void InitTop(std::string);
+        void Assign(const Node&);
+        void Set(char*);
+        void SetUOL(char*);
         void Set(double);
         void Set(int);
         void Set(class Img*);
@@ -41,11 +44,12 @@ namespace WZ {
         //void Set(const class Sprite&);
         void Resolve();
         void Reserve(int);
+        Node g(char*, int n);
     private:
         Data* data;
     };
     extern Node WZ;
     extern uint16_t Version;
-    extern std::vector<std::tr2::sys::path> Paths;
-    void Init();
+    void Init(bool lazy = true);
+    void AddPath(std::string);
 }

@@ -3,6 +3,7 @@
 // Licensed under GPLv3          //
 ///////////////////////////////////
 
+#define _CRT_SECURE_NO_WARNINGS 1
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -26,4 +27,8 @@ using namespace std::tr2::sys;
 static_assert(sizeof(wchar_t) == 2, "");
 inline void die() {
     throw(273);
+}
+
+namespace WZ {
+    extern bool Lazy;
 }

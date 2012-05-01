@@ -5,20 +5,18 @@
 
 #include "../wz/wz.h"
 #include <iostream>
-#include <ctime>
 #include <thread>
 using namespace std;
 
 int main() {
-    this_thread::sleep_for(chrono::seconds(1));
-    clock_t start = clock();
-    WZ::Paths.push_back("");
-    //WZ::Paths.push_back("C:/Nexon/MapleStory 40b/");
-    WZ::Paths.push_back("C:/Nexon/MapleStory 109/");
-	WZ::Paths.push_back("C:/Nexon/MapleStory/");
-    WZ::Paths.push_back("D:/Program Files (x86)/MapleStory_gms_109/");
-    WZ::Init();
-    clock_t end = clock();
-    cout << "Time taken: " << double(end-start)/CLOCKS_PER_SEC << " seconds" << endl;
-    cin.get();
+    chrono::high_resolution_clock clock;
+    WZ::AddPath("");
+    //WZ::AddPath("C:/Nexon/MapleStory 40b/");
+    WZ::AddPath("C:/Nexon/MapleStory 109/");
+    WZ::AddPath("C:/Nexon/MapleStory/");
+    WZ::AddPath("D:/Program Files (x86)/MapleStory_gms_109/");
+    chrono::high_resolution_clock::time_point start = clock.now();
+    WZ::Init(false);
+    chrono::high_resolution_clock::time_point end = clock.now();
+    cout << "Time taken: " << chrono::duration_cast<chrono::milliseconds>(end-start).count() << " ms" << endl;
 }
