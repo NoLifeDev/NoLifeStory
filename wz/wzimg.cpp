@@ -58,6 +58,7 @@ namespace WZ {
                 break;
             case 0x04:
                 if (file.Read<uint8_t>() == 0x80) n.g(name, i).Set(file.Read<float>());
+                else n.g(name, i).Set(0);
                 break;
             case 0x05:
                 n.g(name, i).Set(file.Read<double>());
