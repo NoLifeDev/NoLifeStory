@@ -22,7 +22,7 @@ namespace NL {
     MapFile file;
     uint32_t NodeCount;
     uint64_t NodeOffset;
-    Node* NodeTable;
+    Node::Data** NodeTable;
     uint32_t StringCount;
     uint64_t StringOffset;
     void** StringTable;
@@ -33,7 +33,7 @@ namespace NL {
     uint64_t SoundOffset;
     void** SoundTable;
     struct Node::Data {
-        Node parent;
+        Data* parent;
         void* name;
         union {
             int32_t ireal;
@@ -42,9 +42,9 @@ namespace NL {
             int32_t vector[2];
             Sprite sprite;
             Sound sound;
-            Node link;
+            Data* link;
         };
-        Node children;
+        Data* children;
         uint16_t num;
         enum class t : uint8_t {
             none = 0,
@@ -67,64 +67,66 @@ namespace NL {
             file.Skip(file.Read<uint16_t>());
         }
     }
+    Node::Data* buf;
+    int bi = 0;
+    int i = 0;
+    void ParseNode() {
+        Node::Data* n = NodeTable[i];
+        uint32_t nid = file.Read<uint32_t>();
+        n->name = StringTable[nid];
+        uint8_t type = file.Read<uint8_t>();
+        bool haschildren = !!(type & 0x80);
+        type = type & 0x7F;
+        n->type = static_cast<Node::Data::t>(type);
+        switch (type) {
+        case Node::Data::t::ireal:
+            n->ireal = file.Read<int32_t>();
+            break;
+        case Node::Data::t::dreal:
+            n->dreal = file.Read<double>();
+            break;
+        case Node::Data::t::string:
+            n->string = StringTable[file.Read<uint32_t>()];
+            break;
+        case Node::Data::t::vector:
+            n->vector[0] = file.Read<int32_t>();
+            n->vector[1] = file.Read<int32_t>();
+            break;
+        case Node::Data::t::sprite:
+            file.Read<uint32_t>();
+            //NodeTable[i].sprite = SpriteTable[file.Read<uint32_t>()];
+            break;
+        case Node::Data::t::sound:
+            file.Read<uint32_t>();
+            //NodeTable[i].sound = SoundTable[file.Read<uint32_t>()];
+            break;
+        case Node::Data::t::link:
+            n->link = NodeTable[file.Read<uint32_t>()];
+            break;
+        }
+        if (haschildren) {
+            uint16_t num = file.Read<uint16_t>();
+            n->num = num;
+            int b = bi+1;
+            n->children = &buf[b];
+            bi += num;
+            for (uint16_t j = 0; j < num; ++j) {
+                ++i;
+                NodeTable[i] = &buf[b+j];
+                NodeTable[i]->parent = n;
+                ParseNode();
+            }
+        } else {
+            n->num = 0;
+            n->children = nullptr;
+        }
+    }
     void LoadNodes() {
-        Node::Data* buf = new Node::Data[NodeCount];
-        int bi = 0;
-        int i = 0;
-        NodeTable[i].d = &buf[bi];
+        buf = new Node::Data[NodeCount];
+        NodeTable[i] = &buf[bi];
         NodeTable[i]->parent = NodeTable[i];
         file.Seek(NodeOffset);
-        function<void()> parse = [&]() {
-            Node n = NodeTable[i];
-            uint32_t nid = file.Read<uint32_t>();
-            n->name = StringTable[nid];
-            uint8_t type = file.Read<uint8_t>();
-            bool haschildren = !!(type & 0x80);
-            type = type & 0x7F;
-            n->type = static_cast<Node::Data::t>(type);
-            switch (type) {
-            case Node::Data::t::ireal:
-                n->ireal = file.Read<int32_t>();
-                break;
-            case Node::Data::t::dreal:
-                n->dreal = file.Read<double>();
-                break;
-            case Node::Data::t::string:
-                n->string = StringTable[file.Read<uint32_t>()];
-                break;
-            case Node::Data::t::vector:
-                n->vector[0] = file.Read<int32_t>();
-                n->vector[1] = file.Read<int32_t>();
-                break;
-            case Node::Data::t::sprite:
-                file.Read<uint32_t>();
-                //NodeTable[i].sprite = SpriteTable[file.Read<uint32_t>()];
-                break;
-            case Node::Data::t::sound:
-                file.Read<uint32_t>();
-                //NodeTable[i].sound = SoundTable[file.Read<uint32_t>()];
-                break;
-            case Node::Data::t::link:
-                n->link = NodeTable[file.Read<uint32_t>()];
-                break;
-            }
-            if (haschildren) {
-                uint16_t num = file.Read<uint16_t>();
-                n->num = num;
-                n->children = NodeTable[i+1];
-                for (uint16_t j = 0; j < num; ++j) {
-                    ++i;
-                    ++bi;
-                    NodeTable[i].d = &buf[bi];
-                    NodeTable[i]->parent = n;
-                    parse();
-                }
-            } else {
-                n->num = 0;
-                n->children.d = nullptr;
-            }
-        };
-        parse();
+        ParseNode();
     }
     void Load(string filename) {
         file.Open(filename);
@@ -132,7 +134,7 @@ namespace NL {
         if (magic != "PKG2") die();
         NodeCount = file.Read<uint32_t>();
         NodeOffset = file.Read<uint64_t>();
-        NodeTable = new Node[NodeCount];
+        NodeTable = new Node::Data*[NodeCount];
         StringCount = file.Read<uint32_t>();
         StringOffset = file.Read<uint64_t>();
         StringTable = new void*[StringCount];
