@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Copyright 2012 Peter Atechian (Retep998)                             //
 //////////////////////////////////////////////////////////////////////////
-// This file is part of NoLifeNx.                                       //
+// This file is part of the NoLifeStory project.                        //
 //                                                                      //
 // NoLifeStory is free software: you can redistribute it and/or modify  //
 // it under the terms of the GNU General Public License as published by //
@@ -32,6 +32,7 @@ namespace NL {
     uint32_t SoundCount;
     uint64_t SoundOffset;
     void** SoundTable;
+    Node Base;
     struct Node::Data {
         Data* parent;
         void* name;
@@ -46,25 +47,68 @@ namespace NL {
         };
         Data* children;
         uint16_t num;
-        enum class t : uint8_t {
-            none = 0,
-            ireal = 1,
-            dreal = 2,
-            string = 3,
-            vector = 4,
-            sprite = 5,
-            sound = 6,
-            link = 7
-        } type;
+        Type type;
     };
-    Node::Data* Node::operator->() {
-        return d;
+    uint16_t String::Size() {
+        if (!d) return 0;
+        return *(uint16_t*)d;
+    }
+    char* String::Data() {
+        if (!d) return 0;
+        return (char*)d+2;
+    }
+    String::operator string() {
+        if (!d) return string();
+        return string(Data(), Size());
+    }
+    Node Node::begin() {
+        if (!d) return Node();
+        return d->children;
+    }
+    Node Node::end() {
+        if (!d) return Node();
+        return d->children + d->num;
+    }
+    Node Node::operator*() {
+        return *this;
+    }
+    Node Node::operator++() {
+        return ++d;
+    }
+    Node Node::operator++(int) {
+        return d++;
+    }
+    bool Node::operator==(Node o) {
+        return d == o.d;
+    }
+    bool Node::operator!=(Node o) {
+        return d != o.d;
+    }
+    String Node::Name() {
+        String s;
+        if (!d) s.d = nullptr;
+        else s.d = d->name;
+        return s;
+    }
+    Node::Type Node::T() {
+        if (!d) return Type::none;
+        return d->type;
     }
     void LoadStrings() {
         file.Seek(StringOffset);
         for (uint32_t i = 0; i < StringCount; ++i) {
             StringTable[i] = file.TellPtr();
             file.Skip(file.Read<uint16_t>());
+        }
+    }
+    void LoadSprites() {
+        for (uint32_t i = 0; i < SpriteCount; ++i) {
+            SpriteTable[i] = file.base+file.Read<uint64_t>();
+        }
+    }
+    void LoadSounds() {
+        for (uint32_t i = 0; i < SoundCount; ++i) {
+            SoundTable[i] = file.base+file.Read<uint64_t>();
         }
     }
     Node::Data* buf;
@@ -77,30 +121,30 @@ namespace NL {
         uint8_t type = file.Read<uint8_t>();
         bool haschildren = !!(type & 0x80);
         type = type & 0x7F;
-        n->type = static_cast<Node::Data::t>(type);
+        n->type = static_cast<Node::Type>(type);
         switch (type) {
-        case Node::Data::t::ireal:
+        case Node::Type::ireal:
             n->ireal = file.Read<int32_t>();
             break;
-        case Node::Data::t::dreal:
+        case Node::Type::dreal:
             n->dreal = file.Read<double>();
             break;
-        case Node::Data::t::string:
+        case Node::Type::string:
             n->string = StringTable[file.Read<uint32_t>()];
             break;
-        case Node::Data::t::vector:
+        case Node::Type::vector:
             n->vector[0] = file.Read<int32_t>();
             n->vector[1] = file.Read<int32_t>();
             break;
-        case Node::Data::t::sprite:
+        case Node::Type::sprite:
             file.Read<uint32_t>();
             //NodeTable[i].sprite = SpriteTable[file.Read<uint32_t>()];
             break;
-        case Node::Data::t::sound:
+        case Node::Type::sound:
             file.Read<uint32_t>();
             //NodeTable[i].sound = SoundTable[file.Read<uint32_t>()];
             break;
-        case Node::Data::t::link:
+        case Node::Type::link:
             n->link = NodeTable[file.Read<uint32_t>()];
             break;
         }
@@ -127,6 +171,11 @@ namespace NL {
         NodeTable[i]->parent = NodeTable[i];
         file.Seek(NodeOffset);
         ParseNode();
+        Base.d = NodeTable[0];
+        char* s = new char[6];
+        memcpy(s+2, "Base", 4);
+        *(uint16_t*)s = 4;
+        Base.d->name = s;
     }
     void Load(string filename) {
         file.Open(filename);
@@ -145,6 +194,8 @@ namespace NL {
         SoundOffset = file.Read<uint64_t>();
         SoundTable = new void*[SoundCount];
         LoadStrings();
+        LoadSprites();
+        LoadSounds();
         LoadNodes();
     }
 }

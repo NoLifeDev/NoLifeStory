@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Copyright 2012 Peter Atechian (Retep998)                             //
 //////////////////////////////////////////////////////////////////////////
-// This file is part of NoLifeNx.                                       //
+// This file is part of the NoLifeStory project.                        //
 //                                                                      //
 // NoLifeStory is free software: you can redistribute it and/or modify  //
 // it under the terms of the GNU General Public License as published by //
@@ -19,43 +19,33 @@
 #include "Global.h"
 
 namespace NL {
-    struct MapFile::Data {
-        HANDLE file;
-        HANDLE map;
-        void* data;
-    };
-    void MapFile::operator=(MapFile other) {
-        d = other.d;
-        off = other.off;
-    }
     void MapFile::Open(string filename) {
-        d = new Data();
-        d->file = CreateFileA(string(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, NULL, NULL);
-        if (d->file == INVALID_HANDLE_VALUE) die();
-        d->map = CreateFileMappingA(d->file, NULL, PAGE_READONLY, 0, 0, NULL);
-        if (!d->map) die();
-        d->data = MapViewOfFile(d->map, FILE_MAP_READ, 0, 0, 0);
-        if (!d->data) die();
-        off = 0;
+        HANDLE file = CreateFileA(string(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, NULL, NULL);
+        if (file == INVALID_HANDLE_VALUE) die();
+        HANDLE map = CreateFileMappingA(file, NULL, PAGE_READONLY, 0, 0, NULL);
+        if (!map) die();
+        base = reinterpret_cast<char*>(MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0));
+        if (!base) die();
+        off = base;
     }
     uint64_t MapFile::Tell() {
-        return off;
+        return off - base;
     }
     void* MapFile::TellPtr() {
-        return (char*)d->data + off;
+        return off;
     }
     void MapFile::Seek(uint64_t o) {
-        off = o;
+        off = base + o;
     }
     void MapFile::Skip(uint64_t o) {
         off += o;
     }
     void* MapFile::ReadBin(uint64_t size) {
-        void* a = (char*)d->data + off;
+        void* a = off;
         off += size;
         return a;
     }
     string MapFile::ReadString(uint16_t length) {
-        return string((char*)ReadBin(length), length);
+        return string(reinterpret_cast<char*>(ReadBin(length)), length);
     }
 }

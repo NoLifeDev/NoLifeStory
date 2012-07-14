@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Copyright 2012 Peter Atechian (Retep998)                             //
 //////////////////////////////////////////////////////////////////////////
-// This file is part of NoLifeNx.                                       //
+// This file is part of the NoLifeStory project.                        //
 //                                                                      //
 // NoLifeStory is free software: you can redistribute it and/or modify  //
 // it under the terms of the GNU General Public License as published by //
@@ -21,13 +21,14 @@
 #include <Psapi.h>
 #include <iostream>
 using namespace std;
+using namespace NL;
 
 int main() {
     //freopen("dump.txt", "w", stdout);
     LARGE_INTEGER freq, last, now;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&last);
-    NL::Load("Data.nx");
+    Load("Data.nx");
     QueryPerformanceCounter(&now);
     cout << "Time taken: " << double(now.QuadPart-last.QuadPart)/freq.QuadPart << endl;
     PROCESS_MEMORY_COUNTERS proc;
