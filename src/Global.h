@@ -23,6 +23,5 @@
 #include <cstdint>
 #include <string>
 using namespace std;
-#define die() throw(273)
 #include "MapFile.h"
 #include "NX.h"

@@ -21,11 +21,11 @@
 namespace NL {
     void MapFile::Open(string filename) {
         HANDLE file = CreateFileA(string(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, NULL, NULL);
-        if (file == INVALID_HANDLE_VALUE) die();
+        if (file == INVALID_HANDLE_VALUE) throw;
         HANDLE map = CreateFileMappingA(file, NULL, PAGE_READONLY, 0, 0, NULL);
-        if (!map) die();
+        if (!map) throw;
         base = reinterpret_cast<char*>(MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0));
-        if (!base) die();
+        if (!base) throw;
         off = base;
     }
     uint64_t MapFile::Tell() {
@@ -39,13 +39,5 @@ namespace NL {
     }
     void MapFile::Skip(uint64_t o) {
         off += o;
-    }
-    void* MapFile::ReadBin(uint64_t size) {
-        void* a = off;
-        off += size;
-        return a;
-    }
-    string MapFile::ReadString(uint16_t length) {
-        return string(reinterpret_cast<char*>(ReadBin(length)), length);
     }
 }

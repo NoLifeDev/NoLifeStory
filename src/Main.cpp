@@ -20,18 +20,19 @@
 #include <Windows.h>
 #include <Psapi.h>
 #include <iostream>
+#include <thread>
 using namespace std;
 using namespace NL;
 
 int main() {
-    //freopen("dump.txt", "w", stdout);
     LARGE_INTEGER freq, last, now;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&last);
     Load("Data.nx");
     QueryPerformanceCounter(&now);
-    cout << "Time taken: " << double(now.QuadPart-last.QuadPart)/freq.QuadPart << endl;
+    cout << "Time taken: " << 1000.*(now.QuadPart-last.QuadPart)/freq.QuadPart << "ms" << endl;
     PROCESS_MEMORY_COUNTERS proc;
     GetProcessMemoryInfo(GetCurrentProcess(), &proc, sizeof(proc));
-    cout << "Memory usage: " << proc.PeakWorkingSetSize << endl;
+    cout << "Memory usage: " << proc.PeakPagefileUsage/1000 << "KB" << endl;
+    
 }

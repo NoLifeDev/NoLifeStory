@@ -33,7 +33,7 @@ namespace NL {
     class Node {
     public:
         struct Data;
-        enum class Type : uint8_t {
+        enum class Type : uint16_t {
             none = 0,
             ireal = 1,
             dreal = 2,
@@ -41,20 +41,24 @@ namespace NL {
             vector = 4,
             sprite = 5,
             sound = 6,
-            link = 7
         };
         Node() : d(nullptr) {}
         Node(Data* d) : d(d) {}
         Node(const Node& o) : d(o.d) {}
-        Node begin();
-        Node end();
-        Node operator*();
+        Node begin() const;
+        Node end() const;
+        Node operator*() const;
         Node operator++();
         Node operator++(int);
-        bool operator==(Node);
-        bool operator!=(Node);
-        String Name();
-        Type T();
+        bool operator==(Node) const;
+        bool operator!=(Node) const;
+        Node& operator=(Node);
+        Node operator[](std::string) const;
+        Node operator[](char*) const;
+        Node operator[](const char*) const;
+        Node Get(const char*, uint16_t) const;
+        String Name() const;
+        Type T() const;
         Data* d;
     };
     extern Node Base;

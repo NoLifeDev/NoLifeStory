@@ -16,7 +16,6 @@
 // You should have received a copy of the GNU General Public License    //
 // along with NoLifeStory.  If not, see <http://www.gnu.org/licenses/>. //
 //////////////////////////////////////////////////////////////////////////
-
 namespace NL {
     class MapFile {
     public:
@@ -26,10 +25,10 @@ namespace NL {
         void Seek(uint64_t);
         void Skip(uint64_t);
         template <class T> T Read() {
-            return *reinterpret_cast<T*>(ReadBin(sizeof(T)));
+            T& v = *reinterpret_cast<T*>(TellPtr());
+           Skip(sizeof(T));
+           return v;
         }
-        void* ReadBin(uint64_t size);
-        string ReadString(uint16_t length);
         char* base;
         char* off;
     };
