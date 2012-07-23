@@ -24,15 +24,29 @@
 using namespace std;
 using namespace NL;
 
+void recurse(Node n) {
+    for (Node nn : n) recurse(nn);
+}
 int main() {
     LARGE_INTEGER freq, last, now;
     QueryPerformanceFrequency(&freq);
     QueryPerformanceCounter(&last);
-    Load("Data.nx");
+    Load("Data.nx");//Actually runs 1000 times internally
     QueryPerformanceCounter(&now);
-    cout << "Time taken: " << 1000.*(now.QuadPart-last.QuadPart)/freq.QuadPart << "ms" << endl;
+    cout << "Load: " << 1000*(now.QuadPart-last.QuadPart)/freq.QuadPart << " microseconds" << endl;
+    QueryPerformanceCounter(&last);
+    Node nn;
+    for (int n = 0; n < 1000000; ++n) {
+        nn = Base["Effect"]["BasicEff.img"]["LevelUp"]["5"]["origin"];
+    }
+    QueryPerformanceCounter(&now);
+    cout << nn.X() << endl;
+    cout << "Access: " << 1000*(now.QuadPart-last.QuadPart)/freq.QuadPart << " milliseconds" << endl;
+    QueryPerformanceCounter(&last);
+    recurse(Base);
+    QueryPerformanceCounter(&now);
+    cout << "Recursion: " << 1000*(now.QuadPart-last.QuadPart)/freq.QuadPart << " milliseconds" << endl;
     PROCESS_MEMORY_COUNTERS proc;
     GetProcessMemoryInfo(GetCurrentProcess(), &proc, sizeof(proc));
-    cout << "Memory usage: " << proc.PeakPagefileUsage/1000 << "KB" << endl;
-    
+    cout << "Memory usage: " << proc.PeakPagefileUsage/1000 << " kilobytes" << endl;
 }

@@ -21,9 +21,9 @@
 namespace NL {
     class String {
     public:
-        uint16_t Size();
-        char* Data();
-        operator std::string();
+        uint16_t Size() const;
+        char* Data() const;
+        operator std::string() const;
         void* d;
     };
     class Sprite {
@@ -56,8 +56,10 @@ namespace NL {
         Node operator[](std::string) const;
         Node operator[](char*) const;
         Node operator[](const char*) const;
-        Node Get(const char*, uint16_t) const;
+        Node Get(const char*, size_t) const;
+        int32_t X() const;
         String Name() const;
+        size_t Num() const;
         Type T() const;
         Data* d;
     };
