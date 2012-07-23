@@ -7,32 +7,22 @@
 class MapFile {
 public:
     void Open(string filename);
-    void Map(uint32_t base, uint32_t len);
-    MapFile() : off(0), moff(0), data(0), delta(0), d(0) {}
-    MapFile(const MapFile& other) : off(0), moff(0), data(0), delta(0), d(other.d) {}
-    void Unmap();
-    uint32_t Tell();
-    void Seek(uint32_t);
-    void Skip(uint32_t);
-    template <class T> T Read() {
-        return *(T*)ReadBin(sizeof(T));
+    uint64_t Tell();
+    void* TellPtr();
+    void Seek(uint64_t);
+    void Skip(uint64_t);
+    void* ReadBin(uint64_t size);
+    template <typename T> T Read() {
+        return*reinterpret_cast<T*>(ReadBin(sizeof(T)));
     }
     int32_t ReadCInt();
     char* ReadEncString();
-    char* ReadString();
-    char* ReadString(int32_t len);
-    char* ReadTypeString();
-    wchar_t* ReadWString(int32_t len);
+    char* ReadPropString(uint32_t offset);
     uint32_t ReadOffset(uint32_t fileStart);
 private:
-    void* ReadBin(uint32_t size);
-    struct Data;
-    Data* d;
-    uint32_t off;
-    uint32_t moff;
-    char* data;
-    uint32_t delta;
+    char* base;
+    char* off;
 };
-
-char* to_cstring(int);
-char* AllocString(size_t len);
+char* ToString(int);
+string ToString(char*);
+char* AllocString(uint16_t len);

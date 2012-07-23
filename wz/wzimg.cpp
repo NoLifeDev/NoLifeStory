@@ -7,8 +7,20 @@
 
 namespace WZ {
     vector<Img*> Img::Imgs;
+    void* Img::operator new(size_t size) {
+        static char* nbuf = nullptr;
+        static size_t nrem = 0;
+        if (size > nrem) {
+            nbuf = (char*)malloc(0x10000);
+            nrem = 0x10000;
+        }
+        nrem -= size;
+        void* r = nbuf;
+        nbuf += size;
+        return r;
+    }
     void Img::ExtendedProperty(Node n) {
-        char* name = file.ReadTypeString();
+        char* name = file.ReadPropString(offset);
         if (strcmp(name, "Property") == 0) {
             file.Skip(2);
             SubProperty(n);
@@ -27,12 +39,12 @@ namespace WZ {
         } else if (strcmp(name, "Shape2D#Convex2D") == 0) {
             int32_t ec = file.ReadCInt();
             n.Reserve(ec);
-            for (int i = 0; i < ec; ++i) ExtendedProperty(n.g(to_cstring(ec), i));
+            for (int i = 0; i < ec; ++i) ExtendedProperty(n.g(ToString(ec), i));
         } else if (strcmp(name, "Sound_DX8") == 0) {
             //new SoundProperty(file, n, offset);
         } else if (strcmp(name, "UOL") == 0) {
             file.Skip(1);
-            n.SetUOL(file.ReadTypeString());
+            n.SetUOL(file.ReadPropString(offset));
         } else {
             die();
             return;
@@ -43,7 +55,7 @@ namespace WZ {
         int32_t count = file.ReadCInt();
         n.Reserve(count);
         for (int i = 0; i < count; ++i) {
-            char* name = file.ReadTypeString();
+            char* name = file.ReadPropString(offset);
             uint8_t a = file.Read<uint8_t>();
             switch (a) {
             case 0x00:
@@ -64,7 +76,7 @@ namespace WZ {
                 n.g(name, i).Set(file.Read<double>());
                 break;
             case 0x08:
-                n.g(name, i).Set(file.ReadTypeString());
+                n.g(name, i).Set(file.ReadPropString(offset));
                 break;
             case 0x09:
                 {
@@ -82,7 +94,7 @@ namespace WZ {
     };
 
     void Img::Parse() {
-        file.Map(offset, size);
+        file.Seek(offset);
         uint8_t a = file.Read<uint8_t>();
         if (a != 0x73) {
             die();
@@ -90,7 +102,7 @@ namespace WZ {
         }
         bool success = false;
         for (int i = 0; i < 3; ++i) {
-            file.Seek(1);
+            file.Seek(offset+1);
             Key = Keys[i];
             AKey = AKeys[i];
             WKey = WKeys[i];
@@ -110,8 +122,6 @@ namespace WZ {
         if (Lazy) {
             n.Resolve();
         }
-        file.Unmap();
-        delete this;
     }
 
     PNGProperty::PNGProperty(MapFile file, Node n, uint32_t off) {

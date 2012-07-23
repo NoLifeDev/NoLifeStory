@@ -35,6 +35,7 @@ namespace WZ {
                 else n.Set(this);
         }
         void Parse();
+        void* operator new(size_t);
     private:
         Node n;
         MapFile file;

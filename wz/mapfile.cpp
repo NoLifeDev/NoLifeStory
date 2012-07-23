@@ -7,152 +7,93 @@
 #include <Windows.h>
 #include "wzmain.h"
 
-codecvt_utf8<wchar_t> conv;
-
-char* to_cstring(int n) {
-    char* s = new char[0x20];
-    sprintf(s, "%i", n);
+char* ToString(int n) {
+    string str = to_string(n);
+    char* s = AllocString(str.length()+1);
+    memcpy(s, str.c_str(), str.length()+1);
     return s;
 }
-
-static char* adata = nullptr;
-static size_t aremain = 0;
-
-char* AllocString(size_t len) {
+char* AllocString(uint16_t len) {
+    static char* adata = nullptr;
+    static uint32_t aremain = 0;
     if (aremain < len) {
-        adata = (char*)calloc(0x10000, 1);
-        aremain = 0x10000;
+        adata = (char*)malloc(0x100000);
+        aremain = 0x100000;
     }
     char* r = adata;
     aremain -= len;
     adata += len;
     return r;
 }
-
-struct MapFile::Data {
-    Data() :file(0) {}
-    HANDLE file;
-    HANDLE map;
-    uint32_t size;
-    uint32_t gran;
-};
-
 void MapFile::Open(string filename) {
-    d = new Data();
-    SYSTEM_INFO sys;
-    GetSystemInfo(&sys);
-    d->gran = sys.dwAllocationGranularity;
-    d->file = CreateFileA(string(filename).c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, NULL, NULL);
-    if (d->file == INVALID_HANDLE_VALUE) die();
-    d->size = GetFileSize(d->file, NULL);
-    d->map = CreateFileMappingA(d->file, NULL, PAGE_READONLY, 0, 0, NULL);
-    off = 0;
-    moff = 0;
-    delta = 0;
-    data = nullptr;
+    HANDLE file = CreateFileA(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, NULL, NULL);
+    if (file == INVALID_HANDLE_VALUE) throw("Failed to open file");
+    HANDLE map = CreateFileMappingA(file, NULL, PAGE_READONLY, 0, 0, NULL);
+    if (!map) throw("Failed to create file mapping");
+    base = reinterpret_cast<char*>(MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0));
+    if (!base) throw("Failed to map view of file");
+    off = base;
 }
-
-void MapFile::Map(uint32_t base, uint32_t len) {
-    if (data) {
-        UnmapViewOfFile(data-delta);
-    }
-    delta = base%d->gran;
-    moff = base-delta;
-    off = 0;
-    data = (char*)MapViewOfFile(d->map, FILE_MAP_READ, 0, moff, min(len+delta, d->size-moff))+delta;
+uint64_t MapFile::Tell() {
+    return off - base;
 }
-
-void MapFile::Unmap() {
-    if (data) {
-        UnmapViewOfFile(data-delta);
-        data = nullptr;
-    }
-}
-
-uint32_t MapFile::Tell() {
+void* MapFile::TellPtr() {
     return off;
 }
-
-void MapFile::Seek(uint32_t o) {
-    off = o;
+void MapFile::Seek(uint64_t o) {
+    off = base + o;
 }
-
-void MapFile::Skip(uint32_t o) {
+void MapFile::Skip(uint64_t o) {
     off += o;
 }
-
-void* MapFile::ReadBin(uint32_t size) {
-    void* a = &data[off];
+void* MapFile::ReadBin(uint64_t size) {
+    void* a = off;
     off += size;
     return a;
 }
-
 int32_t MapFile::ReadCInt() {
     int8_t a = Read<int8_t>();
     if (a != -128) return a;
     else return Read<int32_t>();
 }
-
-char* MapFile::ReadString() {
-    int len = 0;
-    for (;data[off+len] != '\0'; ++len);
-    char* s = AllocString(len+1);
-    memcpy(s, data+off, len+1);
-    off += len+1;
-    return s;
-}
-
-char* MapFile::ReadString(int32_t len) {
-    char* s = AllocString(len+1);
-    memcpy(s, data+off, len);
-    s[len] = '\0';
-    off += len;
-    return s;
-}
-
-wchar_t* MapFile::ReadWString(int32_t len) {
-    char* s = AllocString(2*len+3);
-    if ((intptr_t)s&1) ++s;
-    wchar_t* ws = (wchar_t*)s;
-    memcpy(s, data+off, 2*len);
-    ws[len] = L'\0';
-    off += 2*len;
-    return ws;
-}
-
 char* MapFile::ReadEncString() {
-    int8_t slen = Read<int8_t>();
-    if (slen == 0) return nullptr;
-    else if (slen > 0) {
-        int32_t len;
-        if (slen == 127) len = Read<int32_t>();
-        else len = slen;
+    static codecvt_utf8<char16_t> conv;
+    static char16_t ws[0x8000];
+    static char ns[0x10000];
+    int32_t len = Read<int8_t>();
+    if (len == 0) return nullptr;
+    else if (len > 0) {
+        if (len == 127) len = Read<int32_t>();
         if (len <= 0) return nullptr;
-        wchar_t* ws = ReadWString(len);
-        for (int i = 0; i < len; ++i) {
-            ws[i] ^= WZ::WKey[i];
+        char16_t* ows = reinterpret_cast<char16_t*>(ReadBin(len*2));
+        __m128i *m1 = reinterpret_cast<__m128i*>(ws), *m2 = reinterpret_cast<__m128i*>(ows), *m3 = reinterpret_cast<__m128i*>(WZ::WKey);
+        for (int i = 0; i <= len>>3; ++i) {
+            _mm_store_si128(m1+i, _mm_xor_si128(_mm_loadu_si128(m2+i), _mm_load_si128(m3+i)));
         }
-        char* s = AllocString(len*conv.max_length());
         mbstate_t state;
-        const wchar_t* fnext;
+        const char16_t* fnext;
         char* tnext;
-        conv.out(state, ws, ws+len, fnext, s, s+len*conv.max_length(), tnext);
-        *tnext = '\0';
+        conv.out(state, ws, ws+len, fnext, ns, ns+0x10000, tnext);
+        char* s = AllocString(tnext-ns+1);
+        memcpy(s, ns, tnext-ns+1);
+        s[tnext-ns] = '\0';
         return s;
     } else {
-        int32_t len;
-        if (slen == -128) len = Read<int32_t>();
-        else len = -slen;
+        if (len == -128) len = Read<int32_t>();
+        else len = -len;
         if (len <= 0) return nullptr;
-        char* s = ReadString(len);
-        for (int i = 0; i < len; ++i) {
-            s[i] ^= WZ::AKey[i];
+        char* os = reinterpret_cast<char*>(ReadBin(len));
+        __m128i *m1 = reinterpret_cast<__m128i*>(ns), *m2 = reinterpret_cast<__m128i*>(os), *m3 = reinterpret_cast<__m128i*>(WZ::AKey);
+        for (int i = 0; i <= len>>4; ++i) {
+            _mm_store_si128(m1+i, _mm_xor_si128(_mm_loadu_si128(m2+i), _mm_load_si128(m3+i)));
         }
+        char* s = AllocString(len+1);
+        memcpy(s, ns, len);
+        s[len] = '\0';
         return s;
     }
 }
-
-char* MapFile::ReadTypeString() {
+char* MapFile::ReadPropString(uint32_t offset) {
     uint8_t a = Read<uint8_t>();
     switch (a) {
     case 0x00:
@@ -161,22 +102,19 @@ char* MapFile::ReadTypeString() {
     case 0x01:
     case 0x1B:
         {
-            uint32_t o = Read<int32_t>();
-            uint32_t p = Tell();
+            uint32_t o = Read<uint32_t>()+offset;
+            uint64_t p = Tell();
             Seek(o);
             char* s = ReadEncString();
             Seek(p);
             return s;
         }
     default:
-        die();
-        return nullptr;
+        throw;
     }
 }
-
 uint32_t MapFile::ReadOffset(uint32_t fileStart) {
-    uint32_t p = off;
-    p = (p-fileStart)^0xFFFFFFFF;
+    uint32_t p = ~(off-base-fileStart);
     p *= WZ::VersionHash;
     p -= WZ::OffsetKey;
     p = (p<<(p&0x1F))|(p>>(32-p&0x1F));

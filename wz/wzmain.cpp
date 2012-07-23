@@ -17,18 +17,15 @@ namespace WZ {
         void Directory(Node n);
         uint32_t fileStart;
         MapFile file;
-        bool big;
     };
     File::File(Node n) {
-        big = false;
         path filename = Path/path(n.Name()+".wz");
         if (!exists(filename)) die();
         file.Open(filename);
-        file.Map(0, 0x100);
-        if (strcmp(file.ReadString(4), "PKG1") != 0) die();
+        if (file.Read<uint32_t>() != *(uint32_t*)"PKG1") throw;
         uint64_t fileSize = file.Read<uint64_t>();
         fileStart = file.Read<uint32_t>();
-        file.ReadString();
+        file.Seek(fileStart);
         if (!Version) {
             EncVersion = file.Read<int16_t>();
             int32_t count = file.ReadCInt();
@@ -62,11 +59,10 @@ namespace WZ {
                     for (int i = 0; i < l; ++i) VersionHash = 32*VersionHash+s[i]+1;
                     uint32_t result = 0xFF^(VersionHash>>24)^(VersionHash<<8>>24)^(VersionHash<<16>>24)^(VersionHash<<24>>24);
                     if (result == EncVersion) {
-                        file.Map(0, 0x100);
                         file.Seek(c);
                         uint32_t off = file.ReadOffset(fileStart);
                         if (off > fileSize) continue;
-                        file.Map(off, 0x100);
+                        file.Seek(off);
                         uint8_t a = file.Read<uint8_t>();
                         if(a != 0x73) continue;
                         string ss = file.ReadEncString();
@@ -77,7 +73,6 @@ namespace WZ {
                 }
             }
             if (!success) die();
-            file.Map(0, 0x100);
             file.Seek(fileStart+2);
         } else {
             int16_t eversion = file.Read<int16_t>();
@@ -86,7 +81,6 @@ namespace WZ {
         if (file.ReadCInt() == 0) die();
         file.Seek(fileStart+2);
         Directory(n);
-        file.Unmap();
         delete this;
     }
 
@@ -123,12 +117,6 @@ namespace WZ {
             } else if (type == 4) {
                 size_t len = strlen(name);
                 name[len-4] = '\0';
-                if (!big) {
-                    big = true;
-                    uint32_t p = file.Tell();
-                    file.Map(0, off);
-                    file.Seek(p);
-                }
                 new Img(file, n.g(name, i), fsize, off);
             } else die();
         }
