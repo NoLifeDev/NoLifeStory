@@ -16,16 +16,25 @@
 // You should have received a copy of the GNU General Public License    //
 // along with NoLifeStory.  If not, see <http://www.gnu.org/licenses/>. //
 //////////////////////////////////////////////////////////////////////////
+#include <cstring>
+#include "lz4.h"
+#include "NX.h"
 #ifdef _WIN32
 #define NL_WINDOWS
 #include <Windows.h>
+#elif defined __linux__
+#define NL_LINUX
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 #endif
-#include "lz4.h"
-#include "NX.h"
 
 namespace NL {
     namespace File {
         char* Base;
+#ifdef NL_WINDOWS
         HANDLE file = 0, map;
         void Open(std::string filename) {
             if (file) {
@@ -40,6 +49,23 @@ namespace NL {
             Base = reinterpret_cast<char*>(MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0));
             if (!Base) throw;
         }
+#elif defined NL_LINUX
+        int file = -1;
+        off_t fsize = 0;
+        void Open(std::string filename) {
+            if(file != -1) {
+                munmap(Base, fsize);
+                close(file);
+            }
+            file = open(filename.c_str(), O_RDONLY);
+            if(file == -1) throw;
+            struct stat finfo;
+            if(fstat(int(file), &finfo) == -1) throw;
+            fsize = finfo.st_size;
+            Base = reinterpret_cast<char*>(mmap(NULL, fsize, PROT_READ, MAP_SHARED, file, 0));
+            if(reinterpret_cast<size_t>(Base) == -1) throw;
+        }
+#endif
     }
 #pragma pack(1)
     struct Header {
