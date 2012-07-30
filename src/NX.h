@@ -65,4 +65,5 @@ namespace NL {
     };
     extern Node Base;
     void Load(std::string);
+    void Recurse(Node::Data* n);
 }

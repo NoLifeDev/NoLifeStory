@@ -15,13 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\MapFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\NX.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\lz4.h">
@@ -30,9 +24,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\NX.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\MapFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\lz4.c">

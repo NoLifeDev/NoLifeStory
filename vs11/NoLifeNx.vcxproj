@@ -145,14 +145,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\Global.h" />
     <ClInclude Include="..\src\lz4.h" />
-    <ClInclude Include="..\src\MapFile.h" />
     <ClInclude Include="..\src\NX.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\lz4.c" />
-    <ClCompile Include="..\src\MapFile.cpp" />
     <ClCompile Include="..\src\NX.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

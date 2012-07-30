@@ -21,32 +21,39 @@
 #include <Psapi.h>
 #include <iostream>
 #include <thread>
+#include <functional>
 using namespace std;
 using namespace NL;
 
-void recurse(Node n) {
-    for (Node nn : n) recurse(nn);
-}
-int main() {
-    LARGE_INTEGER freq, last, now;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&last);
-    Load("Data.nx");//Actually runs 1000 times internally
-    QueryPerformanceCounter(&now);
-    cout << "Load: " << 1000*(now.QuadPart-last.QuadPart)/freq.QuadPart << " microseconds" << endl;
-    QueryPerformanceCounter(&last);
-    Node nn;
-    for (int n = 0; n < 1000000; ++n) {
-        nn = Base["Effect"]["BasicEff.img"]["LevelUp"]["5"]["origin"];
+LARGE_INTEGER freq;
+
+void Test(function<void()> f, const char* name, size_t n) {
+    LARGE_INTEGER last, now;
+    size_t ticks;
+    for (size_t i = n; i > 0; --i) {
+        QueryPerformanceCounter(&last);
+        f();
+        QueryPerformanceCounter(&now);
+        size_t t = now.QuadPart - last.QuadPart;
+        if (i == n || t < ticks) {
+            ticks = t;
+        }
     }
-    QueryPerformanceCounter(&now);
-    cout << nn.X() << endl;
-    cout << "Access: " << 1000*(now.QuadPart-last.QuadPart)/freq.QuadPart << " milliseconds" << endl;
-    QueryPerformanceCounter(&last);
-    recurse(Base);
-    QueryPerformanceCounter(&now);
-    cout << "Recursion: " << 1000*(now.QuadPart-last.QuadPart)/freq.QuadPart << " milliseconds" << endl;
+    size_t s = ticks/freq.QuadPart;
+    size_t ms = 1000*ticks/freq.QuadPart%1000;
+    size_t us = 1000000*ticks/freq.QuadPart%1000;
+    size_t ns = 1000000000*ticks/freq.QuadPart%1000;
+    cout << name << ": " << s << "s " << ms << "ms " << us << "us " << ns << "ns " << ticks << " ticks" << endl;
+}
+
+int main() {
+    QueryPerformanceFrequency(&freq);
+    Test([&](){Load("Data.nx");}, "Load", 1000);
+    Node nn;
+    Test([&](){for (size_t i = 1000000; i > 0; --i) nn = Base["Effect"]["BasicEff.img"]["LevelUp"]["5"]["origin"];}, "Access", 10);
+    volatile int x = nn.X();
+    Test([&](){NL::Recurse(Base.d);}, "Recursion", 10);
     PROCESS_MEMORY_COUNTERS proc;
     GetProcessMemoryInfo(GetCurrentProcess(), &proc, sizeof(proc));
-    cout << "Memory usage: " << proc.PeakPagefileUsage/1000 << " kilobytes" << endl;
+    cout << "Memory usage: " << proc.PeakPagefileUsage/1000 << "kb " << proc.PeakPagefileUsage%1000 << "b " << endl;
 }
