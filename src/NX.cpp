@@ -188,9 +188,6 @@ namespace NL {
         size_t i = n->num;
         if (!i) return;
         Node::Data* d = NodeTable + n->children;
-        loop:
-        Recurse(d);
-        ++d;
-        if (!!--i) goto loop;
+        for (; i--; Recurse(d++));
     }
 }
