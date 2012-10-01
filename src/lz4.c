@@ -138,6 +138,7 @@
 //**************************************
 #include <stdlib.h>   // for malloc
 #include <string.h>   // for memset
+#include <intrin.h>
 #include "lz4.h"
 
 

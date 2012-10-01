@@ -19,12 +19,19 @@
 #include <string>
 #include <cstdint>
 namespace NL {
+    class String;
+    class Sprite;
+    class Sound;
+    class Node;
+    class File;
     class String {
     public:
         uint16_t Size() const;
-        char* Data() const;
+        const char * Data() const;
         operator std::string() const;
-        void* d;
+    private:
+        void * d;
+        friend Node;
     };
     class Sprite {
     };
@@ -32,19 +39,6 @@ namespace NL {
     };
     class Node {
     public:
-        struct Data;
-        enum class Type : uint16_t {
-            none = 0,
-            ireal = 1,
-            dreal = 2,
-            string = 3,
-            vector = 4,
-            sprite = 5,
-            sound = 6,
-        };
-        Node() : d(nullptr) {}
-        Node(Data* d) : d(d) {}
-        Node(const Node& o) : d(o.d) {}
         Node begin() const;
         Node end() const;
         Node operator*() const;
@@ -54,16 +48,43 @@ namespace NL {
         bool operator!=(Node) const;
         Node& operator=(Node);
         Node operator[](std::string) const;
-        Node operator[](char*) const;
-        Node operator[](const char*) const;
-        Node Get(const char*, size_t) const;
+        Node operator[](char *) const;
+        Node operator[](const char *) const;
+        Node Get(const char *, size_t) const;
         int32_t X() const;
         String Name() const;
         size_t Num() const;
+        enum class Type : uint16_t {
+            none = 0,
+            ireal = 1,
+            dreal = 2,
+            string = 3,
+            vector = 4,
+            sprite = 5,
+            sound = 6,
+        };
         Type T() const;
-        Data* d;
+    private:
+        struct Data;
+        static Node Construct(Data *, File *);
+        Data * d;
+        File * f;
+        friend File;
     };
-    extern Node Base;
-    void Load(std::string);
-    void Recurse(Node::Data* n);
+    class File {
+    public:
+        File(std::string);
+        ~File();
+        Node Base();
+    private:
+        void * file;
+        void * map;
+        size_t size;
+        void * base;
+        struct Header;
+        Header * head;
+        uint64_t * stable;
+        Node::Data * ntable;
+        friend Node;
+    };
 }
