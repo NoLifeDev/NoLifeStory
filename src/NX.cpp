@@ -19,6 +19,7 @@
 #include "NX.h"
 #include "lz4.h"
 #include <cstring>
+#include <iostream>
 #ifdef _WIN32
 #define NL_WINDOWS
 #define NOMINMAX
@@ -74,11 +75,11 @@ namespace NL {
         return std::string(Data(), Size());
     }
     Node Node::begin() const {
-        if (!d) return Node();
+        if (!d) return Construct(nullptr, f);
         return Construct(f->ntable + d->children, f);
     }
     Node Node::end() const {
-        if (!d) return Node();
+        if (!d) return Construct(nullptr, f);
         return Construct(f->ntable + d->children + d->num, f);
     }
     Node Node::operator*() const {
@@ -96,12 +97,11 @@ namespace NL {
     bool Node::operator!=(Node o) const {
         return d != o.d;
     }
-    Node& Node::operator=(Node o) {
-        d = o.d;
-        return *this;
-    }
     Node Node::operator[](std::string o) const {
         return Get(o.c_str(), o.length());
+    }
+    Node Node::operator[](String o) const {
+        return Get(o.Data(), o.Size());
     }
     Node Node::operator[](char * o) const {
         return Get(o, strlen(o));
@@ -110,14 +110,41 @@ namespace NL {
         return Get(o, strlen(o));
     }
     Node Node::Get(const char * o, size_t l) const {
-        if (!d) return Node();
-        Data * nd = f->ntable + d->children;
-        for (size_t i = d->num; i; --i, ++nd) {
-            char * s = reinterpret_cast<char *>(f->base) + f->stable[nd->name];
-            if (*reinterpret_cast<uint16_t *>(s) != l) continue;
-            if (!memcmp(o, s + 2, l)) return Construct(nd, f);
-        }
-        return Node();
+        if (!d) return Construct(nullptr, f);
+        Data * p = f->ntable + d->children;
+        size_t n = d->num;
+        if (!n) return Construct(nullptr, f);
+        do {
+            size_t n2 = n >> 1;
+            Data * p2 = p + n2;
+            char * s = reinterpret_cast<char *>(f->base) + f->stable[p2->name];
+            size_t l1 = *reinterpret_cast<uint16_t *>(s);
+            if (l1 < l) {
+                int r = memcmp(s + 2, o, l1);
+                if (r > 0) goto greater;
+                else goto lesser;
+            } else if (l1 > l) {
+                int r = memcmp(s + 2, o, l);
+                if (r < 0) goto lesser;
+                else goto greater;
+            } else {
+                int r = memcmp(s + 2, o, l);
+                if (r < 0) goto lesser;
+                else if (r > 0) goto greater;
+                else return Construct(p2, f);
+            }
+        lesser:
+            p = p2 + 1;
+            n -= n2 + 1;
+            continue;
+        greater:
+            n = n2;
+            continue;
+        } while (n);
+        char * s = reinterpret_cast<char *>(f->base) + f->stable[p->name];
+        if (*reinterpret_cast<uint16_t *>(s) != l) return Construct(nullptr, f);
+        if (!memcmp(o, s + 2, l)) return Construct(p, f);
+        return Construct(nullptr, f);
     }
     int32_t Node::X() const {
         if (!d) return 0;
@@ -157,7 +184,7 @@ namespace NL {
         struct stat finfo;
         if (fstat(int(file), &finfo) == -1) throw;
         size = finfo.st_size;
-        base = mmap(NULL, fsize, PROT_READ, MAP_SHARED, file, 0);
+        base = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
         if (reinterpret_cast<size_t>(base) == -1) throw;
 #endif
         head = reinterpret_cast<Header*>(base);

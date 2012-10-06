@@ -1,7 +1,20 @@
-﻿*.tlog
+﻿
+*.manifest
+*.exe
+*.tlog
 *.txt
 *.nx
 *.log
+*.1.tlog
+*.lastbuildstate
+*.embed.manifest
+*.manifest.res
+*.res
+*.rc
+*.idb
+*.vspx
+*.intermediate.manifest
+*.lib
 
 
 #################

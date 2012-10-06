@@ -46,8 +46,8 @@ namespace NL {
         Node operator++(int);
         bool operator==(Node) const;
         bool operator!=(Node) const;
-        Node& operator=(Node);
         Node operator[](std::string) const;
+        Node operator[](String) const;
         Node operator[](char *) const;
         Node operator[](const char *) const;
         Node Get(const char *, size_t) const;

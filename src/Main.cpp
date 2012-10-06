@@ -29,60 +29,38 @@
 #include <functional>
 #include <iomanip>
 
-#ifdef _WIN32
-void Test(std::function<void()> f, const char * name, size_t n, size_t d) {
-    uint64_t ticks = -1;
-    for (size_t i = n; i; --i) {
-        uint64_t last = __rdtsc();
-        for (size_t j = d; j; --j) f();
-        uint64_t now = __rdtsc();
-        ticks = std::min(now - last, ticks);
-    }
-    std::cout << std::setw(28) << name << ": " << ticks/d << " cycles" << std::endl;
-}
-#elif defined __linux__
-void Test(std::function<void()> f, const char * name, size_t n) {
-    timespec last, now;
-    size_t time;
-    for (size_t i = n; i > 0; --i) {
-        clock_gettime(CLOCK_MONOTONIC, &last);
-        f();
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        size_t t = now.tv_nsec - last.tv_nsec;
-        if (i == n || t < time) {
-            time = t;
-        }
-    }
-    size_t s = time/1000000000;
-    size_t ms = time/1000000;
-    size_t us = time/1000;
-    size_t ns = time;
-    cout << name << ": " << s << "s " << ms << "ms " << us << "us " << ns << "ns " << endl;
-}
-#endif
-
+struct Result {
+    size_t Count;
+    size_t Total;
+} Table[0x800];
 void Recurse(NL::Node n) {
+    if (!n.Num()) return;
+    uint64_t last = __rdtsc();
+    NL::Node nnn;
+    for (NL::Node nn : n) nnn = n[nn.Name()];
+    volatile int32_t x = nnn.X();
+    uint64_t now = __rdtsc();
+    Table[n.Num()].Count++;
+    Table[n.Num()].Total += now - last;
     for (NL::Node nn : n) Recurse(nn);
 }
 
 int main() {
-    Test([&](){delete new NL::File("Data.nx");}, "Load", 1000, 1);
     NL::Node n;
     NL::File file("Data.nx");
-    Test([&](){n = file.Base()["Effect"]["BasicEff.img"]["LevelUp"]["5"]["origin"];}, "Access", 1000, 1000);
-    volatile int x = n.X();
-    Test([&](){Recurse(file.Base());}, "Recursion", 10, 1);
+    Recurse(file.Base());
+    for (size_t i = 0; i < 0x800; ++i) if (Table[i].Count) std::cout << std::setw(4) << i << ": " << Table[i].Total / (Table[i].Count * i) << std::endl;
 #ifdef _WIN32
     PROCESS_MEMORY_COUNTERS proc;
     GetProcessMemoryInfo(GetCurrentProcess(), &proc, sizeof(proc));
-    std::cout << std::setw(30) << "PageFaultCount: " << proc.PageFaultCount << " times" << std::endl;
-    std::cout << std::setw(30) << "PeakWorkingSetSize: " << proc.PeakWorkingSetSize << " bytes" << std::endl;
-    std::cout << std::setw(30) << "WorkingSetSize: " << proc.WorkingSetSize << " bytes" << std::endl;
-    std::cout << std::setw(30) << "QuotaPeakPagedPoolUsage: " << proc.QuotaPeakPagedPoolUsage << " bytes" << std::endl;
-    std::cout << std::setw(30) << "QuotaPagedPoolUsage: " << proc.QuotaPagedPoolUsage << " bytes" << std::endl;
-    std::cout << std::setw(30) << "QuotaPeakNonPagedPoolUsage: " << proc.QuotaPeakNonPagedPoolUsage << " bytes" << std::endl;
-    std::cout << std::setw(30) << "QuotaNonPagedPoolUsage: " << proc.QuotaNonPagedPoolUsage << " bytes" << std::endl;
-    std::cout << std::setw(30) << "PagefileUsage: " << proc.PagefileUsage << " bytes" << std::endl;
-    std::cout << std::setw(30) << "PeakPagefileUsage: " << proc.PeakPagefileUsage << " bytes" << std::endl;
+    std::cout << std::setw(28) << "PageFaultCount: " << proc.PageFaultCount << " times" << std::endl;
+    std::cout << std::setw(28) << "PeakWorkingSetSize: " << proc.PeakWorkingSetSize << " bytes" << std::endl;
+    std::cout << std::setw(28) << "WorkingSetSize: " << proc.WorkingSetSize << " bytes" << std::endl;
+    std::cout << std::setw(28) << "QuotaPeakPagedPoolUsage: " << proc.QuotaPeakPagedPoolUsage << " bytes" << std::endl;
+    std::cout << std::setw(28) << "QuotaPagedPoolUsage: " << proc.QuotaPagedPoolUsage << " bytes" << std::endl;
+    std::cout << std::setw(28) << "QuotaPeakNonPagedPoolUsage: " << proc.QuotaPeakNonPagedPoolUsage << " bytes" << std::endl;
+    std::cout << std::setw(28) << "QuotaNonPagedPoolUsage: " << proc.QuotaNonPagedPoolUsage << " bytes" << std::endl;
+    std::cout << std::setw(28) << "PagefileUsage: " << proc.PagefileUsage << " bytes" << std::endl;
+    std::cout << std::setw(28) << "PeakPagefileUsage: " << proc.PeakPagefileUsage << " bytes" << std::endl;
 #endif
 }
