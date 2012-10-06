@@ -29,8 +29,11 @@ namespace NL {
         uint16_t Size() const;
         const char * Data() const;
         operator std::string() const;
+        static String Blank();
     private:
-        void * d;
+        const void * d;
+        static String Construct(const void *);
+        static String Construct(uint32_t, const File *);
         friend Node;
     };
     class Sprite {
@@ -50,8 +53,13 @@ namespace NL {
         Node operator[](String) const;
         Node operator[](char *) const;
         Node operator[](const char *) const;
-        Node Get(const char *, size_t) const;
+        operator int64_t() const;
+        operator double() const;
+        operator String() const;
+        operator std::string() const;
+        operator std::pair<int32_t, int32_t>() const;
         int32_t X() const;
+        int32_t Y() const;
         String Name() const;
         size_t Num() const;
         enum class Type : uint16_t {
@@ -66,9 +74,10 @@ namespace NL {
         Type T() const;
     private:
         struct Data;
-        static Node Construct(Data *, File *);
-        Data * d;
-        File * f;
+        static Node Construct(const Data *, const File *);
+        const Data * Get(const char *, size_t) const;
+        const Data * d;
+        const File * f;
         friend File;
     };
     class File {
@@ -80,11 +89,12 @@ namespace NL {
         void * file;
         void * map;
         size_t size;
-        void * base;
+        const void * base;
         struct Header;
-        Header * head;
-        uint64_t * stable;
-        Node::Data * ntable;
+        const Header * head;
+        const uint64_t * stable;
+        const Node::Data * ntable;
         friend Node;
+        friend String;
     };
 }

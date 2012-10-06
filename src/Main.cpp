@@ -26,7 +26,6 @@
 #include <time.h>
 #endif
 #include <iostream>
-#include <functional>
 #include <iomanip>
 
 struct Result {
@@ -36,7 +35,7 @@ struct Result {
 void Recurse(NL::Node n) {
     if (!n.Num()) return;
     uint64_t last = __rdtsc();
-    NL::Node nnn;
+    NL::Node nnn = n;
     for (NL::Node nn : n) nnn = n[nn.Name()];
     volatile int32_t x = nnn.X();
     uint64_t now = __rdtsc();
@@ -46,10 +45,11 @@ void Recurse(NL::Node n) {
 }
 
 int main() {
-    NL::Node n;
-    NL::File file("Data.nx");
-    Recurse(file.Base());
-    for (size_t i = 0; i < 0x800; ++i) if (Table[i].Count) std::cout << std::setw(4) << i << ": " << Table[i].Total / (Table[i].Count * i) << std::endl;
+    {
+        NL::File file("Data.nx");
+        Recurse(file.Base());
+        for (size_t i = 0; i < 0x800; ++i) if (Table[i].Count) std::cout << std::setw(4) << i << ": " << Table[i].Total / (Table[i].Count * i) << std::endl;
+    }
 #ifdef _WIN32
     PROCESS_MEMORY_COUNTERS proc;
     GetProcessMemoryInfo(GetCurrentProcess(), &proc, sizeof(proc));
@@ -60,7 +60,7 @@ int main() {
     std::cout << std::setw(28) << "QuotaPagedPoolUsage: " << proc.QuotaPagedPoolUsage << " bytes" << std::endl;
     std::cout << std::setw(28) << "QuotaPeakNonPagedPoolUsage: " << proc.QuotaPeakNonPagedPoolUsage << " bytes" << std::endl;
     std::cout << std::setw(28) << "QuotaNonPagedPoolUsage: " << proc.QuotaNonPagedPoolUsage << " bytes" << std::endl;
-    std::cout << std::setw(28) << "PagefileUsage: " << proc.PagefileUsage << " bytes" << std::endl;
     std::cout << std::setw(28) << "PeakPagefileUsage: " << proc.PeakPagefileUsage << " bytes" << std::endl;
+    std::cout << std::setw(28) << "PagefileUsage: " << proc.PagefileUsage << " bytes" << std::endl;
 #endif
 }

@@ -19,7 +19,6 @@
 #include "NX.h"
 #include "lz4.h"
 #include <cstring>
-#include <iostream>
 #ifdef _WIN32
 #define NL_WINDOWS
 #define NOMINMAX
@@ -64,7 +63,7 @@ namespace NL {
     };
     uint16_t String::Size() const {
         if (!d) return 0;
-        return *reinterpret_cast<uint16_t *>(d);
+        return *reinterpret_cast<const uint16_t *>(d);
     }
     const char * String::Data() const {
         if (!d) return 0;
@@ -73,6 +72,21 @@ namespace NL {
     String::operator std::string() const {
         if (!d) return std::string();
         return std::string(Data(), Size());
+    }
+    String String::Blank() {
+        String s;
+        s.d = 0;
+        return s;
+    }
+    String String::Construct(const void * d) {
+        String s;
+        s.d = d;
+        return s;
+    }
+    String String::Construct(uint32_t i, const File * f) {
+        String s;
+        s.d = reinterpret_cast<const char *>(f->base) + f->stable[i];
+        return s;
     }
     Node Node::begin() const {
         if (!d) return Construct(nullptr, f);
@@ -98,27 +112,27 @@ namespace NL {
         return d != o.d;
     }
     Node Node::operator[](std::string o) const {
-        return Get(o.c_str(), o.length());
+        return Construct(Get(o.c_str(), o.length()), f);
     }
     Node Node::operator[](String o) const {
-        return Get(o.Data(), o.Size());
+        return Construct(Get(o.Data(), o.Size()), f);
     }
     Node Node::operator[](char * o) const {
-        return Get(o, strlen(o));
+        return Construct(Get(o, strlen(o)), f);
     }
     Node Node::operator[](const char * o) const {
-        return Get(o, strlen(o));
+        return Construct(Get(o, strlen(o)), f);
     }
-    Node Node::Get(const char * o, size_t l) const {
-        if (!d) return Construct(nullptr, f);
-        Data * p = f->ntable + d->children;
+    const Node::Data * Node::Get(const char * o, size_t l) const {
+        if (!d) return nullptr;
+        const Data * p = f->ntable + d->children;
         size_t n = d->num;
-        if (!n) return Construct(nullptr, f);
+        if (!n) return nullptr;
         do {
             size_t n2 = n >> 1;
-            Data * p2 = p + n2;
-            char * s = reinterpret_cast<char *>(f->base) + f->stable[p2->name];
-            size_t l1 = *reinterpret_cast<uint16_t *>(s);
+            const Data * p2 = p + n2;
+            const char * s = reinterpret_cast<const char *>(f->base) + f->stable[p2->name];
+            size_t l1 = *reinterpret_cast<const uint16_t *>(s);
             if (l1 < l) {
                 int r = memcmp(s + 2, o, l1);
                 if (r > 0) goto greater;
@@ -131,7 +145,7 @@ namespace NL {
                 int r = memcmp(s + 2, o, l);
                 if (r < 0) goto lesser;
                 else if (r > 0) goto greater;
-                else return Construct(p2, f);
+                else return p2;
             }
         lesser:
             p = p2 + 1;
@@ -141,31 +155,65 @@ namespace NL {
             n = n2;
             continue;
         } while (n);
-        char * s = reinterpret_cast<char *>(f->base) + f->stable[p->name];
-        if (*reinterpret_cast<uint16_t *>(s) != l) return Construct(nullptr, f);
-        if (!memcmp(o, s + 2, l)) return Construct(p, f);
-        return Construct(nullptr, f);
+        const char * s = reinterpret_cast<const char *>(f->base) + f->stable[p->name];
+        if (*reinterpret_cast<const uint16_t *>(s) != l) return nullptr;
+        if (!memcmp(o, s + 2, l)) return p;
+        return nullptr;
+    }
+    Node::operator int64_t() const {
+        if (!d) return 0;
+        else if (d->type == Type::ireal) return d->ireal;
+        else if (d->type == Type::dreal) return static_cast<int64_t>(d->dreal);
+        else if (d->type == Type::string) return std::stoll((std::string)String::Construct(d->string, f));
+        else return 0;
+    }
+    Node::operator double() const {
+        if (!d) return 0;
+        else if (d->type == Type::dreal) return d->dreal;
+        else if (d->type == Type::ireal) return static_cast<double>(d->ireal);
+        else if (d->type == Type::string) return std::stod((std::string)String::Construct(d->string, f));
+        else return 0;
+    }
+    Node::operator String() const {
+        if (!d) return String::Blank();
+        else if (d->type == Type::string) return String::Construct(d->string, f);
+        else return String::Blank();
+    }
+    Node::operator std::string() const {
+        if (!d) return std::string();
+        else if (d->type == Type::string) return (std::string)String::Construct(d->string, f);
+        else if (d->type == Type::ireal) return std::to_string(d->ireal);
+        else if (d->type == Type::dreal) return std::to_string(d->dreal);
+        else return std::string();
+    }
+    Node::operator std::pair<int32_t, int32_t>() const {
+        if (!d) return std::pair<int32_t, int32_t>(0, 0);
+        else if (d->type == Type::vector) return std::pair<int32_t, int32_t>(d->vector[0], d->vector[1]);
+        else return std::pair<int32_t, int32_t>(0, 0);
     }
     int32_t Node::X() const {
         if (!d) return 0;
-        if (d->type != Type::vector) return 0;
-        return d->vector[0];
+        else if (d->type != Type::vector) return 0;
+        else return d->vector[0];
+    }
+    int32_t Node::Y() const {
+        if (!d) return 0;
+        else if (d->type != Type::vector) return 0;
+        else return d->vector[1];
     }
     String Node::Name() const {
-        String s;
-        if (!d) s.d = nullptr;
-        else s.d = reinterpret_cast<char *>(f->base) + f->stable[d->name];
-        return s;
+        if (!d) return String::Blank();
+        else return String::Construct(d->name, f);
     }
     size_t Node::Num() const {
         if (!d) return 0;
-        return d->num;
+        else return d->num;
     }
     Node::Type Node::T() const {
         if (!d) return Type::none;
-        return d->type;
+        else return d->type;
     }
-    Node Node::Construct(Data * d, File * f) {
+    Node Node::Construct(const Data * d, const File * f) {
         Node n;
         n.d = d, n.f = f;
         return n;
@@ -187,10 +235,10 @@ namespace NL {
         base = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
         if (reinterpret_cast<size_t>(base) == -1) throw;
 #endif
-        head = reinterpret_cast<Header*>(base);
+        head = reinterpret_cast<const Header*>(base);
         if (head->magic != 0x34474B50) throw;
-        ntable = reinterpret_cast<Node::Data *>(reinterpret_cast<char *>(base) + head->noffset);
-        stable = reinterpret_cast<uint64_t *>(reinterpret_cast<char *>(base) + head->stroffset);
+        ntable = reinterpret_cast<const Node::Data *>(reinterpret_cast<const char *>(base) + head->noffset);
+        stable = reinterpret_cast<const uint64_t *>(reinterpret_cast<const char *>(base) + head->stroffset);
     }
     File::~File() {
 #ifdef NL_WINDOWS
