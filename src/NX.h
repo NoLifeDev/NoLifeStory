@@ -86,16 +86,16 @@ namespace NL {
     public:
         File(std::string);
         ~File();
-        Node Base();
+        Node Base() const;
     private:
+        struct Header;
+        const void * base;
+        const Node::Data * ntable;
+        const uint64_t * stable;
+        const Header * head;
         void * file;
         void * map;
         size_t size;
-        const void * base;
-        struct Header;
-        const Header * head;
-        const uint64_t * stable;
-        const Node::Data * ntable;
         friend Node;
         friend String;
     };

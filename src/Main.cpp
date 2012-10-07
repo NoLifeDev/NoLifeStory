@@ -35,14 +35,14 @@ struct Result {
 } Table[0x1000];
 void Recurse(NL::Node n) {
     if (!n.Num()) return;
-    uint32_t last = (uint32_t)__rdtsc();
+    const uint32_t last = (uint32_t)__rdtsc();
     for (NL::Node nn : n) {
-        NL::String s = nn.Name();
+        const NL::String s = nn.Name();
         for (uint32_t i = N; i; --i) {
             if (n[s] != nn) throw;
         }
     }
-    uint32_t now  = (uint32_t)__rdtsc();
+    const uint32_t now  = (uint32_t)__rdtsc();
     Table[n.Num()].Count++;
     Table[n.Num()].Total += now - last;
     for (NL::Node nn : n) Recurse(nn);
@@ -50,7 +50,7 @@ void Recurse(NL::Node n) {
 
 int main() {
     {
-        NL::File file("Data.nx");
+        const NL::File file("Data.nx");
         Recurse(file.Base());
         for (uint32_t i = 0; i < 0x1000; ++i) {
             if (Table[i].Count) {
