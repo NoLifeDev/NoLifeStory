@@ -29,11 +29,13 @@ namespace NL {
         uint16_t Size() const;
         const char * Data() const;
         operator std::string() const;
-        static String Blank();
+        bool operator==(String) const;
+        bool operator!=(String) const;
     private:
         const void * d;
         static String Construct(const void *);
         static String Construct(uint32_t, const File *);
+        static String Blank();
         friend Node;
     };
     class Sprite {

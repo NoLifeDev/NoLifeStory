@@ -73,6 +73,12 @@ namespace NL {
         if (!d) return std::string();
         return std::string(Data(), Size());
     }
+    bool String::operator==(String s) const {
+        return d == s.d;
+    }
+    bool String::operator!=(String s) const {
+        return d != s.d;
+    }
     String String::Blank() {
         String s;
         s.d = 0;
@@ -155,10 +161,7 @@ namespace NL {
             n = n2;
             continue;
         } while (n);
-        const char * s = reinterpret_cast<const char *>(f->base) + f->stable[p->name];
-        if (*reinterpret_cast<const uint16_t *>(s) != l) return nullptr;
-        if (!memcmp(o, s + 2, l)) return p;
-        return nullptr;
+        throw;
     }
     Node::operator int64_t() const {
         if (!d) return 0;
