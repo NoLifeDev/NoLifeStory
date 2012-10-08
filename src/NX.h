@@ -91,9 +91,13 @@ namespace NL {
         const Node::Data * ntable;
         const uint64_t * stable;
         const Header * head;
+#ifdef _WIN32
         void * file;
         void * map;
+#elif defined __linux__
+        int file;
         size_t size;
+#endif
         friend Node;
         friend Sprite;
         friend Sound;

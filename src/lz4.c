@@ -108,13 +108,7 @@
 
 #ifdef _MSC_VER  // Visual Studio
 #  define inline __forceinline           // Visual is not C99, but supports some kind of inline
-#  if LZ4_ARCH64    // 64-bit
-#    pragma intrinsic(_BitScanForward64) // For Visual 2005
-#    pragma intrinsic(_BitScanReverse64) // For Visual 2005
-#  else
-#    pragma intrinsic(_BitScanForward)   // For Visual 2005
-#    pragma intrinsic(_BitScanReverse)   // For Visual 2005
-#  endif
+#  include <intrin.h>
 #endif
 
 #ifdef _MSC_VER
@@ -138,7 +132,6 @@
 //**************************************
 #include <stdlib.h>   // for malloc
 #include <string.h>   // for memset
-#include <intrin.h>
 #include "lz4.h"
 
 

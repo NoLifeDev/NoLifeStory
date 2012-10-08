@@ -241,12 +241,12 @@ namespace NL {
         file = open(name.c_str(), O_RDONLY);
         if (file == -1) throw;
         struct stat finfo;
-        if (fstat(int(file), &finfo) == -1) throw;
+        if (fstat(file, &finfo) == -1) throw;
         size = finfo.st_size;
-        base = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
+        base = mmap(nullptr, size, PROT_READ, MAP_SHARED, file, 0);
         if (reinterpret_cast<size_t>(base) == -1) throw;
 #endif
-        head = reinterpret_cast<const Header*>(base);
+        head = reinterpret_cast<const Header *>(base);
         if (head->magic != 0x34474B50) throw;
         ntable = reinterpret_cast<const Node::Data *>(reinterpret_cast<const char *>(base) + head->noffset);
         stable = reinterpret_cast<const uint64_t *>(reinterpret_cast<const char *>(base) + head->stroffset);
@@ -257,7 +257,7 @@ namespace NL {
         CloseHandle(map);
         CloseHandle(file);
 #elif defined NL_LINUX
-        munmap(base, size);
+        munmap(const_cast<void *>(base), size);
         close(file);
 #endif
     }

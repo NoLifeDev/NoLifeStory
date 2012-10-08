@@ -22,11 +22,25 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <Psapi.h>
-#elif defined __linux__
-#include <time.h>
 #endif
 #include <iostream>
 #include <iomanip>
+
+#ifdef __linux__
+#if defined(__i386__)
+__inline__ uint32_t __rdtsc() {
+    uint64_t x;
+    __asm__ __volatile__ (".byte 0x0f, 0x31" : "=A" (x));
+    return x;
+}
+#elif defined(__x86_64__)
+__inline__ uint32_t __rdtsc() {
+    uint32_t lo, hi;
+    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+    return lo;
+}
+#endif
+#endif
 
 const uint32_t N = 0x10;
 struct Result {
