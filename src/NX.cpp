@@ -57,8 +57,15 @@ namespace NL {
             const double dreal;
             const uint32_t string;
             const int32_t vector[2];
-            const uint32_t sprite;
-            const uint32_t sound;
+            const struct {
+                const uint32_t sprite;
+                const uint16_t width;
+                const uint16_t height;
+            };
+            const struct {
+                const uint32_t sound;
+                const uint32_t length;
+            };
         };
     };
     uint16_t String::Size() const {
@@ -134,34 +141,35 @@ namespace NL {
         const Data * p = f->ntable + d->children;
         size_t n = d->num;
         if (!n) return nullptr;
-        do {
-            const size_t n2 = n >> 1;
-            const Data * const p2 = p + n2;
-            const char * const s = reinterpret_cast<const char *>(f->base) + f->stable[p2->name];
-            const size_t l1 = *reinterpret_cast<const uint16_t *>(s);
-            if (l1 < l) {
-                const int r = memcmp(s + 2, o, l1);
-                if (r > 0) goto greater;
-                else goto lesser;
-            } else if (l1 > l) {
-                const int r = memcmp(s + 2, o, l);
-                if (r < 0) goto lesser;
-                else goto greater;
-            } else {
-                const int r = memcmp(s + 2, o, l);
-                if (r < 0) goto lesser;
-                else if (r > 0) goto greater;
-                else return p2;
-            }
-        lesser:
-            p = p2 + 1;
-            n -= n2 + 1;
-            continue;
-        greater:
-            n = n2;
-            continue;
-        } while (n);
-        throw;
+        const char * const b = reinterpret_cast<const char *>(f->base);
+        const uint64_t * const t = f->stable;
+    bloop:
+        const size_t n2 = n >> 1;
+        const Data * const p2 = p + n2;
+        const char * const s = b + t[p2->name];
+        const size_t l1 = *reinterpret_cast<const uint16_t *>(s);
+        if (l1 < l) {
+            const int r = memcmp(s + 2, o, l1);
+            if (r > 0) goto greater;
+            else goto lesser;
+        } else if (l1 > l) {
+            const int r = memcmp(s + 2, o, l);
+            if (r < 0) goto lesser;
+            else goto greater;
+        } else {
+            const int r = memcmp(s + 2, o, l);
+            if (r < 0) goto lesser;
+            else if (r > 0) goto greater;
+            else return p2;
+        }
+    lesser:
+        p = p2 + 1;
+        n -= n2 + 1;
+        goto bloop;
+    greater:
+        n = n2;
+        if (!n) return nullptr;
+        else goto bloop;
     }
     Node::operator int64_t() const {
         if (!d) return 0;

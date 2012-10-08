@@ -32,15 +32,11 @@ namespace NL {
         bool operator==(String) const;
         bool operator!=(String) const;
     private:
-        const void * d;
         static String Construct(const void *);
         static String Construct(uint32_t, const File *);
         static String Blank();
+        const void * d;
         friend Node;
-    };
-    class Sprite {
-    };
-    class Sound {
     };
     class Node {
     public:
@@ -80,6 +76,8 @@ namespace NL {
         const Data * Get(const char *, size_t) const;
         const Data * d;
         const File * f;
+        friend Sprite;
+        friend Sound;
         friend File;
     };
     class File {
@@ -97,6 +95,8 @@ namespace NL {
         void * map;
         size_t size;
         friend Node;
+        friend Sprite;
+        friend Sound;
         friend String;
     };
 }
