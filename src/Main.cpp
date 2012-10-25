@@ -18,71 +18,48 @@
 //////////////////////////////////////////////////////////////////////////
 #include "NX.h"
 #ifdef _WIN32
-#define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <Psapi.h>
+size_t ticks() {
+    LARGE_INTEGER blah;
+    QueryPerformanceCounter(&blah);
+    return blah.QuadPart;
+}
+size_t res() {
+    LARGE_INTEGER blah;
+    QueryPerformanceFrequency(&blah);
+    return blah.QuadPart;
+}
+#else
+//define ticks and res using some sort of clock which provides nanosecond resolution
 #endif
 #include <iostream>
 #include <iomanip>
 
-#ifdef __linux__
-#if defined(__i386__)
-__inline__ uint32_t __rdtsc() {
-    uint64_t x;
-    __asm__ __volatile__ (".byte 0x0f, 0x31" : "=A" (x));
-    return x;
-}
-#elif defined(__x86_64__)
-__inline__ uint32_t __rdtsc() {
-    uint32_t lo, hi;
-    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
-    return lo;
-}
-#endif
-#endif
-
-const uint32_t N = 0x10;
+const size_t N = 0x20;
 struct Result {
-    uint32_t Count;
-    uint32_t Total;
+    size_t Count;
+    size_t Total;
 } Table[0x1000];
 void Recurse(NL::Node n) {
     if (!n.Num()) return;
-    const uint32_t last = (uint32_t)__rdtsc();
+    const size_t last = ticks();
     for (NL::Node nn : n) {
         const NL::String s = nn.Name();
-        for (uint32_t i = N; i; --i) {
+        for (size_t i = N; i; --i) {
             if (n[s] != nn) throw;
         }
     }
-    const uint32_t now  = (uint32_t)__rdtsc();
+    const size_t now  = ticks();
     Table[n.Num()].Count++;
     Table[n.Num()].Total += now - last;
     for (NL::Node nn : n) Recurse(nn);
 }
 
+
 int main() {
-    {
-        const NL::File file("Data.nx");
-        Recurse(file.Base());
-        for (uint32_t i = 0; i < 0x1000; ++i) {
-            if (Table[i].Count) {
-                std::cout << std::setw(4) << i << ": " << std::setw(3) << Table[i].Total / (Table[i].Count * i * N) << std::endl;
-            }
-        }
-    }
-#ifdef _WIN32
-    PROCESS_MEMORY_COUNTERS proc;
-    GetProcessMemoryInfo(GetCurrentProcess(), &proc, sizeof(proc));
-    std::cout << std::setw(28) << "PageFaultCount: "             << std::setw(8) << proc.PageFaultCount             << " times" << std::endl;
-    std::cout << std::setw(28) << "PeakWorkingSetSize: "         << std::setw(8) << proc.PeakWorkingSetSize         << " bytes" << std::endl;
-    std::cout << std::setw(28) << "WorkingSetSize: "             << std::setw(8) << proc.WorkingSetSize             << " bytes" << std::endl;
-    std::cout << std::setw(28) << "QuotaPeakPagedPoolUsage: "    << std::setw(8) << proc.QuotaPeakPagedPoolUsage    << " bytes" << std::endl;
-    std::cout << std::setw(28) << "QuotaPagedPoolUsage: "        << std::setw(8) << proc.QuotaPagedPoolUsage        << " bytes" << std::endl;
-    std::cout << std::setw(28) << "QuotaPeakNonPagedPoolUsage: " << std::setw(8) << proc.QuotaPeakNonPagedPoolUsage << " bytes" << std::endl;
-    std::cout << std::setw(28) << "QuotaNonPagedPoolUsage: "     << std::setw(8) << proc.QuotaNonPagedPoolUsage     << " bytes" << std::endl;
-    std::cout << std::setw(28) << "PeakPagefileUsage: "          << std::setw(8) << proc.PeakPagefileUsage          << " bytes" << std::endl;
-    std::cout << std::setw(28) << "PagefileUsage: "              << std::setw(8) << proc.PagefileUsage              << " bytes" << std::endl;
-#endif
+    const NL::File file("Data.nx");
+    Recurse(file.Base());
+    const double div = static_cast<double>(res()) / 1000000000;
+    for (size_t i = 0xfff; i; --i) if (Table[i].Count) std::cout << std::setw(4) << i << ": " << std::setw(3) << static_cast<size_t>(Table[i].Total / (div * Table[i].Count * i * N)) << "ns" << std::endl;
 }

@@ -21,7 +21,9 @@
 #include <cstring>
 #ifdef _WIN32
 #define NL_WINDOWS
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #elif defined __linux__
@@ -142,26 +144,21 @@ namespace NL {
         size_t n = d->num;
         if (!n) return nullptr;
         const char * const b = reinterpret_cast<const char *>(f->base);
-        const uint64_t * const t = f->stable;
+        const size_t * const t = f->stable;
     bloop:
         const size_t n2 = n >> 1;
         const Data * const p2 = p + n2;
-        const char * const s = b + t[p2->name];
-        const size_t l1 = *reinterpret_cast<const uint16_t *>(s);
-        if (l1 < l) {
-            const int r = memcmp(s + 2, o, l1);
-            if (r > 0) goto greater;
-            else goto lesser;
-        } else if (l1 > l) {
-            const int r = memcmp(s + 2, o, l);
-            if (r < 0) goto lesser;
-            else goto greater;
-        } else {
-            const int r = memcmp(s + 2, o, l);
-            if (r < 0) goto lesser;
-            else if (r > 0) goto greater;
-            else return p2;
+        const char * const sl = b + t[p2->name];
+        const size_t l1 = *reinterpret_cast<const uint16_t *>(sl);
+        const uint8_t * s = reinterpret_cast<const uint8_t *>(sl + 2);
+        const uint8_t * os = reinterpret_cast<const uint8_t *>(o);
+        for (size_t i = l1 < l ? l1 : l; i; --i, ++s, ++os) {
+            if (*s > *os) goto greater;
+            if (*s < *os) goto lesser;
         }
+        if (l1 < l) goto lesser;
+        if (l1 > l) goto greater;
+        return p2;
     lesser:
         p = p2 + 1;
         n -= n2 + 1;
