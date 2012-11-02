@@ -20,8 +20,8 @@
 #include <cstdint>
 namespace NL {
     class String;
-    class Sprite;
-    class Sound;
+    class Bitmap;
+    class Audio;
     class Node;
     class File;
     class String {
@@ -31,12 +31,29 @@ namespace NL {
         operator std::string() const;
         bool operator==(String) const;
         bool operator!=(String) const;
+        const void * d;
     private:
         static String Construct(const void *);
         static String Construct(uint32_t, const File *);
         static String Blank();
-        const void * d;
         friend Node;
+    };
+    class Bitmap {
+    public:
+        const void * Get() const;
+        size_t Width() const;
+        size_t Height() const;
+        size_t Length() const;
+        const size_t w, h;
+        const uint8_t * d;
+    private:
+        static Bitmap Construct(size_t, size_t, const void *);
+        static uint8_t * buf;
+        static size_t len;
+        friend Node;
+    };
+    class Audio {
+
     };
     class Node {
     public:
@@ -56,40 +73,44 @@ namespace NL {
         operator String() const;
         operator std::string() const;
         operator std::pair<int32_t, int32_t>() const;
+        operator Bitmap() const;
         int32_t X() const;
         int32_t Y() const;
         String Name() const;
         size_t Num() const;
-        enum class Type : uint16_t {
+        enum Type : uint16_t {
             none = 0,
             ireal = 1,
             dreal = 2,
             string = 3,
             vector = 4,
-            sprite = 5,
-            sound = 6,
+            bitmap = 5,
+            audio = 6,
         };
         Type T() const;
-    private:
         struct Data;
-        static Node Construct(const Data *, const File *);
-        const Data * Get(const char *, size_t) const;
         const Data * d;
         const File * f;
-        friend Sprite;
-        friend Sound;
+    private:
+        static Node Construct(const Data *, const File *);
+        const Data * Get(const char *, size_t) const;
+        friend Bitmap;
+        friend Audio;
         friend File;
     };
     class File {
     public:
-        File(std::string);
+        File(const char *);
         ~File();
         Node Base() const;
+        uint32_t BitmapCount() const;
     private:
         struct Header;
         const void * base;
         const Node::Data * ntable;
         const uint64_t * stable;
+        const uint64_t * btable;
+        const uint64_t * atable;
         const Header * head;
 #ifdef _WIN32
         void * file;
@@ -99,8 +120,8 @@ namespace NL {
         size_t size;
 #endif
         friend Node;
-        friend Sprite;
-        friend Sound;
+        friend Bitmap;
+        friend Audio;
         friend String;
     };
 }
