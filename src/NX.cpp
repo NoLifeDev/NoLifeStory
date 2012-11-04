@@ -132,6 +132,18 @@ namespace NL {
         return w * h * 4;
     }
 #pragma endregion
+#pragma region Audio
+    void const * Audio::Data() const {
+        return d;
+    }
+    size_t Audio::Length() const {
+        return l;
+    }
+    Audio Audio::Construct(size_t l, void const * d) {
+        Audio a = {l, d};
+        return a;
+    }
+#pragma endregion
 #pragma region Node
     Node Node::begin() const {
         if (!d) return Construct(nullptr, f);
@@ -234,6 +246,11 @@ namespace NL {
         if (!d) return Bitmap::Construct(0, 0, nullptr);
         if (d->type == bitmap) return Bitmap::Construct(d->width, d->height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap]);
         return Bitmap::Construct(0, 0, nullptr);
+    }
+    Node::operator Audio() const {
+        if (!d) return Audio::Construct(0, nullptr);
+        if (d->type == audio) return Audio::Construct(d->length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio]);
+        return Audio::Construct(0, nullptr);
     }
     int32_t Node::X() const {
         if (!d) return 0;

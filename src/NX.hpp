@@ -82,6 +82,7 @@ namespace NL {
         operator std::string() const;
         operator std::pair<int32_t, int32_t>() const;
         operator Bitmap() const;
+        operator Audio() const;
         int32_t X() const;
         int32_t Y() const;
         String Name() const;

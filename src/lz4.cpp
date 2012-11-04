@@ -34,7 +34,7 @@
 // Modified by Peter Atechian
 #include <cstdint>
 #include <cassert>
-using std::size_t;
+#include <cstring>
 #include "lz4.hpp"
 namespace {
     size_t const copylength = 8;

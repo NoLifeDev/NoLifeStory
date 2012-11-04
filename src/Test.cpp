@@ -21,38 +21,30 @@
 #include <ctime>
 
 NL::File const file("Data.nx");
-size_t c;
-
-#define CONSTREF 0
-#define RANGEFOR 0
-#if CONSTREF
-void Recurse(NL::Node const& n) {
-#else
+size_t c = 0;
+size_t s;
+size_t b;
 void Recurse(NL::Node n) {
-#endif
-    c++;
-#if RANGEFOR
+    if (n.T() == NL::Node::audio) {
+        ++c;
+        NL::Audio a = n;
+        uint8_t const * p = reinterpret_cast<uint8_t const *>(a.Data());
+        size_t h;
+        b += a.Length();
+        for (size_t i = 0; i < a.Length(); ++i) {
+            h += p[i];
+        }
+        s += h;
+    }
     for (auto nn : n) Recurse(nn);
-#else
-    auto nn = n.begin();
-    for (size_t i = n.Num(); i; --i, ++nn) Recurse(nn);
-#endif
 }
 
 template <typename T>
 void test(T f) {
-    size_t best = -1;
-    for (;;) {
-        c = 0;
-        size_t t1 = clock();
-        f(file.Base());
-        size_t t2 = clock();
-        size_t d = t2 - t1;
-        if (d < best) {
-            best = d;
-            std::cout << c << " nodes in " << d * 1000 / CLOCKS_PER_SEC << " ms" << std::endl;
-        }
-    }
+    size_t t1 = clock();
+    f(file.Base());
+    size_t t2 = clock();
+    std::cout << b << " bytes in " << c << " sounds in " << (t2 - t1) * 1000 / CLOCKS_PER_SEC << " ms" << std::endl;
 }
 
 int main() {
