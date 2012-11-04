@@ -39,34 +39,34 @@ namespace NL {
 #pragma region Structs
 #pragma pack(push, 1)
     struct File::Header {
-        const uint32_t magic;
-        const uint32_t ncount;
-        const uint64_t noffset;
-        const uint32_t scount;
-        const uint64_t soffset;
-        const uint32_t bcount;
-        const uint64_t boffset;
-        const uint32_t acount;
-        const uint64_t aoffset;
+        uint32_t const magic;
+        uint32_t const ncount;
+        uint64_t const noffset;
+        uint32_t const scount;
+        uint64_t const soffset;
+        uint32_t const bcount;
+        uint64_t const boffset;
+        uint32_t const acount;
+        uint64_t const aoffset;
     };
     struct Node::Data {
-        const uint32_t name;
-        const uint32_t children;
-        const uint16_t num;
-        const Type type;
-        const union {
-            const int64_t ireal;
-            const double dreal;
-            const uint32_t string;
-            const int32_t vector[2];
-            const struct {
-                const uint32_t bitmap;
-                const uint16_t width;
-                const uint16_t height;
+        uint32_t const name;
+        uint32_t const children;
+        uint16_t const num;
+        Type const type;
+        union {
+            int64_t const ireal;
+            double const dreal;
+            uint32_t const string;
+            int32_t const vector[2];
+            struct {
+                uint32_t const bitmap;
+                uint16_t const width;
+                uint16_t const height;
             };
-            const struct {
-                const uint32_t audio;
-                const uint32_t length;
+            struct {
+                uint32_t const audio;
+                uint32_t const length;
             };
         };
     };
@@ -75,11 +75,11 @@ namespace NL {
 #pragma region String
     uint16_t String::Size() const {
         if (!d) return 0;
-        return *reinterpret_cast<const uint16_t *>(d);
+        return *reinterpret_cast<uint16_t const *>(d);
     }
-    const char * String::Data() const {
+    char const * String::Data() const {
         if (!d) return 0;
-        return reinterpret_cast<const char *>(d) + 2;
+        return reinterpret_cast<char const *>(d) + 2;
     }
     String::operator std::string() const {
         if (!d) return std::string();
@@ -95,23 +95,23 @@ namespace NL {
         String s = {nullptr};
         return s;
     }
-    String String::Construct(const void * d) {
+    String String::Construct(void const * d) {
         String s = {d};
         return s;
     }
-    String String::Construct(uint32_t i, const File * f) {
-        String s = {reinterpret_cast<const char *>(f->base) + f->stable[i]};
+    String String::Construct(uint32_t i, File const * f) {
+        String s = {reinterpret_cast<char const *>(f->base) + f->stable[i]};
         return s;
     }
 #pragma endregion
 #pragma region Bitmap
     uint8_t * Bitmap::buf = nullptr;
     size_t Bitmap::len = 1;
-    Bitmap Bitmap::Construct(size_t w, size_t h, const void * d) {
-        Bitmap b = {w, h, reinterpret_cast<const uint8_t *>(d)};
+    Bitmap Bitmap::Construct(size_t w, size_t h, void const * d) {
+        Bitmap b = {w, h, d};
         return b;
     }
-    const void * Bitmap::Get() const {
+    void const * Bitmap::Data() const {
         if (!d) return nullptr;
         size_t l = Length() + 0x10;
         if (len < l) {
@@ -119,7 +119,7 @@ namespace NL {
             delete buf;
             buf = new uint8_t[len];
         }
-        LZ4::Uncompress(d + 4, buf, Length());
+        LZ4::Uncompress(reinterpret_cast<uint8_t const *>(d) + 4, buf, Length());
         return buf;
     }
     size_t Bitmap::Width() const {
@@ -145,7 +145,8 @@ namespace NL {
         return *this;
     }
     Node Node::operator++() {
-        return Construct(++d, f);
+        ++d;
+        return *this;
     }
     Node Node::operator++(int) {
         return Construct(d++, f);
@@ -165,23 +166,23 @@ namespace NL {
     Node Node::operator[](char * o) const {
         return Construct(Get(o, strlen(o)), f);
     }
-    Node Node::operator[](const char * o) const {
+    Node Node::operator[](char const * o) const {
         return Construct(Get(o, strlen(o)), f);
     }
-    const Node::Data * Node::Get(const char * o, size_t l) const {
+    Node::Data const * Node::Get(char const * o, size_t l) const {
         if (!d) return nullptr;
-        const Data * p = f->ntable + d->children;
+        Data const * p = f->ntable + d->children;
         size_t n = d->num;
         if (!n) return nullptr;
-        const char * const b = reinterpret_cast<const char *>(f->base);
-        const uint64_t * const t = f->stable;
+        char const * const b = reinterpret_cast<const char *>(f->base);
+        uint64_t const * const t = f->stable;
     bloop:
-        const size_t n2 = n >> 1;
-        const Data * const p2 = p + n2;
-        const char * const sl = b + t[p2->name];
-        const size_t l1 = *reinterpret_cast<const uint16_t *>(sl);
-        const uint8_t * s = reinterpret_cast<const uint8_t *>(sl + 2);
-        const uint8_t * os = reinterpret_cast<const uint8_t *>(o);
+        size_t const n2 = n >> 1;
+        Data const * const p2 = p + n2;
+        char const * const sl = b + t[p2->name];
+        size_t const l1 = *reinterpret_cast<uint16_t const *>(sl);
+        uint8_t const * s = reinterpret_cast<uint8_t const *>(sl + 2);
+        uint8_t const * os = reinterpret_cast<uint8_t const *>(o);
         for (size_t i = l1 < l ? l1 : l; i; --i, ++s, ++os) {
             if (*s > *os) goto greater;
             if (*s < *os) goto lesser;
@@ -231,7 +232,7 @@ namespace NL {
     }
     Node::operator Bitmap() const {
         if (!d) return Bitmap::Construct(0, 0, nullptr);
-        if (d->type == bitmap) return Bitmap::Construct(d->width, d->height, reinterpret_cast<const char *>(f->base) + f->btable[d->bitmap]);
+        if (d->type == bitmap) return Bitmap::Construct(d->width, d->height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap]);
         return Bitmap::Construct(0, 0, nullptr);
     }
     int32_t Node::X() const {
@@ -256,13 +257,13 @@ namespace NL {
         if (!d) return Type::none;
         return d->type;
     }
-    Node Node::Construct(const Data * d, const File * f) {
+    Node Node::Construct(Data const * d, File const * f) {
         Node n = {d, f};
         return n;
     }
 #pragma endregion
 #pragma region File
-    File::File(const char * name) {
+    File::File(char const * name) {
 #ifdef NL_WINDOWS
         file = CreateFileA(name, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, 0);
         if (file == INVALID_HANDLE_VALUE) throw;
@@ -279,12 +280,12 @@ namespace NL {
         base = mmap(nullptr, size, PROT_READ, MAP_SHARED, file, 0);
         if (reinterpret_cast<size_t>(base) == -1) throw;
 #endif
-        head = reinterpret_cast<const Header *>(base);
+        head = reinterpret_cast<Header const *>(base);
         if (head->magic != 0x34474B50) throw;
-        ntable = reinterpret_cast<const Node::Data *>(reinterpret_cast<const char *>(base) + head->noffset);
-        stable = reinterpret_cast<const uint64_t *>(reinterpret_cast<const char *>(base) + head->soffset);
-        btable = reinterpret_cast<const uint64_t *>(reinterpret_cast<const char *>(base) + head->boffset);
-        atable = reinterpret_cast<const uint64_t *>(reinterpret_cast<const char *>(base) + head->aoffset);
+        ntable = reinterpret_cast<Node::Data const *>(reinterpret_cast<char const *>(base) + head->noffset);
+        stable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->soffset);
+        btable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->boffset);
+        atable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->aoffset);
     }
     File::~File() {
 #ifdef NL_WINDOWS
@@ -299,8 +300,17 @@ namespace NL {
     Node File::Base() const {
         return Node::Construct(ntable, this);
     }
+    uint32_t File::StringCount() const {
+        return head->scount;
+    }
     uint32_t File::BitmapCount() const {
         return head->bcount;
+    }
+    uint32_t File::AudioCount() const {
+        return head->acount;
+    }
+    uint32_t File::NodeCount() const {
+        return head->ncount;
     }
 #pragma endregion
 }

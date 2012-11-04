@@ -27,33 +27,40 @@ namespace NL {
     class String {
     public:
         uint16_t Size() const;
-        const char * Data() const;
+        char const * Data() const;
         operator std::string() const;
         bool operator==(String) const;
         bool operator!=(String) const;
-        const void * d;
+        void const * d;
     private:
-        static String Construct(const void *);
-        static String Construct(uint32_t, const File *);
+        static String Construct(void const *);
+        static String Construct(uint32_t, File const *);
         static String Blank();
         friend Node;
     };
     class Bitmap {
     public:
-        const void * Get() const;
+        void const * Data() const;
         size_t Width() const;
         size_t Height() const;
         size_t Length() const;
-        const size_t w, h;
-        const uint8_t * d;
+        size_t w, h;
+        void const * d;
     private:
-        static Bitmap Construct(size_t, size_t, const void *);
+        static Bitmap Construct(size_t, size_t, void const *);
         static uint8_t * buf;
         static size_t len;
         friend Node;
     };
     class Audio {
-
+    public:
+        void const * Data() const;
+        size_t Length() const;
+        size_t l;
+        void const * d;
+    private:
+        static Audio Construct(size_t, void const *);
+        friend Node;
     };
     class Node {
     public:
@@ -67,7 +74,8 @@ namespace NL {
         Node operator[](std::string) const;
         Node operator[](String) const;
         Node operator[](char *) const;
-        Node operator[](const char *) const;
+        Node operator[](char const *) const;
+        template <size_t N> Node operator[](char const o[N]) const {return Construct(Get(o, N), f);}
         operator int64_t() const;
         operator double() const;
         operator String() const;
@@ -89,29 +97,30 @@ namespace NL {
         };
         Type T() const;
         struct Data;
-        const Data * d;
-        const File * f;
+        Data const * d;
+        File const * f;
     private:
-        static Node Construct(const Data *, const File *);
-        const Data * Get(const char *, size_t) const;
-        friend Bitmap;
-        friend Audio;
+        static Node Construct(Data const *, File const *);
+        Data const * Get(char const *, size_t) const;
         friend File;
     };
     class File {
     public:
-        File(const char *);
+        File(char const *);
         ~File();
         Node Base() const;
+        uint32_t StringCount() const;
         uint32_t BitmapCount() const;
+        uint32_t AudioCount() const;
+        uint32_t NodeCount() const;
     private:
         struct Header;
-        const void * base;
-        const Node::Data * ntable;
-        const uint64_t * stable;
-        const uint64_t * btable;
-        const uint64_t * atable;
-        const Header * head;
+        void const * base;
+        Node::Data const * ntable;
+        uint64_t const * stable;
+        uint64_t const * btable;
+        uint64_t const * atable;
+        Header const * head;
 #ifdef _WIN32
         void * file;
         void * map;

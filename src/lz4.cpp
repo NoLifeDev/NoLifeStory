@@ -34,27 +34,30 @@
 // Modified by Peter Atechian
 #include <cstdint>
 #include <cassert>
+using std::size_t;
 #include "lz4.hpp"
 namespace {
-    const size_t copylength = 8;
-    const size_t mlbits = 4;
-    const size_t mlmask = (1 << mlbits) - 1;
-    const size_t runbits = 4;
-    const size_t runmask = (1 << runbits) - 1;
-    const size_t stepsize = sizeof(size_t);
-    const bool arch64 = stepsize == 8;
-    const size_t dectable1[] = {0, 3, 2, 3, 0, 0, 0, 0};
-    const size_t dectable2[] = {0, 0, 0, -1, 0, 1, 2, 3};
+    size_t const copylength = 8;
+    size_t const mlbits = 4;
+    size_t const mlmask = (1 << mlbits) - 1;
+    size_t const runbits = 4;
+    size_t const runmask = (1 << runbits) - 1;
+    size_t const stepsize = sizeof(size_t);
+    bool const arch64 = stepsize == 8;
+    size_t const dectable1[] = {0, 3, 2, 3, 0, 0, 0, 0};
+    size_t const dectable2[] = {0, 0, 0, -1, 0, 1, 2, 3};
 }
 namespace LZ4 {
-    void Uncompress(const uint8_t * source, uint8_t * dest, size_t osize) {
-        const uint8_t * ip = source;
-        uint8_t * op = dest;
-        const uint8_t * const oend = op + osize;
+    void Uncompress(void const * source, void * dest, size_t osize) {
+        uint8_t const * const in = reinterpret_cast<uint8_t const *>(source);
+        uint8_t * const out = reinterpret_cast<uint8_t *>(dest);
+        uint8_t const * ip = in;
+        uint8_t * op = out;
+        uint8_t const * const oend = op + osize;
         for (;;) {
-            size_t length, len;
+            size_t length;
+            size_t len;
             uint8_t * opc;
-            const uint8_t * ipc;
             const size_t token = *ip++;
             length = token >> mlbits;
             if (length == runmask) do {
@@ -63,16 +66,17 @@ namespace LZ4 {
             } while (len == 255);
             opc = op + length;
             assert(opc <= oend);
-            ipc = ip + length;
+            uint8_t const * const ipc = ip + length;
             do {
-                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<const size_t *>(ip);
-                op += stepsize, ip += stepsize;
+                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ip);
+                op += stepsize;
+                ip += stepsize;
             } while (op < opc);
             op = opc;
             ip = ipc;
             if (op > oend - copylength) return;
-            const uint8_t * ref = op - *reinterpret_cast<const uint16_t *>(ip);
-            assert(ref >= dest);
+            uint8_t const * ref = op - *reinterpret_cast<uint16_t const *>(ip);
+            assert(ref >= out);
             ip += 2;
             length = token & mlmask;
             if (length == mlmask) do {
@@ -80,7 +84,7 @@ namespace LZ4 {
                 length += len;
             } while (len == 255);
             if (op - ref < stepsize) {
-                const size_t dec2 = arch64?dectable2[op - ref]:0;
+                size_t const dec2 = arch64?dectable2[op - ref]:0;
                 op[0] = ref[0];
                 op[1] = ref[1];
                 op[2] = ref[2];
@@ -88,11 +92,11 @@ namespace LZ4 {
                 op += 4;
                 ref += 4;
                 ref -= dectable1[op - ref];
-                *reinterpret_cast<uint32_t *>(op) = *reinterpret_cast<const uint32_t *>(ref);
+                *reinterpret_cast<uint32_t *>(op) = *reinterpret_cast<uint32_t const *>(ref);
                 op += stepsize - 4;
                 ref -= dec2;
             } else {
-                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<const size_t *>(ref);
+                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ref);
                 op += stepsize;
                 ref += stepsize;
             }
@@ -100,8 +104,9 @@ namespace LZ4 {
             opc = op + length;
             assert(opc <= oend);
             do {
-                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<const size_t *>(ref);
-                op += stepsize, ref += stepsize;
+                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ref);
+                op += stepsize;
+                ref += stepsize;
             } while (op < opc);
             op = opc;
             assert(op != oend);

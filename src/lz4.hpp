@@ -33,5 +33,5 @@
 */
 // Modified by Peter Atechian
 namespace LZ4 {
-    void Uncompress(const uint8_t * source, uint8_t * dest, size_t osize);
+    void Uncompress(void const * source, void * dest, size_t osize);
 }
