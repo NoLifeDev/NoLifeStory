@@ -91,27 +91,11 @@ namespace NL {
     bool String::operator!=(String s) const {
         return d != s.d;
     }
-    String String::Blank() {
-        String s = {nullptr};
-        return s;
-    }
-    String String::Construct(void const * d) {
-        String s = {d};
-        return s;
-    }
-    String String::Construct(uint32_t i, File const * f) {
-        String s = {reinterpret_cast<char const *>(f->base) + f->stable[i]};
-        return s;
-    }
 #pragma endregion
 #pragma region Bitmap
-    uint8_t * Bitmap::buf = nullptr;
-    size_t Bitmap::len = 1;
-    Bitmap Bitmap::Construct(size_t w, size_t h, void const * d) {
-        Bitmap b = {w, h, d};
-        return b;
-    }
     void const * Bitmap::Data() const {
+        static uint8_t * buf = nullptr;
+        static uint32_t len = 1;
         if (!d) return nullptr;
         size_t l = Length() + 0x10;
         if (len < l) {
@@ -122,13 +106,13 @@ namespace NL {
         LZ4::Uncompress(reinterpret_cast<uint8_t const *>(d) + 4, buf, Length());
         return buf;
     }
-    size_t Bitmap::Width() const {
+    uint16_t Bitmap::Width() const {
         return w;
     }
-    size_t Bitmap::Height() const {
+    uint16_t Bitmap::Height() const {
         return h;
     }
-    size_t Bitmap::Length() const {
+    uint32_t Bitmap::Length() const {
         return w * h * 4;
     }
 #pragma endregion
@@ -136,56 +120,58 @@ namespace NL {
     void const * Audio::Data() const {
         return d;
     }
-    size_t Audio::Length() const {
+    uint32_t Audio::Length() const {
         return l;
-    }
-    Audio Audio::Construct(size_t l, void const * d) {
-        Audio a = {l, d};
-        return a;
     }
 #pragma endregion
 #pragma region Node
     Node Node::begin() const {
-        if (!d) return Construct(nullptr, f);
-        return Construct(f->ntable + d->children, f);
+        if (!d) return Node();
+        return Node(f->ntable + d->children, f);
     }
     Node Node::end() const {
-        if (!d) return Construct(nullptr, f);
-        return Construct(f->ntable + d->children + d->num, f);
+        if (!d) return Node();
+        return Node(f->ntable + d->children + d->num, f);
     }
     Node Node::operator*() const {
         return *this;
     }
-    Node Node::operator++() {
+    Node & Node::operator++() {
         ++d;
         return *this;
     }
     Node Node::operator++(int) {
-        return Construct(d++, f);
+        return Node(d++, f);
     }
-    bool Node::operator==(Node o) const {
+    bool Node::operator==(const Node & o) const {
         return d == o.d;
     }
-    bool Node::operator!=(Node o) const {
+    bool Node::operator!=(const Node & o) const {
         return d != o.d;
     }
-    Node Node::operator[](std::string o) const {
-        return Construct(Get(o.c_str(), o.length()), f);
+    Node Node::operator[](std::string && o) const {
+        return Get(o.c_str(), o.length());
     }
-    Node Node::operator[](String o) const {
-        return Construct(Get(o.Data(), o.Size()), f);
+    Node Node::operator[](const std::string & o) const {
+        return Get(o.c_str(), o.length());
+    }
+    Node Node::operator[](String && o) const {
+        return Get(o.Data(), o.Size());
+    }
+    Node Node::operator[](const String & o) const {
+        return Get(o.Data(), o.Size());
     }
     Node Node::operator[](char * o) const {
-        return Construct(Get(o, strlen(o)), f);
+        return Get(o, strlen(o));
     }
     Node Node::operator[](char const * o) const {
-        return Construct(Get(o, strlen(o)), f);
+        return Get(o, strlen(o));
     }
-    Node::Data const * Node::Get(char const * o, size_t l) const {
-        if (!d) return nullptr;
+    Node Node::Get(char const * o, size_t l) const {
+        if (!d) return Node();
         Data const * p = f->ntable + d->children;
         size_t n = d->num;
-        if (!n) return nullptr;
+        if (!n) return Node();
         char const * const b = reinterpret_cast<const char *>(f->base);
         uint64_t const * const t = f->stable;
     bloop:
@@ -201,38 +187,38 @@ namespace NL {
         }
         if (l1 < l) goto lesser;
         if (l1 > l) goto greater;
-        return p2;
+        return Node(p2, f);
     lesser:
         p = p2 + 1;
         n -= n2 + 1;
         goto bloop;
     greater:
+        if (!n2) return Node();
         n = n2;
-        if (!n) return nullptr;
-        else goto bloop;
+        goto bloop;
     }
     Node::operator int64_t() const {
         if (!d) return 0;
         if (d->type == ireal) return d->ireal;
         if (d->type == dreal) return static_cast<int64_t>(d->dreal);
-        if (d->type == string) return std::stoll((std::string)String::Construct(d->string, f));
+        if (d->type == string) return std::stoll((std::string)String(d->string, f));
         return 0;
     }
     Node::operator double() const {
         if (!d) return 0;
         if (d->type == dreal) return d->dreal;
         if (d->type == ireal) return static_cast<double>(d->ireal);
-        if (d->type == string) return std::stod((std::string)String::Construct(d->string, f));
+        if (d->type == string) return std::stod((std::string)String(d->string, f));
         return 0;
     }
     Node::operator String() const {
-        if (!d) return String::Blank();
-        if (d->type == string) return String::Construct(d->string, f);
-        return String::Blank();
+        if (!d) return String();
+        if (d->type == string) return String(d->string, f);
+        return String();
     }
     Node::operator std::string() const {
         if (!d) return std::string();
-        if (d->type == string) return (std::string)String::Construct(d->string, f);
+        if (d->type == string) return (std::string)String(d->string, f);
         if (d->type == ireal) return std::to_string(d->ireal);
         if (d->type == dreal) return std::to_string(d->dreal);
         return std::string();
@@ -243,14 +229,17 @@ namespace NL {
         return std::pair<int32_t, int32_t>(0, 0);
     }
     Node::operator Bitmap() const {
-        if (!d) return Bitmap::Construct(0, 0, nullptr);
-        if (d->type == bitmap) return Bitmap::Construct(d->width, d->height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap]);
-        return Bitmap::Construct(0, 0, nullptr);
+        if (!d) return Bitmap();
+        if (d->type == bitmap) return Bitmap(d->width, d->height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap]);
+        return Bitmap();
     }
     Node::operator Audio() const {
-        if (!d) return Audio::Construct(0, nullptr);
-        if (d->type == audio) return Audio::Construct(d->length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio]);
-        return Audio::Construct(0, nullptr);
+        if (!d) return Audio();
+        if (d->type == audio) return Audio(d->length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio]);
+        return Audio();
+    }
+    Node::operator bool() const {
+        return d ? true : false;
     }
     int32_t Node::X() const {
         if (!d) return 0;
@@ -263,8 +252,8 @@ namespace NL {
         return 0;
     }
     String Node::Name() const {
-        if (!d) return String::Blank();
-        return String::Construct(d->name, f);
+        if (!d) return String();
+        return String(d->name, f);
     }
     size_t Node::Num() const {
         if (!d) return 0;
@@ -273,10 +262,6 @@ namespace NL {
     Node::Type Node::T() const {
         if (!d) return Type::none;
         return d->type;
-    }
-    Node Node::Construct(Data const * d, File const * f) {
-        Node n = {d, f};
-        return n;
     }
 #pragma endregion
 #pragma region File
@@ -315,7 +300,7 @@ namespace NL {
 #endif
     }
     Node File::Base() const {
-        return Node::Construct(ntable, this);
+        return Node(ntable, this);
     }
     uint32_t File::StringCount() const {
         return head->scount;

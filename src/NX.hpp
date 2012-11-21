@@ -24,69 +24,37 @@ namespace NL {
     class Audio;
     class Node;
     class File;
-    class String {
-    public:
-        uint16_t Size() const;
-        char const * Data() const;
-        operator std::string() const;
-        bool operator==(String) const;
-        bool operator!=(String) const;
-        void const * d;
-    private:
-        static String Construct(void const *);
-        static String Construct(uint32_t, File const *);
-        static String Blank();
-        friend Node;
-    };
     class Bitmap {
     public:
+        Bitmap() : w(0), h(0), d(nullptr) {}
+        Bitmap(uint16_t w, uint16_t h, void const * d) : w(w), h(h), d(d) {}
+        Bitmap(Bitmap && o) : w(std::move(o.w)), h(std::move(o.h)), d(std::move(o.d)) {}
+        Bitmap(const Bitmap & o) : w(o.w), h(o.h), d(o.d) {}
         void const * Data() const;
-        size_t Width() const;
-        size_t Height() const;
-        size_t Length() const;
-        size_t w, h;
-        void const * d;
+        uint16_t Width() const;
+        uint16_t Height() const;
+        uint32_t Length() const;
     private:
-        static Bitmap Construct(size_t, size_t, void const *);
-        static uint8_t * buf;
-        static size_t len;
+        void const * d;
+        uint16_t w, h;
         friend Node;
     };
     class Audio {
     public:
+        Audio() : l(0), d(nullptr) {}
+        Audio(uint32_t l, void const * d) : l(l), d(d) {}
+        Audio(Audio && o) : l(std::move(o.l)), d(std::move(o.d)) {}
+        Audio(const Audio & o) : l(o.l), d(o.d) {}
         void const * Data() const;
-        size_t Length() const;
-        size_t l;
-        void const * d;
+        uint32_t Length() const;
     private:
-        static Audio Construct(size_t, void const *);
+        void const * d;
+        uint32_t l;
         friend Node;
     };
     class Node {
     public:
-        Node begin() const;
-        Node end() const;
-        Node operator*() const;
-        Node operator++();
-        Node operator++(int);
-        bool operator==(Node) const;
-        bool operator!=(Node) const;
-        Node operator[](std::string) const;
-        Node operator[](String) const;
-        Node operator[](char *) const;
-        Node operator[](char const *) const;
-        template <size_t N> Node operator[](char const o[N]) const {return Construct(Get(o, N), f);}
-        operator int64_t() const;
-        operator double() const;
-        operator String() const;
-        operator std::string() const;
-        operator std::pair<int32_t, int32_t>() const;
-        operator Bitmap() const;
-        operator Audio() const;
-        int32_t X() const;
-        int32_t Y() const;
-        String Name() const;
-        size_t Num() const;
+        struct Data;
         enum Type : uint16_t {
             none = 0,
             ireal = 1,
@@ -96,13 +64,41 @@ namespace NL {
             bitmap = 5,
             audio = 6,
         };
+        Node() : d(nullptr), f(nullptr) {}
+        Node(Node && o) : d(std::move(o.d)), f(std::move(o.f)) {}
+        Node(const Node & o) : d(o.d), f(o.f) {}
+        Node(Data const * d, File const * f) : d(d), f(f) {}
+        Node begin() const;
+        Node end() const;
+        Node operator*() const;
+        Node & operator++();
+        Node operator++(int);
+        bool operator==(const Node &) const;
+        bool operator!=(const Node &) const;
+        Node operator[](std::string &&) const;
+        Node operator[](const std::string &) const;
+        Node operator[](String &&) const;
+        Node operator[](const String &) const;
+        Node operator[](char *) const;
+        Node operator[](char const *) const;
+        template <size_t N> Node operator[](char const o[N]) const {return Get(o, N);}
+        operator int64_t() const;
+        operator double() const;
+        operator String() const;
+        operator std::string() const;
+        operator std::pair<int32_t, int32_t>() const;
+        operator Bitmap() const;
+        operator Audio() const;
+        operator bool() const;
+        Node Get(char const *, size_t) const;
+        int32_t X() const;
+        int32_t Y() const;
+        String Name() const;
+        size_t Num() const;
         Type T() const;
-        struct Data;
+    private:
         Data const * d;
         File const * f;
-    private:
-        static Node Construct(Data const *, File const *);
-        Data const * Get(char const *, size_t) const;
         friend File;
     };
     class File {
@@ -115,6 +111,7 @@ namespace NL {
         uint32_t AudioCount() const;
         uint32_t NodeCount() const;
     private:
+        File(const File &) {throw;};
         struct Header;
         void const * base;
         Node::Data const * ntable;
@@ -133,5 +130,19 @@ namespace NL {
         friend Bitmap;
         friend Audio;
         friend String;
+    };
+    class String {
+    public:
+        String() : d(nullptr) {}
+        String(void const * d) : d(d) {}
+        String(uint32_t i, File const * f) : d(reinterpret_cast<char const *>(f->base) + f->stable[i]) {}
+        uint16_t Size() const;
+        char const * Data() const;
+        operator std::string() const;
+        bool operator==(String) const;
+        bool operator!=(String) const;
+    private:
+        void const * d;
+        friend Node;
     };
 }
