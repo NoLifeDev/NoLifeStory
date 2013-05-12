@@ -77,9 +77,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="WzToNx.cpp" />
+	<ClCompile Include="Keys.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Keys.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
