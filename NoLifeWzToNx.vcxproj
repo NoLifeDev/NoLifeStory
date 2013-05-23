@@ -77,7 +77,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="WzToNx.cpp" />
-	<ClCompile Include="Keys.cpp" />
+    <ClCompile Include="Keys.cpp" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>
