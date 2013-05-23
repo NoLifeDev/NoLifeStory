@@ -15,20 +15,25 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-//C Standard Library
-#include <cstdint>
-//C++ Standard Library
-#include <chrono>
-#include <deque>
-#include <fstream>
-#include <string>
-#include <thread>
-//GLEW
-#include <GL/glew.h>
-//SFML
-#include <SFML/Window.hpp>
-#include <SFML/Network.hpp>
-#include <SFML/Audio.hpp>
-//NoLifeNx
-#include "../NoLifeNx/NX.hpp"
-using namespace std;
+#include "NoLifeClient.hpp"
+#include "Time.hpp"
+namespace NL {
+    namespace Time {
+        uint32_t FPS = 0;
+        double Delta = 1;
+        typedef chrono::high_resolution_clock Clock;
+        deque<Clock::time_point> LastFrames;
+        void Init() {
+            LastFrames.push_back(Clock::now());
+        }
+        void Update() {
+            auto last = LastFrames.back();
+            this_thread::sleep_until(last + chrono::milliseconds(10));
+            auto now = Clock::now();
+            Delta = chrono::duration_cast<chrono::duration<double>>(now - last).count();
+            while (!LastFrames.empty() && now - LastFrames.front() > chrono::seconds(1)) LastFrames.pop_front();
+            LastFrames.push_back(now);
+            FPS = static_cast<uint32_t>(LastFrames.size());
+        }
+    }
+}

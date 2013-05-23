@@ -15,20 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-//C Standard Library
-#include <cstdint>
-//C++ Standard Library
-#include <chrono>
-#include <deque>
-#include <fstream>
-#include <string>
-#include <thread>
-//GLEW
-#include <GL/glew.h>
-//SFML
-#include <SFML/Window.hpp>
-#include <SFML/Network.hpp>
-#include <SFML/Audio.hpp>
-//NoLifeNx
-#include "../NoLifeNx/NX.hpp"
-using namespace std;
+#include "NoLifeClient.hpp"
+#include "Game.hpp"
+#include "Graphics.hpp"
+#include "Time.hpp"
+namespace NL {
+    namespace Game {
+        bool Over = false;
+        void Play() {
+            Time::Init();
+            Graphics::Init();
+            while (!Over) {
+                Time::Update();
+                Graphics::Update();
+            }
+        }
+    }
+}

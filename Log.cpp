@@ -15,20 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-//C Standard Library
-#include <cstdint>
-//C++ Standard Library
-#include <chrono>
-#include <deque>
-#include <fstream>
-#include <string>
-#include <thread>
-//GLEW
-#include <GL/glew.h>
-//SFML
-#include <SFML/Window.hpp>
-#include <SFML/Network.hpp>
-#include <SFML/Audio.hpp>
-//NoLifeNx
-#include "../NoLifeNx/NX.hpp"
-using namespace std;
+#include "NoLifeClient.hpp"
+#include "Log.hpp"
+namespace NL {
+    namespace Log {
+        ofstream LogFile("Log.txt");
+        void Write(string s) {
+            LogFile << s << endl;
+        }
+    }
+}
