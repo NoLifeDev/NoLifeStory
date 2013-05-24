@@ -20,10 +20,11 @@ namespace NL {
     class Obj {
     public:
         Obj(Node);
-        static void Load(Node);
+        void Render();
+        bool operator<(Obj const &) const;
     private:
         Node data;
-		double movew, moveh, movep, mover;
+        double movew, moveh, movep, mover;
         double rx, ry;
         int32_t x, y, z;
         int32_t movetype;

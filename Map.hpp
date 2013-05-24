@@ -19,6 +19,8 @@
 namespace NL {
     namespace Map {
         extern Node Current;
+        void Init();
+        void Next();
         void Load(string name);
         void Render();
     }

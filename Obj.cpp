@@ -26,18 +26,25 @@ namespace NL {
         ry = n["ry"];
         flip = (int)n["f"];
         data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
-        movetype = data["moveType"];
-		movew = data["moveW"];
-		moveh = data["moveH"];
-		movep = data["moveP"];
-		mover = data["moveR"];
-        repeat = data["repeat"];
+        Log::Write(to_string(x) + ", " + to_string(y));
+        //movetype = data["moveType"];
+        //movew = data["moveW"];
+        //moveh = data["moveH"];
+        //movep = data["moveP"];
+        //mover = data["moveR"];
+        //repeat = data["repeat"];
     }
-    void Obj::Load(Node n) {
-        //Objs.clear();
-        //for (Node on : n["obj"]) Objs.emplace_back(on);
-        //sort(Objs.begin(), Objs.end(), [&](Obj const & o1, Obj const & o2) {
-        //    return o1.z < o2.z;
-        //});
+    void Obj::Render() {
+        Node n = data[0];
+        Bitmap b = n;
+        glBegin(GL_LINE_LOOP);
+        glVertex2i(x, y);
+        glVertex2i(x + b.Width(), y);
+        glVertex2i(x + b.Width(), y + b.Height());
+        glVertex2i(x, y + b.Height());
+        glEnd();
+    }
+    bool Obj::operator<(Obj const & o) const {
+        return z < o.z;
     }
 }

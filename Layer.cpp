@@ -20,14 +20,16 @@ namespace NL {
     array<Layer, 8> Layers;
     void Layer::RenderAll() {
         for (Layer & l : Layers) {
-
+            for (Obj & o : l.Objs) o.Render();
         }
     }
     void Layer::LoadAll() {
         for (int i = 0; i < 8; ++i) {
             Layer & l = Layers[i];
             Node n = Map::Current[i];
-
+            l.Objs.clear();
+            for (Node nn : n["obj"]) l.Objs.emplace_back(nn);
+            sort(l.Objs.begin(), l.Objs.end());
         }
     }
 }

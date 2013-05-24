@@ -24,7 +24,10 @@ namespace NL {
     }
     Sound::Sound(Node n) : d(n), s(0) {}
     Sound::~Sound() {
-        if (s) BASS_StreamFree(s);
+        if (s) {
+            BASS_ChannelStop(s);
+            BASS_StreamFree(s);
+        }
     }
     Sound & Sound::operator=(Sound && o) {
         if (d == o.d) return *this;

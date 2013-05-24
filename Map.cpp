@@ -20,6 +20,20 @@ namespace NL {
     namespace Map {
         Node Current;
         Sound Music;
+        vector<string> Maps;
+        vector<string>::iterator Cur;
+        void Init() {
+            for (Node n1 : NXMap["Map"]) {
+                for (Node n2 : n1) {
+                    string name = n2.Name();
+                    if (name.length() == 13) Maps.emplace_back(name.substr(0, name.size() - 4));
+                }
+            }
+            srand(clock());
+            random_shuffle(Maps.begin(), Maps.end());
+            Cur = Maps.begin();
+            Next();
+        }
         void Load(string name) {
             name.insert(0, 9 - name.size(), '0');
             Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
@@ -29,18 +43,24 @@ namespace NL {
             }
             Current = m;
             string bgm = Current["info"]["bgm"];
+            if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
+            while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
             size_t p = bgm.find('/');
-            if (p == bgm.npos) {
-                Log::Write("Failed to find bgm for map");
-                throw;
-            }
-            Music = NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
+            Node sn = NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
+            if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + name);
+            Music = move(sn);
             Music.Play(true);
             Layer::LoadAll();
             Log::Write("Loaded map " + name);
         }
         void Render() {
+            static uint8_t c = 0;
+            if (!c++) Next();
             Layer::RenderAll();
+        }
+        void Next() {
+            Load(*Cur++);
+            if (Cur == Maps.end()) Cur = Maps.begin();
         }
     }
 }

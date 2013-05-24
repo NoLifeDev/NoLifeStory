@@ -68,7 +68,7 @@ namespace NL {
             SetupFiles();
             Time::Init();
             Graphics::Init();
-            Map::Load("100000000");
+            Map::Init();
             while (!Over) {
                 Time::Update();
                 Graphics::Update();
