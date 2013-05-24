@@ -16,10 +16,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
-#include "Graphics.hpp"
-#include "Log.hpp"
-#include "Time.hpp"
-#include "Game.hpp"
 namespace NL {
     namespace Graphics {
         sf::Window * Window;

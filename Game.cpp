@@ -16,16 +16,61 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
-#include "Game.hpp"
-#include "Graphics.hpp"
-#include "Time.hpp"
 namespace NL {
+    Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
     namespace Game {
         bool Over = false;
+        void SetupFiles() {
+            auto AddFile = [&](char const * c) {
+                if (!exists(path(c))) return Node();
+                return (new File(c))->Base();
+            };
+            if (exists(path("Data.nx"))) {
+                NXBase = AddFile("Data.nx");
+                NXCharacter = NXBase["Character"];
+                NXEffect = NXBase["Effect"];
+                NXEtc = NXBase["Etc"];
+                NXItem = NXBase["Item"];
+                NXMap = NXBase["Map"];
+                NXMob = NXBase["Mob"];
+                NXMorph = NXBase["Morph"];
+                NXNpc = NXBase["Npc"];
+                NXQuest = NXBase["Quest"];
+                NXReactor = NXBase["Reactor"];
+                NXSkill = NXBase["Skill"];
+                NXSound = NXBase["Sound"];
+                NXString = NXBase["String"];
+                NXTamingMob = NXBase["TamingMob"];
+                NXUI = NXBase["UI"];
+            } else if (exists(path("Base.nx"))) {
+                NXBase = AddFile("Base.nx");
+                NXCharacter = AddFile("Character.nx");
+                NXEffect = AddFile("Effect.nx");
+                NXEtc = AddFile("Etc.nx");
+                NXItem = AddFile("Item.nx");
+                NXMap = AddFile("Map.nx");
+                NXMob = AddFile("Mob.nx");
+                NXMorph = AddFile("Morph.nx");
+                NXNpc = AddFile("Npc.nx");
+                NXQuest = AddFile("Quest.nx");
+                NXReactor = AddFile("Reactor.nx");
+                NXSkill = AddFile("Skill.nx");
+                NXSound = AddFile("Sound.nx");
+                NXString = AddFile("String.nx");
+                NXTamingMob = AddFile("TamingMob.nx");
+                NXUI = AddFile("UI.nx");
+            } else {
+                Log::Write("Failed to load data files");
+                throw;
+            }
+        }
         void Play() {
+            SetupFiles();
             Time::Init();
             Graphics::Init();
+            Map::Load("100000000");
             while (!Over) {
+                Map::Update();
                 Time::Update();
                 Graphics::Update();
             }

@@ -16,6 +16,29 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
-int main(int argc, char ** argv) {
-    NL::Game::Play();
+namespace NL {
+    Obj::Obj(Node n)  {
+        x = n["x"];
+        y = n["y"];
+        z = n["z"];
+        flow = (int)n["flow"];
+        rx = n["rx"];
+        ry = n["ry"];
+        flip = (int)n["f"];
+        data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
+        movetype = data["moveType"];
+		movew = data["moveW"];
+		moveh = data["moveH"];
+		movep = data["moveP"];
+		mover = data["moveR"];
+        repeat = data["repeat"];
+    }
+    void Obj::Load(Node n) {
+        Objs.clear();
+        for (Node on : n["obj"]) Objs.emplace_back(on);
+        sort(Objs.begin(), Objs.end(), [&](Obj const & o1, Obj const & o2) {
+            return o1.z < o2.z;
+        });
+    }
+    vector<Obj> Objs;
 }

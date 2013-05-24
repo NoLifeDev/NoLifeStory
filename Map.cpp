@@ -18,6 +18,30 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Map {
+        class Layer {
+        public:
+            void Render() {
 
+            }
+            void Load(Node n) {
+                Obj::Load(n);
+            }
+        };
+        array<Layer, 8> Layers;
+        Node CurrentMap;
+        void Load(string name) {
+            name.insert(0, 9 - name.size(), '0');
+            Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
+            if (!m) {
+                Log::Write("Failed to load map " + name);
+                return;
+            }
+            CurrentMap = m;
+            for (int i = 0; i < 8; ++i) Layers[i].Load(CurrentMap[i]);
+            Log::Write("Loaded map " + name);
+        }
+        void Update() {
+
+        }
     }
 }

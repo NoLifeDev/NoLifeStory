@@ -15,7 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-int main(int argc, char ** argv) {
-    NL::Game::Play();
+#pragma once
+namespace NL {
+    class Obj {
+    public:
+        Obj(Node);
+        static void Load(Node);
+    private:
+        Node data;
+		double movew, moveh, movep, mover;
+        double rx, ry;
+        int32_t x, y, z;
+        int32_t movetype;
+        bool flip, flow, repeat;
+    };
+    extern vector<Obj> Objs;
 }

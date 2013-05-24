@@ -16,10 +16,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
-#include "Time.hpp"
 namespace NL {
     namespace Time {
-        uint32_t FPS = 0;
+        uint32_t FPS = 0, TargetFPS = 60;
         double Delta = 1;
         typedef chrono::high_resolution_clock Clock;
         deque<Clock::time_point> LastFrames;
@@ -28,8 +27,9 @@ namespace NL {
         }
         void Update() {
             auto last = LastFrames.back();
-            this_thread::sleep_until(last + chrono::milliseconds(10));
-            auto now = Clock::now();
+            auto step = chrono::microseconds(1000000 / TargetFPS);
+            this_thread::sleep_until(last + step);
+            auto now = max(Clock::now() - step, last + step);
             Delta = chrono::duration_cast<chrono::duration<double>>(now - last).count();
             while (!LastFrames.empty() && now - LastFrames.front() > chrono::seconds(1)) LastFrames.pop_front();
             LastFrames.push_back(now);

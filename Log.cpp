@@ -16,7 +16,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
-#include "Log.hpp"
 namespace NL {
     namespace Log {
         ofstream LogFile("Log.txt");
