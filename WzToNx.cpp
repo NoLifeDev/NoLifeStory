@@ -15,16 +15,33 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
+#ifndef __linux__
 #include <Windows.h>
 #include <filesystem>
+#else
+#include <boost/filesystem.hpp>
+#endif
+
 #include <iostream>
 #include <fstream>
+
+// Unfortunately, libstdc++ does not support codecvt_utf8
+#ifndef __linux__
 #include <codecvt>
+#endif
+
 #include <vector>
 #include <queue>
 #include <map>
+
 using namespace std;
+
+#ifndef __linux__
 using namespace std::tr2::sys;
+#else
+using namespace boost::filesystem;
+#endif
 
 extern uint8_t BMSKey[65536];
 extern uint8_t GMSKey[65536];
