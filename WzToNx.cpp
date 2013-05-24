@@ -21,6 +21,7 @@
 #include <filesystem>
 #else
 #include <boost/filesystem.hpp>
+#include <unistd.h> // for sleep()
 #endif
 
 #include <iostream>
@@ -442,7 +443,11 @@ namespace {
     }
 }
 int main(int argc, char ** argv) {
+#ifndef __linux__
     Sleep(1000);
+#else
+    sleep(1);
+#endif
     clock_t t1 = clock();
     if (argc > 1) Convert(argv[1]);
     else Convert("Data.wz");
