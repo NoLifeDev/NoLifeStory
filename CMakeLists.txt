@@ -3,5 +3,22 @@ project(NoLifeClient)
 enable_cpp11()
 
 add_executable(NoLifeClient
+Game.cpp
+Game.hpp
+Graphics.cpp
+Graphics.hpp
+Layer.cpp
+Layer.hpp
+Log.cpp
+Log.hpp
+Map.cpp
+Map.hpp
 NoLifeClient.cpp
+NoLifeClient.hpp
+Obj.cpp
+Obj.hpp
+Sound.cpp
+Sound.hpp
+Time.cpp
+Time.hpp
 )
