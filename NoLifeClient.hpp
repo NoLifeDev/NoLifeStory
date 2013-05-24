@@ -30,13 +30,24 @@
 #include <array>
 #include <chrono>
 #include <deque>
+
+#ifdef __linux__
+#include <boost/filesystem.hpp>
+using namespace boost::filesystem;
+#else
 #include <filesystem>
+#endif
+
 #include <fstream>
 #include <functional>
 #include <string>
 #include <thread>
 using namespace std;
+
+#ifndef __linux__
 using namespace std::tr2::sys;
+#endif
+
 //NoLifeNx
 #include "../NoLifeNx/NX.hpp"
 //NoLifeClient
