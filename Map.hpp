@@ -18,7 +18,8 @@
 #pragma once
 namespace NL {
     namespace Map {
+        extern Node Current;
         void Load(string name);
-        void Update();
+        void Render();
     }
 }

@@ -18,17 +18,8 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Map {
-        class Layer {
-        public:
-            void Render() {
-
-            }
-            void Load(Node n) {
-                Obj::Load(n);
-            }
-        };
-        array<Layer, 8> Layers;
-        Node CurrentMap;
+        Node Current;
+        Sound Music;
         void Load(string name) {
             name.insert(0, 9 - name.size(), '0');
             Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
@@ -36,12 +27,20 @@ namespace NL {
                 Log::Write("Failed to load map " + name);
                 return;
             }
-            CurrentMap = m;
-            for (int i = 0; i < 8; ++i) Layers[i].Load(CurrentMap[i]);
+            Current = m;
+            string bgm = Current["info"]["bgm"];
+            size_t p = bgm.find('/');
+            if (p == bgm.npos) {
+                Log::Write("Failed to find bgm for map");
+                throw;
+            }
+            Music = NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
+            Music.Play(true);
+            Layer::LoadAll();
             Log::Write("Loaded map " + name);
         }
-        void Update() {
-
+        void Render() {
+            Layer::RenderAll();
         }
     }
 }

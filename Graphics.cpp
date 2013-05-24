@@ -52,6 +52,7 @@ namespace NL {
             FHeight = v.height;
             Window = new sf::Window();
             Create(false);
+            BASS_Init(-1, 44100, 0, Window->getSystemHandle(), 0);
             GLenum err = glewInit();
             switch (err) {
             case GLEW_OK:

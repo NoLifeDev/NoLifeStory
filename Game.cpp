@@ -70,9 +70,9 @@ namespace NL {
             Graphics::Init();
             Map::Load("100000000");
             while (!Over) {
-                Map::Update();
                 Time::Update();
                 Graphics::Update();
+                Map::Render();
             }
         }
     }

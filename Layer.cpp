@@ -17,27 +17,17 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    Obj::Obj(Node n)  {
-        x = n["x"];
-        y = n["y"];
-        z = n["z"];
-        flow = (int)n["flow"];
-        rx = n["rx"];
-        ry = n["ry"];
-        flip = (int)n["f"];
-        data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
-        movetype = data["moveType"];
-		movew = data["moveW"];
-		moveh = data["moveH"];
-		movep = data["moveP"];
-		mover = data["moveR"];
-        repeat = data["repeat"];
+    array<Layer, 8> Layers;
+    void Layer::RenderAll() {
+        for (Layer & l : Layers) {
+
+        }
     }
-    void Obj::Load(Node n) {
-        //Objs.clear();
-        //for (Node on : n["obj"]) Objs.emplace_back(on);
-        //sort(Objs.begin(), Objs.end(), [&](Obj const & o1, Obj const & o2) {
-        //    return o1.z < o2.z;
-        //});
+    void Layer::LoadAll() {
+        for (int i = 0; i < 8; ++i) {
+            Layer & l = Layers[i];
+            Node n = Map::Current[i];
+
+        }
     }
 }

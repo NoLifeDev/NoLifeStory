@@ -22,6 +22,8 @@
 #include <SFML/Window.hpp>
 #include <SFML/Network.hpp>
 #include <SFML/Audio.hpp>
+//Bass
+#include <bass.h>
 //C Standard Library
 #include <cstdint>
 //C++ Standard Library
@@ -30,6 +32,7 @@
 #include <deque>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <thread>
 using namespace std;
@@ -37,9 +40,11 @@ using namespace std::tr2::sys;
 //NoLifeNx
 #include "../NoLifeNx/NX.hpp"
 //NoLifeClient
+#include "Sound.hpp"
 #include "Log.hpp"
 #include "Game.hpp"
 #include "Map.hpp"
 #include "Graphics.hpp"
 #include "Time.hpp"
 #include "Obj.hpp"
+#include "Layer.hpp"

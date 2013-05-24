@@ -17,27 +17,38 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    Obj::Obj(Node n)  {
-        x = n["x"];
-        y = n["y"];
-        z = n["z"];
-        flow = (int)n["flow"];
-        rx = n["rx"];
-        ry = n["ry"];
-        flip = (int)n["f"];
-        data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
-        movetype = data["moveType"];
-		movew = data["moveW"];
-		moveh = data["moveH"];
-		movep = data["moveP"];
-		mover = data["moveR"];
-        repeat = data["repeat"];
+    Sound::Sound() : d(), s(0) {}
+    Sound::Sound(Sound && o) : d(), s(0) {
+        swap(d, o.d);
+        swap(s, o.s);
     }
-    void Obj::Load(Node n) {
-        //Objs.clear();
-        //for (Node on : n["obj"]) Objs.emplace_back(on);
-        //sort(Objs.begin(), Objs.end(), [&](Obj const & o1, Obj const & o2) {
-        //    return o1.z < o2.z;
-        //});
+    Sound::Sound(Node n) : d(n), s(0) {}
+    Sound::~Sound() {
+        if (s) BASS_StreamFree(s);
+    }
+    Sound & Sound::operator=(Sound && o) {
+        if (d == o.d) return *this;
+        swap(d, o.d);
+        swap(s, o.s);
+        return *this;
+    }
+    void Sound::Play(bool loop) {
+        if (!d) return;
+        if (!s) {
+            if (loop) s = BASS_StreamCreateFile(true, d.Data(), 0, d.Length(), BASS_SAMPLE_FLOAT | BASS_SAMPLE_LOOP);
+            else s = BASS_StreamCreateFile(true, d.Data(), 0, d.Length(), BASS_SAMPLE_FLOAT);
+        }
+        BASS_ChannelPlay(s, !loop);
+    }
+    void Sound::Stop() {
+        BASS_ChannelStop(s);
+    }
+    void Sound::SetVolume(float v) {
+        BASS_ChannelSetAttribute(s, BASS_ATTRIB_VOL, v);
+    }
+    float Sound::GetVolume() {
+        float v;
+        BASS_ChannelGetAttribute(s, BASS_ATTRIB_VOL, &v);
+        return v;
     }
 }

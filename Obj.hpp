@@ -29,5 +29,4 @@ namespace NL {
         int32_t movetype;
         bool flip, flow, repeat;
     };
-    extern vector<Obj> Objs;
 }

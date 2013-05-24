@@ -56,7 +56,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>NoLifeNx.lib;opengl32.lib;glu32.lib;glew.lib;sfml-audio-s-d.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-network-s-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>NoLifeNx.lib;opengl32.lib;glu32.lib;glew.lib;bass.lib;sfml-audio-s-d.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-network-s-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -76,12 +76,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>NoLifeNx.lib;opengl32.lib;glu32.lib;glew.lib;sfml-audio-s.lib;sfml-system-s.lib;sfml-window-s.lib;sfml-network-s.lib;sfml-main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>NoLifeNx.lib;opengl32.lib;glu32.lib;glew.lib;bass.lib;sfml-audio-s.lib;sfml-system-s.lib;sfml-window-s.lib;sfml-network-s.lib;sfml-main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="Layer.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="NoLifeClient.cpp">
@@ -89,15 +90,18 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Obj.cpp" />
+    <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="Graphics.hpp" />
+    <ClInclude Include="Layer.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="NoLifeClient.hpp" />
     <ClInclude Include="Obj.hpp" />
+    <ClInclude Include="Sound.hpp" />
     <ClInclude Include="Time.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
