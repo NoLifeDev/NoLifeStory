@@ -47,4 +47,5 @@ using namespace std::tr2::sys;
 #include "Graphics.hpp"
 #include "Time.hpp"
 #include "Obj.hpp"
+#include "Tile.hpp"
 #include "Layer.hpp"

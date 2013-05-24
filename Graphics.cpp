@@ -22,7 +22,7 @@ namespace NL {
         uint32_t Width, Height;
         uint32_t WWidth = 800, WHeight = 600;
         uint32_t FWidth, FHeight;
-        string Title = "InfinityCubed";
+        string Title = "NoLifeStory";
         bool Fullscreen = false;
         const sf::ContextSettings Context(0, 0, 0, 1, 1);
         void AdjustView(uint32_t w, uint32_t h) {

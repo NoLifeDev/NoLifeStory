@@ -26,7 +26,6 @@ namespace NL {
         ry = n["ry"];
         flip = (int)n["f"];
         data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
-        Log::Write(to_string(x) + ", " + to_string(y));
         //movetype = data["moveType"];
         //movew = data["moveW"];
         //moveh = data["moveH"];
@@ -38,10 +37,10 @@ namespace NL {
         Node n = data[0];
         Bitmap b = n;
         glBegin(GL_LINE_LOOP);
-        glVertex2i(x, y);
-        glVertex2i(x + b.Width(), y);
-        glVertex2i(x + b.Width(), y + b.Height());
-        glVertex2i(x, y + b.Height());
+        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y());
+        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y());
+        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y() + b.Height());
+        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y() + b.Height());
         glEnd();
     }
     bool Obj::operator<(Obj const & o) const {

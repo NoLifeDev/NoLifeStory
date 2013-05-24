@@ -17,24 +17,25 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    array<Layer, 8> Layers;
-    void Layer::RenderAll() {
-        for (Layer & l : Layers) {
-            for (Obj & o : l.Objs) o.Render();
-            for (Tile & t : l.Tiles) t.Render();
-        }
+    Tile::Tile(Node n, Node dn) {
+        data = dn[n["u"]][n["no"]];
+        Log::Write(dn.Name() + ", " + n["u"] + ", " + n["no"]);
+        x = n["x"];
+        y = n["y"];
+        z = n["z"];
+        //Log::Write(to_string(x) + ", " + to_string(y));
     }
-    void Layer::LoadAll() {
-        for (int i = 0; i < 8; ++i) {
-            Layer & l = Layers[i];
-            Node n = Map::Current[i];
-            Node tn = NXMap["Tile"][n["info"]["tS"] + ".img"];
-            l.Objs.clear();
-            for (Node nn : n["obj"]) l.Objs.emplace_back(nn);
-            sort(l.Objs.begin(), l.Objs.end());
-            l.Tiles.clear();
-            for (Node nn : n["tile"]) l.Tiles.emplace_back(nn, tn);
-            sort(l.Tiles.begin(), l.Tiles.end());
-        }
+    void Tile::Render() {
+        Node n = data;
+        Bitmap b = n;
+        glBegin(GL_LINE_LOOP);
+        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y());
+        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y());
+        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y() + b.Height());
+        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y() + b.Height());
+        glEnd();
+    }
+    bool Tile::operator<(Tile const & o) const {
+        return z < o.z;
     }
 }
