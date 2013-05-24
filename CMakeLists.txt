@@ -19,6 +19,8 @@ Obj.cpp
 Obj.hpp
 Sound.cpp
 Sound.hpp
+Tile.cpp
+Tile.hpp
 Time.cpp
 Time.hpp
 )

@@ -23,5 +23,6 @@ namespace NL {
         static void LoadAll();
     private:
         vector<Obj> Objs;
+        vector<Tile> Tiles;
     };
 }

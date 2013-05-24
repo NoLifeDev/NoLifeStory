@@ -91,6 +91,7 @@
     </ClCompile>
     <ClCompile Include="Obj.cpp" />
     <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Time.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +103,7 @@
     <ClInclude Include="NoLifeClient.hpp" />
     <ClInclude Include="Obj.hpp" />
     <ClInclude Include="Sound.hpp" />
+    <ClInclude Include="Tile.hpp" />
     <ClInclude Include="Time.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

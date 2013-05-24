@@ -15,26 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
+#pragma once
 namespace NL {
-    array<Layer, 8> Layers;
-    void Layer::RenderAll() {
-        for (Layer & l : Layers) {
-            for (Obj & o : l.Objs) o.Render();
-            for (Tile & t : l.Tiles) t.Render();
-        }
-    }
-    void Layer::LoadAll() {
-        for (int i = 0; i < 8; ++i) {
-            Layer & l = Layers[i];
-            Node n = Map::Current[i];
-            Node tn = NXMap["Tile"][n["info"]["tS"] + ".img"];
-            l.Objs.clear();
-            for (Node nn : n["obj"]) l.Objs.emplace_back(nn);
-            sort(l.Objs.begin(), l.Objs.end());
-            l.Tiles.clear();
-            for (Node nn : n["tile"]) l.Tiles.emplace_back(nn, tn);
-            sort(l.Tiles.begin(), l.Tiles.end());
-        }
-    }
+    class Tile {
+    public:
+        Tile(Node, Node);
+        void Render();
+        bool operator<(Tile const &) const;
+    private:
+        Node data;
+        int32_t x, y, z;
+    };
 }
