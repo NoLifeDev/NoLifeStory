@@ -22,3 +22,5 @@ Sound.hpp
 Time.cpp
 Time.hpp
 )
+
+target_link_libraries(NoLifeClient NoLifeNx boost_filesystem boost_system sfml-window sfml-system GL bass GLEW)
