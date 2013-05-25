@@ -24,14 +24,7 @@ namespace NL {
         z = n["z"];
     }
     void Tile::Render() {
-        Node n = data;
-        Bitmap b = n;
-        glBegin(GL_LINE_LOOP);
-        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y());
-        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y());
-        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y() + b.Height());
-        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y() + b.Height());
-        glEnd();
+        Sprite(data).Draw(x, y);
     }
     bool Tile::operator<(Tile const & o) const {
         return z < o.z;

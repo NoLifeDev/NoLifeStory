@@ -30,7 +30,7 @@ namespace NL {
             auto step = chrono::microseconds(1000000 / TargetFPS);
             this_thread::sleep_until(last + step);
             auto now = max(Clock::now() - step, last + step);
-            Delta = chrono::duration_cast<chrono::duration<double>>(now - last).count();
+            Delta = chrono::duration_cast<chrono::duration<double, milli>>(now - last).count();
             while (!LastFrames.empty() && now - LastFrames.front() > chrono::seconds(1)) LastFrames.pop_front();
             LastFrames.push_back(now);
             FPS = static_cast<uint32_t>(LastFrames.size());

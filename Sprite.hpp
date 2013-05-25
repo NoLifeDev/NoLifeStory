@@ -16,49 +16,17 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
-//Version Detection
-#ifdef __linux__
-#define NL_LINUX
-#elif defined(_WIN32)
-#define NL_WINDOWS
-#endif
-//GLEW
-#include <GL/glew.h>
-//SFML
-#include <SFML/Window.hpp>
-#include <SFML/Network.hpp>
-#include <SFML/Audio.hpp>
-//Bass
-#include <bass.h>
-//C Standard Library
-#include <cstdint>
-//C++ Standard Library
-#include <array>
-#include <chrono>
-#include <deque>
-#include <fstream>
-#include <functional>
-#include <string>
-#include <thread>
-using namespace std;
-//Platform Specifics
-#ifdef NL_WINDOWS
-#include <filesystem>
-using namespace std::tr2::sys;
-#else
-#include <boost/filesystem.hpp>
-using namespace boost::filesystem;
-#endif
-//NoLifeNx
-#include "../NoLifeNx/NX.hpp"
-//NoLifeClient
-#include "Sound.hpp"
-#include "Sprite.hpp"
-#include "Log.hpp"
-#include "Game.hpp"
-#include "Map.hpp"
-#include "Graphics.hpp"
-#include "Time.hpp"
-#include "Obj.hpp"
-#include "Tile.hpp"
-#include "Layer.hpp"
+namespace NL {
+    class Sprite {
+    public:
+        Sprite();
+        Sprite(Sprite const &);
+        Sprite(Node const &);
+        Sprite & operator=(Sprite const &);
+        void Draw(int32_t x, int32_t y);
+    private:
+        uint32_t frame;
+        double delay;
+        Node data;
+    };
+}

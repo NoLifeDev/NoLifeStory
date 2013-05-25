@@ -18,7 +18,7 @@
 #pragma once
 namespace NL {
     namespace Time {
-        extern uint32_t FPS;
+        extern uint32_t FPS, TargetFPS;
         extern double Delta;
         void Init();
         void Update();

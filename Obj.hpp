@@ -24,10 +24,8 @@ namespace NL {
         bool operator<(Obj const &) const;
     private:
         Node data;
-        double movew, moveh, movep, mover;
         double rx, ry;
         int32_t x, y, z;
-        int32_t movetype;
         bool flip, flow, repeat;
     };
 }

@@ -35,13 +35,7 @@ namespace NL {
     }
     void Obj::Render() {
         Node n = data[0];
-        Bitmap b = n;
-        glBegin(GL_LINE_LOOP);
-        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y());
-        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y());
-        glVertex2i(x - n["origin"].X() + b.Width(), y - n["origin"].Y() + b.Height());
-        glVertex2i(x - n["origin"].X(),             y - n["origin"].Y() + b.Height());
-        glEnd();
+        Sprite(n).Draw(x, y);
     }
     bool Obj::operator<(Obj const & o) const {
         return z < o.z;
