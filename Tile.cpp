@@ -19,11 +19,9 @@
 namespace NL {
     Tile::Tile(Node n, Node dn) {
         data = dn[n["u"]][n["no"]];
-        Log::Write(dn.Name() + ", " + n["u"] + ", " + n["no"]);
         x = n["x"];
         y = n["y"];
         z = n["z"];
-        //Log::Write(to_string(x) + ", " + to_string(y));
     }
     void Tile::Render() {
         Node n = data;
