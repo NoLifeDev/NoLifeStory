@@ -16,13 +16,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __linux__
-#include <Windows.h>
-#include <filesystem>
-#else
-#include <boost/filesystem.hpp>
-#include <unistd.h> // for sleep()
-#endif
 
 #include <iostream>
 #include <fstream>
@@ -39,8 +32,12 @@
 using namespace std;
 
 #ifndef __linux__
+#include <Windows.h>
+#include <filesystem>
 using namespace std::tr2::sys;
 #else
+#include <boost/filesystem.hpp>
+#include <unistd.h> // for sleep()
 using namespace boost::filesystem;
 #endif
 
