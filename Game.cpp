@@ -71,6 +71,7 @@ namespace NL {
             Map::Init();
             while (!Over) {
                 Time::Update();
+                Player::Update();
                 Graphics::Update();
                 Map::Render();
             }

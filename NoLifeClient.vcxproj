@@ -90,6 +90,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Obj.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Tile.cpp" />
@@ -103,6 +104,7 @@
     <ClInclude Include="Map.hpp" />
     <ClInclude Include="NoLifeClient.hpp" />
     <ClInclude Include="Obj.hpp" />
+    <ClInclude Include="Player.hpp" />
     <ClInclude Include="Sound.hpp" />
     <ClInclude Include="Sprite.hpp" />
     <ClInclude Include="Tile.hpp" />

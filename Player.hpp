@@ -17,9 +17,8 @@
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
 namespace NL {
-    namespace Graphics {
-        extern uint32_t Width, Height;
-        void Init();
+    namespace Player {
+        extern double X, Y;
         void Update();
     }
 }

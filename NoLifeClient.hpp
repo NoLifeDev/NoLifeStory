@@ -40,7 +40,10 @@
 #include <functional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 using namespace std;
+using namespace std::chrono;
+using namespace std::this_thread;
 //Platform Specifics
 #ifdef NL_WINDOWS
 #include <filesystem>
@@ -62,3 +65,4 @@ using namespace boost::filesystem;
 #include "Obj.hpp"
 #include "Tile.hpp"
 #include "Layer.hpp"
+#include "Player.hpp"

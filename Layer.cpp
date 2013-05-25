@@ -19,10 +19,13 @@
 namespace NL {
     array<Layer, 8> Layers;
     void Layer::RenderAll() {
+        glPushMatrix();
+        glTranslated(Graphics::Width / 2 - Player::X, Graphics::Height / 2 - Player::Y, 0);
         for (Layer & l : Layers) {
             for (Obj & o : l.Objs) o.Render();
             for (Tile & t : l.Tiles) t.Render();
         }
+        glPopMatrix();
     }
     void Layer::LoadAll() {
         for (int i = 0; i < 8; ++i) {

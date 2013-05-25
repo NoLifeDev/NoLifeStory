@@ -31,7 +31,7 @@ namespace NL {
             glViewport(0, 0, Width, Height);
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            glOrtho(0, WWidth, WHeight, 0, -1, 1);
+            glOrtho(0, Width, Height, 0, -1, 1);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
         }
@@ -39,6 +39,7 @@ namespace NL {
             if (fullscreen) Window->create(sf::VideoMode(FWidth, FHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
             else Window->create(sf::VideoMode(WWidth, WHeight, 32), Title, sf::Style::Default, Context);
             AdjustView(Window->getSize().x, Window->getSize().y);
+            Window->setVerticalSyncEnabled(true);
             Fullscreen = fullscreen;
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

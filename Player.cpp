@@ -15,11 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "NoLifeClient.hpp"
 namespace NL {
-    namespace Graphics {
-        extern uint32_t Width, Height;
-        void Init();
-        void Update();
+    namespace Player {
+        double X = 0, Y = 0;
+        void Update() {
+            const double mult = 1;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) X -= Time::Delta * mult;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) X += Time::Delta * mult;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) Y -= Time::Delta * mult;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) Y += Time::Delta * mult;
+        }
     }
 }

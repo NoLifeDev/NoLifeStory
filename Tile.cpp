@@ -21,7 +21,7 @@ namespace NL {
         data = dn[n["u"]][n["no"]];
         x = n["x"];
         y = n["y"];
-        z = n["z"];
+        z = data["z"];
     }
     void Tile::Render() {
         Sprite(data).Draw(x, y);

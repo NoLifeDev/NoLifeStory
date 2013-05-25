@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    map<size_t, GLuint> Sprites;
+    unordered_map<size_t, GLuint> Sprites;
     void BindTexture(Bitmap b) {
         GLuint t = Sprites[b.ID()];
         if (t) {
@@ -44,16 +44,19 @@ namespace NL {
     void Sprite::Draw(int32_t x, int32_t y) {
         if (data.T() == data.bitmap) {
             Bitmap b = data;
+            Node o = data["origin"];
+            int32_t ox = o.X(), oy = o.Y();
+            uint16_t w = b.Width(), h = b.Height();
             BindTexture(b);
             glBegin(GL_QUADS);
             glTexCoord2i(0, 0);
-            glVertex2i(x - data["origin"].X(),             y - data["origin"].Y());
+            glVertex2i(x - ox, y - oy);
             glTexCoord2i(1, 0);
-            glVertex2i(x - data["origin"].X() + b.Width(), y - data["origin"].Y());
+            glVertex2i(x - ox + w, y - oy);
             glTexCoord2i(1, 1);
-            glVertex2i(x - data["origin"].X() + b.Width(), y - data["origin"].Y() + b.Height());
+            glVertex2i(x - ox + w, y - oy + h);
             glTexCoord2i(0, 1);
-            glVertex2i(x - data["origin"].X(),             y - data["origin"].Y() + b.Height());
+            glVertex2i(x - ox, y - oy + h);
             glEnd();
         } else {
             double movew, moveh, movep, mover;

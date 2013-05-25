@@ -18,20 +18,20 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Time {
-        uint32_t FPS = 0, TargetFPS = 60;
+        uint32_t FPS = 0, TargetFPS = 65;
         double Delta = 1;
-        typedef chrono::high_resolution_clock Clock;
+        typedef high_resolution_clock Clock;
         deque<Clock::time_point> LastFrames;
         void Init() {
             LastFrames.push_back(Clock::now());
         }
         void Update() {
             auto last = LastFrames.back();
-            auto step = chrono::microseconds(1000000 / TargetFPS);
-            this_thread::sleep_until(last + step);
+            auto step = microseconds(1000000 / TargetFPS);
+            sleep_until(last + step);
             auto now = max(Clock::now() - step, last + step);
-            Delta = chrono::duration_cast<chrono::duration<double, milli>>(now - last).count();
-            while (!LastFrames.empty() && now - LastFrames.front() > chrono::seconds(1)) LastFrames.pop_front();
+            Delta = min(milliseconds(100), duration_cast<milliseconds>(now - last)).count();
+            while (!LastFrames.empty() && now - LastFrames.front() > seconds(1)) LastFrames.pop_front();
             LastFrames.push_back(now);
             FPS = static_cast<uint32_t>(LastFrames.size());
         }

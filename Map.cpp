@@ -42,6 +42,7 @@ namespace NL {
                 return;
             }
             Current = m;
+            Player::X = 0, Player::Y = 0;
             string bgm = Current["info"]["bgm"];
             if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
             while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
