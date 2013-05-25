@@ -16,6 +16,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
+//Version Detection
+#ifdef __linux__
+#define NL_LINUX
+#elif defined(_WIN32)
+#define NL_WINDOWS
+#endif
 //GLEW
 #include <GL/glew.h>
 //SFML
@@ -30,24 +36,19 @@
 #include <array>
 #include <chrono>
 #include <deque>
-
-#ifdef __linux__
-#include <boost/filesystem.hpp>
-using namespace boost::filesystem;
-#else
-#include <filesystem>
-#endif
-
 #include <fstream>
 #include <functional>
 #include <string>
 #include <thread>
 using namespace std;
-
-#ifndef __linux__
+//Platform Specifics
+#ifdef NL_WINDOWS
+#include <filesystem>
 using namespace std::tr2::sys;
+#else
+#include <boost/filesystem.hpp>
+using namespace boost::filesystem;
 #endif
-
 //NoLifeNx
 #include "../NoLifeNx/NX.hpp"
 //NoLifeClient
