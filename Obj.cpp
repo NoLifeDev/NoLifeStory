@@ -21,10 +21,10 @@ namespace NL {
         x = n["x"];
         y = n["y"];
         z = n["z"];
-        flow = (int)n["flow"];
+        flow = n["flow"].GetInt();
         rx = n["rx"];
         ry = n["ry"];
-        flip = (int)n["f"];
+        flip = n["f"].GetInt();
         data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
         //movetype = data["moveType"];
         //movew = data["moveW"];
@@ -35,7 +35,7 @@ namespace NL {
     }
     void Obj::Render() {
         Node n = data[0];
-        Sprite(n).Draw(x, y);
+        Sprite(n).Draw(x, y, true, flip);
     }
     bool Obj::operator<(Obj const & o) const {
         return z < o.z;

@@ -63,6 +63,7 @@ namespace NL {
                 Log::Write("Failed to load data files");
                 throw;
             }
+
         }
         void Play() {
             SetupFiles();
@@ -72,8 +73,9 @@ namespace NL {
             while (!Over) {
                 Time::Update();
                 Player::Update();
-                Graphics::Update();
+                View::Update();
                 Map::Render();
+                Graphics::Update();
             }
         }
     }

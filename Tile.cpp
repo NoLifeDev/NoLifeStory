@@ -17,14 +17,11 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    Tile::Tile(Node n, Node dn) {
-        data = dn[n["u"]][n["no"]];
-        x = n["x"];
-        y = n["y"];
-        z = data["z"];
-    }
+    Tile::Tile(Node n, Node dn) :data(dn[n["u"]][n["no"]]),
+        x(n["x"]), y(n["y"]), z(data["z"])
+    {}
     void Tile::Render() {
-        Sprite(data).Draw(x, y);
+        Sprite(data).Draw(x, y, true, false);
     }
     bool Tile::operator<(Tile const & o) const {
         return z < o.z;

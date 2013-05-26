@@ -57,6 +57,7 @@ using namespace boost::filesystem;
 //NoLifeClient
 #include "Sound.hpp"
 #include "Sprite.hpp"
+#include "View.hpp"
 #include "Log.hpp"
 #include "Game.hpp"
 #include "Map.hpp"

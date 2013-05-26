@@ -18,6 +18,7 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     Sound::Sound() : d(), s(0) {}
+    Sound::Sound(Sound const & o) : d(o.d), s(0) {}
     Sound::Sound(Sound && o) : d(), s(0) {
         swap(d, o.d);
         swap(s, o.s);
@@ -28,6 +29,12 @@ namespace NL {
             BASS_ChannelStop(s);
             BASS_StreamFree(s);
         }
+    }
+    Sound & Sound::operator=(Sound const & o) {
+        if (d == o.d) return *this;
+        d = o.d;
+        s = 0;
+        return *this;
     }
     Sound & Sound::operator=(Sound && o) {
         if (d == o.d) return *this;

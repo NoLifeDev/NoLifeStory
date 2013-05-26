@@ -18,7 +18,6 @@
 #pragma once
 namespace NL {
     namespace Graphics {
-        extern uint32_t Width, Height;
         void Init();
         void Update();
     }

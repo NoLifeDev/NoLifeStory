@@ -42,17 +42,18 @@ namespace NL {
                 return;
             }
             Current = m;
-            Player::X = 0, Player::Y = 0;
-            string bgm = Current["info"]["bgm"];
+            Player::X = 0;
+            Player::Y = 0;
+            string bgm(Current["info"]["bgm"]);
             if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
             while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
-            size_t p = bgm.find('/');
-            Node sn = NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
+            size_t p(bgm.find('/'));
+            Node sn(NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)]);
             if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + name);
-            Music = move(sn);
+            Music = sn;
             Music.Play(true);
             Layer::LoadAll();
-            Log::Write("Loaded map " + name);
+            View::Reset();
         }
         void Render() {
             static uint8_t c = 0;

@@ -19,26 +19,15 @@
 namespace NL {
     namespace Graphics {
         sf::Window * Window;
-        uint32_t Width, Height;
         uint32_t WWidth = 800, WHeight = 600;
         uint32_t FWidth, FHeight;
         string Title = "NoLifeStory";
         bool Fullscreen = false;
         const sf::ContextSettings Context(0, 0, 0, 1, 1);
-        void AdjustView(uint32_t w, uint32_t h) {
-            Width = w;
-            Height = h;
-            glViewport(0, 0, Width, Height);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(0, Width, Height, 0, -1, 1);
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-        }
         void Create(bool fullscreen) {
             if (fullscreen) Window->create(sf::VideoMode(FWidth, FHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
             else Window->create(sf::VideoMode(WWidth, WHeight, 32), Title, sf::Style::Default, Context);
-            AdjustView(Window->getSize().x, Window->getSize().y);
+            View::Resize(Window->getSize().x, Window->getSize().y);
             Window->setVerticalSyncEnabled(true);
             Fullscreen = fullscreen;
             glEnable(GL_BLEND);
@@ -137,7 +126,7 @@ namespace NL {
             case sf::Event::MouseMoved: break;
             case sf::Event::MouseWheelMoved: break;
             case sf::Event::Resized:
-                AdjustView(e.size.width, e.size.height);
+                View::Resize(e.size.width, e.size.height);
                 break;
             case sf::Event::TextEntered: break;
             }

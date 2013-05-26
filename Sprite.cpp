@@ -18,10 +18,14 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     unordered_map<size_t, GLuint> Sprites;
+    GLuint LastBound(0);
     void BindTexture(Bitmap b) {
         GLuint t = Sprites[b.ID()];
         if (t) {
-            glBindTexture(GL_TEXTURE_2D, t);
+            if (t != LastBound) {
+                LastBound = t;
+                glBindTexture(GL_TEXTURE_2D, t);
+            }
             return;
         }
         glGenTextures(1, &t);
@@ -34,40 +38,51 @@ namespace NL {
         Sprites[b.ID()] = t;
     }
     Sprite::Sprite() : frame(0), delay(0), data() {}
-    Sprite::Sprite(Sprite const & o) : frame(o.frame), delay(o.delay), data(o.data) {}
-    Sprite::Sprite(Node const &o) : frame(0), delay(0), data(o) {}
+    Sprite::Sprite(Sprite const & o) : frame(o.frame), delay(o.delay), data(o.data), repeat(o.repeat),
+    movetype(o.movetype), movew(o.movew), moveh(o.moveh), movep(o.movep), mover(o.mover) {}
+    Sprite::Sprite(Node const &o) : frame(0), delay(0), data(o) {
+        Node n = data["0"] ? data["0"] : data;
+        movetype = n["moveType"];
+        movew = n["moveW"];
+        moveh = n["moveH"];
+        movep = n["moveP"];
+        mover = n["moveR"];
+        repeat = n["repeat"] ? data["repeat"].GetInt() : true;
+    }
     Sprite & Sprite::operator=(Sprite const & o) {
         frame = o.frame;
         delay = o.delay;
         data = o.data;
+        repeat = o.repeat;
+        movetype = o.movetype;
+        movew = o.movew;
+        moveh = o.moveh;
+        movep = o.movep;
+        mover = o.mover;
     }
-    void Sprite::Draw(int32_t x, int32_t y) {
-        if (data.T() == data.bitmap) {
-            Bitmap b = data;
-            Node o = data["origin"];
-            int32_t ox = o.X(), oy = o.Y();
-            uint16_t w = b.Width(), h = b.Height();
-            BindTexture(b);
-            glBegin(GL_QUADS);
-            glTexCoord2i(0, 0);
-            glVertex2i(x - ox, y - oy);
-            glTexCoord2i(1, 0);
-            glVertex2i(x - ox + w, y - oy);
-            glTexCoord2i(1, 1);
-            glVertex2i(x - ox + w, y - oy + h);
-            glTexCoord2i(0, 1);
-            glVertex2i(x - ox, y - oy + h);
-            glEnd();
-        } else {
-            double movew, moveh, movep, mover;
-            int32_t movetype;
-            bool repeat;
-            //movetype = data["moveType"];
-            //movew = data["moveW"];
-            //moveh = data["moveH"];
-            //movep = data["moveP"];
-            //mover = data["moveR"];
-            //repeat = data["repeat"];
+    void Sprite::Draw(int32_t x, int32_t y, bool view, bool flipped) {
+        Node n;
+        if (data["0"]) {
+        } else n = data;
+        Bitmap b(n);
+        Node o(n["origin"]);
+        x -= o.X(), y -= o.Y();
+        uint16_t w(b.Width()), h(b.Height());
+        if (view) {
+            x += View::Width / 2, y += View::Height / 2;
+            x -= View::X, y -= View::Y;
         }
+        BindTexture(b);
+        glBegin(GL_QUADS);
+        flipped ? glTexCoord2i(1, 0) : glTexCoord2i(0, 0);
+        glVertex2i(x, y);
+        flipped ? glTexCoord2i(0, 0) : glTexCoord2i(1, 0);
+        glVertex2i(x + w, y);
+        flipped ? glTexCoord2i(0, 1) : glTexCoord2i(1, 1);
+        glVertex2i(x + w, y + h);
+        flipped ? glTexCoord2i(1, 1) : glTexCoord2i(0, 1);
+        glVertex2i(x, y + h);
+        glEnd();
+
     }
 }

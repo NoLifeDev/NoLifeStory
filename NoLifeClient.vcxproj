@@ -95,6 +95,7 @@
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Time.cpp" />
+    <ClCompile Include="View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.hpp" />
@@ -109,6 +110,7 @@
     <ClInclude Include="Sprite.hpp" />
     <ClInclude Include="Tile.hpp" />
     <ClInclude Include="Time.hpp" />
+    <ClInclude Include="View.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

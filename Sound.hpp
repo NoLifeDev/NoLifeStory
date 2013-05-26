@@ -20,17 +20,17 @@ namespace NL {
 	class Sound {
 	public:
 		Sound();
+        Sound(Sound const &);
         Sound(Sound &&);
 		Sound(Node);
 		~Sound();
+        Sound & operator=(Sound const &);
         Sound & operator=(Sound &&);
 		void Play(bool = false);
 		void Stop();
 		void SetVolume(float);
 		float GetVolume();
 	private:
-        Sound(Sound const &);
-        Sound & operator=(Sound const &);
 		uint32_t s;
 		Audio d;
 	};

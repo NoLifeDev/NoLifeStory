@@ -18,9 +18,9 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Player {
-        double X = 0, Y = 0;
+        double X(0), Y(0);
         void Update() {
-            const double mult = 1;
+            const double mult(1);
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) X -= Time::Delta * mult;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) X += Time::Delta * mult;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) Y -= Time::Delta * mult;
