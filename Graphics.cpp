@@ -28,7 +28,7 @@ namespace NL {
             if (fullscreen) Window->create(sf::VideoMode(FWidth, FHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
             else Window->create(sf::VideoMode(WWidth, WHeight, 32), Title, sf::Style::Default, Context);
             View::Resize(Window->getSize().x, Window->getSize().y);
-            Window->setVerticalSyncEnabled(true);
+            if (Time::FrameLimit) Window->setVerticalSyncEnabled(true);
             Fullscreen = fullscreen;
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -112,6 +112,9 @@ namespace NL {
                 switch (e.key.code) {
                 case sf::Keyboard::F11:
                     Create(!Fullscreen);
+                    break;
+                case sf::Keyboard::Return:
+                    Map::Next();
                     break;
                 case sf::Keyboard::Escape:
                     Game::Over = true;

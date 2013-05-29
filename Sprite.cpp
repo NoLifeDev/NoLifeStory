@@ -59,11 +59,25 @@ namespace NL {
         moveh = o.moveh;
         movep = o.movep;
         mover = o.mover;
+        return *this;
     }
     void Sprite::Draw(int32_t x, int32_t y, bool view, bool flipped) {
         Node n;
         if (data["0"]) {
+            delay += Time::Delta;
+            n = data[frame];
+            int32_t d = n["delay"];
+            if (!d) d = 100;
+            if (delay >= d) {
+                delay -= d;
+                if (!(n = data[++frame])) n = data[frame = 0];
+            }
+            if (n["a0"] || n["a1"]) {
+                float a0 = n["a0"], a1 = n["a1"];
+                glColor4ub(255, 255, 255, a0 - (a0 - a1) * delay / d);
+            }
         } else n = data;
+        if (n.T() != n.bitmap) return;
         Bitmap b(n);
         Node o(n["origin"]);
         x -= o.X(), y -= o.Y();
@@ -83,6 +97,6 @@ namespace NL {
         flipped ? glTexCoord2i(1, 1) : glTexCoord2i(0, 1);
         glVertex2i(x, y + h);
         glEnd();
-
+        glColor4f(1, 1, 1, 1);
     }
 }

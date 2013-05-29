@@ -19,17 +19,20 @@
 namespace NL {
     namespace Time {
         int32_t FPS(0), TargetFPS(65), Delta(1);
+        bool FrameLimit(true);
         typedef high_resolution_clock Clock;
-        deque<Clock::time_point> LastFrames;
+        typedef time_point<high_resolution_clock, milliseconds> Time_Point;
+        deque<Time_Point> LastFrames;
         void Init() {
-            LastFrames.push_back(Clock::now());
+            LastFrames.push_back(time_point_cast<milliseconds>(Clock::now()));
         }
         void Update() {
-            Clock::time_point last = LastFrames.back();
+            Time_Point last = LastFrames.back();
             milliseconds step = milliseconds(1000) / TargetFPS;
-            Delta = step.count();
-            sleep_until(last + step);
-            Clock::time_point now = max(Clock::now() - step, last + step);
+            if (FrameLimit) sleep_until(last + step);
+            Time_Point now = time_point_cast<milliseconds>(Clock::now());
+            now = min(now, max(last + step, now - step));
+            Delta = duration_cast<milliseconds>(now - last).count();
             while (!LastFrames.empty() && now - LastFrames.front() > seconds(1)) LastFrames.pop_front();
             LastFrames.push_back(now);
             FPS = static_cast<uint32_t>(LastFrames.size());

@@ -25,7 +25,7 @@ namespace NL {
         Sprite & operator=(Sprite const &);
         void Draw(int32_t x, int32_t y, bool view, bool flipped);
     private:
-        uint32_t frame, delay;
+        int32_t frame, delay;
         Node data;
         int32_t movetype;
         double movew, moveh, movep, mover;

@@ -23,7 +23,7 @@ namespace NL {
         void Render();
         bool operator<(Obj const &) const;
     private:
-        Node data;
+        Sprite data;
         double rx, ry;
         int32_t x, y, z;
         bool flip, flow, repeat;

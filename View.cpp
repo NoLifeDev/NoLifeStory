@@ -37,8 +37,8 @@ namespace NL {
             y = Bottom - Top <= Height ? (Bottom + Top) / 2 : y > Bottom - Height / 2 ? Bottom - Height / 2 : y < Top + Height / 2 ? Top + Height / 2 : y;
         }
         void Reset() {
-            Left = -1000, Right = 1000;
-            Top = -1000, Bottom = 1000;
+            Left = -10000, Right = 10000;
+            Top = -10000, Bottom = 10000;
             X = Player::X, Y = Player::Y;
             Restrict(X, Y);
             FX = X, FY = Y;
@@ -54,7 +54,6 @@ namespace NL {
             FY += sy;
             X = FX;
             Y = FY;
-            Log::Write(to_string(tx) + ", " + to_string(sx) + ", " + to_string(FX) + ", " + to_string(X));
         }
     }
 }

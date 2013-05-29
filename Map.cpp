@@ -42,8 +42,15 @@ namespace NL {
                 return;
             }
             Current = m;
-            Player::X = 0;
-            Player::Y = 0;
+            vector<pair<int32_t, int32_t>> spawns;
+            for (Node n : Current["portal"]) {
+                if ((string)n["pn"] == "sp") {
+                    spawns.emplace_back(n["x"], n["y"]);
+                }
+            }
+            auto spawn = spawns[rand() % spawns.size()];
+            Player::X = spawn.first;
+            Player::Y = spawn.second;
             string bgm(Current["info"]["bgm"]);
             if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
             while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
@@ -56,8 +63,6 @@ namespace NL {
             View::Reset();
         }
         void Render() {
-            static uint8_t c = 0;
-            if (!c++) Next();
             Layer::RenderAll();
         }
         void Next() {

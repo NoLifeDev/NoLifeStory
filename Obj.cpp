@@ -26,18 +26,11 @@ namespace NL {
         ry = n["ry"];
         flip = n["f"].GetInt();
         data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
-        //movetype = data["moveType"];
-        //movew = data["moveW"];
-        //moveh = data["moveH"];
-        //movep = data["moveP"];
-        //mover = data["moveR"];
-        //repeat = data["repeat"];
-    }
-    void Obj::Render() {
-        Node n = data[0];
-        Sprite(n).Draw(x, y, true, flip);
     }
     bool Obj::operator<(Obj const & o) const {
         return z < o.z;
+    }
+    void Obj::Render() {
+        data.Draw(x, y, true, flip);
     }
 }
