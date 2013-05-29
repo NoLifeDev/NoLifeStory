@@ -36,6 +36,7 @@ namespace NL {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
         Sprites[b.ID()] = t;
+        LastBound = t;
     }
     Sprite::Sprite() : frame(0), delay(0), data() {}
     Sprite::Sprite(Sprite const & o) : frame(o.frame), delay(o.delay), data(o.data), repeat(o.repeat),

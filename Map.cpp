@@ -29,7 +29,8 @@ namespace NL {
                     if (name.length() == 13) Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            srand(clock());
+            srand(clock() + time(nullptr));
+            random_shuffle(Maps.begin(), Maps.end());
             random_shuffle(Maps.begin(), Maps.end());
             Cur = Maps.begin();
             Next();

@@ -49,10 +49,12 @@ namespace NL {
     }
     namespace Game {
         bool Over = false;
+        vector<File> Files;
         void SetupFiles() {
             auto AddFile = [&](char const * c) {
                 if (!exists(path(c))) return Node();
-                return (new File(c))->Base();
+                Files.emplace_back(c);
+                return Files.back().Base();
             };
             if (exists(path("Data.nx"))) {
                 NXBase = AddFile("Data.nx");

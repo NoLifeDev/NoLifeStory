@@ -18,7 +18,7 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Time {
-        int32_t FPS(0), TargetFPS(65), Delta(1);
+        int32_t FPS(0), TargetFPS(60), Delta(1);
         bool FrameLimit(true);
         typedef high_resolution_clock Clock;
         typedef time_point<high_resolution_clock, milliseconds> Time_Point;

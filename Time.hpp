@@ -23,4 +23,17 @@ namespace NL {
         void Init();
         void Update();
     }
+    class Timer {
+    public:
+        Timer() : last(high_resolution_clock::now()) {}
+        void DoEvery(high_resolution_clock::duration d, function<void(void)> f) {
+            high_resolution_clock::time_point now = high_resolution_clock::now();
+            if (now - last > d) {
+                f();
+                last = now;
+            }
+        }
+    private:
+        high_resolution_clock::time_point last;
+    };
 }
