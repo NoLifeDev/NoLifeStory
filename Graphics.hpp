@@ -20,5 +20,6 @@ namespace NL {
     namespace Graphics {
         void Init();
         void Update();
+        void Unload();
     }
 }

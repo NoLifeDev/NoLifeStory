@@ -109,6 +109,7 @@ namespace NL {
                 Map::Render();
                 Graphics::Update();
             }
+            Graphics::Unload();
         }
     }
 }

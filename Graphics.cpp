@@ -18,7 +18,7 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Graphics {
-        shared_ptr<sf::Window> Window;
+        sf::Window * Window;
         uint32_t WWidth = 800, WHeight = 600;
         uint32_t FWidth, FHeight;
         string Title = "NoLifeStory";
@@ -40,7 +40,7 @@ namespace NL {
             auto v = sf::VideoMode::getFullscreenModes()[0];
             FWidth = v.width;
             FHeight = v.height;
-            Window = make_shared<sf::Window>();
+            Window = new sf::Window();
             Create(false);
 #ifdef NL_WINDOWS
             BASS_Init(-1, 44100, 0, Window->getSystemHandle(), 0);
@@ -137,6 +137,9 @@ namespace NL {
             case sf::Event::TextEntered: break;
             }
             glClear(GL_COLOR_BUFFER_BIT);
+        }
+        void Unload() {
+            delete Window;
         }
     }
 }

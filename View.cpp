@@ -37,8 +37,15 @@ namespace NL {
             y = Bottom - Top <= Height ? (Bottom + Top) / 2 : y > Bottom - Height / 2 ? Bottom - Height / 2 : y < Top + Height / 2 ? Top + Height / 2 : y;
         }
         void Reset() {
-            Left = -10000, Right = 10000;
-            Top = -10000, Bottom = 10000;
+            if (Map::Current["VRTop"]) {
+                Top = Map::Current["VRTop"];
+                Bottom = Map::Current["VRBottom"];
+                Left = Map::Current["VRLeft"];
+                Right = Map::Current["VRRight"];
+            } else {
+                Left = INT32_MAX, Right = INT32_MIN;
+                Top = INT32_MAX, Bottom = INT32_MIN;
+            }
             X = Player::X, Y = Player::Y;
             Restrict(X, Y);
             FX = X, FY = Y;

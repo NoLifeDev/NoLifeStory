@@ -23,7 +23,7 @@ namespace NL {
         void Render();
         bool operator<(Tile const &) const;
     private:
-        Node data;
+        Sprite data;
         int32_t x, y, z;
     };
 }
