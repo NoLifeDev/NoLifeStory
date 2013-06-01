@@ -28,8 +28,7 @@ namespace NL {
                     Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            Load("686000100");
-            //Next();
+            Next();
         }
         void Load(string name) {
             name.insert(0, 9 - name.size(), '0');
@@ -77,6 +76,8 @@ namespace NL {
             Layer::RenderAll();
             for (auto && b : Foregrounds) b.Render();
             View::DrawEdges();
+            //static Timer t;
+            //t.DoEvery(seconds(1), Next);
         }
         void Next() {
             static mt19937_64 engine(time(nullptr)); 

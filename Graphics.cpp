@@ -23,7 +23,8 @@ namespace NL {
         uint32_t FWidth, FHeight;
         string Title = "NoLifeStory";
         bool Fullscreen = false;
-        const sf::ContextSettings Context(0, 0, 0, 1, 1);
+        const sf::ContextSettings Context(0, 0, 0, 1, 5);
+        GLuint VBO;
         void Create(bool fullscreen) {
             if (fullscreen) Window->create(sf::VideoMode(FWidth, FHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
             else Window->create(sf::VideoMode(WWidth, WHeight, 32), Title, sf::Style::Default, Context);
@@ -35,13 +36,17 @@ namespace NL {
             glEnable(GL_TEXTURE_2D);
             glColor4f(1, 1, 1, 1);
             glClearColor(0, 0, 0, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glVertexPointer(2, GL_FLOAT, 0, nullptr);
+            glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
         }
         void Init() {
             auto v = sf::VideoMode::getFullscreenModes()[0];
             FWidth = v.width;
             FHeight = v.height;
             Window = new sf::Window();
-            Create(false);
 #ifdef NL_WINDOWS
             BASS_Init(-1, 44100, 0, Window->getSystemHandle(), 0);
 #else
@@ -64,11 +69,16 @@ namespace NL {
                 Log::Write("ERROR: Unknown GLEW error code " + to_string(err));
                 throw;
             }
-            if (!GLEW_ARB_texture_non_power_of_two) {
+            if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5) {
                 Log::Write("ERROR: Your OpenGL lacks needed extensions");
                 Log::Write("Please update your drivers and/or buy a new GPU");
                 throw;
             }
+            float a[] = {0, 0, 1, 0, 1, 1, 0, 1};
+            glGenBuffers(1, &VBO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(a), a, GL_STATIC_DRAW);
+            Create(false);
         }
         void Update() {
             static Timer t;

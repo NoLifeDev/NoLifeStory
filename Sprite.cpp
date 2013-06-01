@@ -46,8 +46,8 @@ namespace NL {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         Sprites[b.ID()] = t;
         LastBound = t;
         LoadedSprites.push_back(b.ID());
@@ -120,41 +120,44 @@ namespace NL {
         glColor4f(1, 1, 1, alpha);
         BindTexture(b);
         auto single = [&]() {
-            glTranslated(flipped ? x - (w - o.X()) : x + o.X(), y + o.Y(), 0);
+            glTranslated(x + o.X(), y + o.Y(), 0);
             glRotated(ang, 0, 0, 1);
             glTranslated(flipped ? w - o.X() : -o.X(), -o.Y(), 0);
-            glBegin(GL_QUADS);
-            flipped ? glTexCoord2i(1, 0) : glTexCoord2i(0, 0);
-            glVertex2i(0, 0);
-            flipped ? glTexCoord2i(0, 0) : glTexCoord2i(1, 0);
-            glVertex2i(w, 0);
-            flipped ? glTexCoord2i(0, 1) : glTexCoord2i(1, 1);
-            glVertex2i(w, h);
-            flipped ? glTexCoord2i(1, 1) : glTexCoord2i(0, 1);
-            glVertex2i(0, h);
-            glEnd();
+            glScaled(flipped ? -w : w, h, 1);
+            glDrawArrays(GL_QUADS, 0, 4);
             glLoadIdentity();
         };
         auto vert = [&]() {
             if (!cy) cy = h;
             int32_t y1 = y % cy - cy;
-            int32_t y2 = (y - View::Height) % cy + View::Height;
-            for (y = y1; y <= y2; y += cy) single();
+            int32_t y2 = (y - View::Height) % cy + View::Height + cy;
+            for (y = y1; y < y2; y += cy) single();
         };
         auto horz = [&]() {
             if (!cx) cx = w;
             int32_t x1 = x % cx - cx;
-            int32_t x2 = (x - View::Width) % cx + View::Width;
-            for (x = x1; x <= x2; x += cx) single();
+            int32_t x2 = (x - View::Width) % cx + View::Width + cx;
+            for (x = x1; x < x2; x += cx) single();
         };
         auto both = [&]() {
             if (!cx) cx = w;
             int32_t x1 = x % cx - cx;
-            int32_t x2 = (x - View::Width) % cx + View::Width;
+            int32_t x2 = (x - View::Width) % cx + View::Width + cx;
             if (!cy) cy = h;
             int32_t y1 = y % cy - cy;
-            int32_t y2 = (y - View::Height) % cy + View::Height;
-            for (x = x1; x <= x2; x += cx) for (y = y1; y <= y2; y += cy) single();
+            int32_t y2 = (y - View::Height) % cy + View::Height + cy;
+            if (cx == w && cy == h) {
+                glBegin(GL_QUADS);
+                glTexCoord2i(0, 0);
+                glVertex2i(x1, y1);
+                glTexCoord2i((x2 - x1) / cx, 0);
+                glVertex2i(x2, y1);
+                glTexCoord2i((x2 - x1) / cx, (y2 - y1) / cy);
+                glVertex2i(x2, y2);
+                glTexCoord2i(0, (y2 - y1) / cy);
+                glVertex2i(x1, y2);
+                glEnd();
+            } else for (x = x1; x < x2; x += cx) for (y = y1; y < y2; y += cy) single();
         };
         if (tilex)
             if (tiley) both();
