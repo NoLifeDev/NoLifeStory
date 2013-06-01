@@ -17,13 +17,17 @@
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
 namespace NL {
-    namespace View {
-        extern int32_t X, Y;
-        extern int32_t Width, Height;
-        extern int32_t Left, Right, Top, Bottom;
-        void Resize(int32_t w, int32_t h);
-        void Reset();
-        void Update();
-        void DrawEdges();
-    }
+    class Foothold {
+    public:
+        Foothold(Node, int32_t, int32_t, int32_t);
+        Foothold(Foothold const &);
+        static void Load();
+        Foothold * next, * prev;
+        int32_t x1, y1, x2, y2;
+        int32_t force, piece, nextid, previd;
+        int32_t id, group, layer;
+        bool cantThrough, forbidFallDown;
+    private:
+    };
+    extern vector<Foothold> Footholds;
 }

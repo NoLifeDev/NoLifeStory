@@ -17,13 +17,18 @@
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
 namespace NL {
-    namespace View {
-        extern int32_t X, Y;
-        extern int32_t Width, Height;
-        extern int32_t Left, Right, Top, Bottom;
-        void Resize(int32_t w, int32_t h);
-        void Reset();
-        void Update();
-        void DrawEdges();
-    }
+    class Background {
+    public:
+        Background(Node);
+        void Render();
+        static void Load();
+        Sprite spr;
+        int32_t x, y, z;
+        int32_t rx, ry, cx, cy;
+        int32_t type;
+        bool flipped;
+    private:
+    };
+    extern vector<Background> Backgrounds;
+    extern vector<Background> Foregrounds;
 }

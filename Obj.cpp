@@ -17,20 +17,33 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    Obj::Obj(Node n)  {
-        x = n["x"];
-        y = n["y"];
-        z = n["z"];
-        flow = n["flow"].GetInt();
-        rx = n["rx"];
-        ry = n["ry"];
-        flip = n["f"].GetInt();
-        data = NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
+    Obj::Obj(Node n) :
+        x(n["x"]), y(n["y"]), z(n["z"]),
+        rx(n["rx"]), ry(n["ry"]), flip(n["f"].GetBool()), 
+        cx(n["cx"]), cy(n["cy"]), flow(n["flow"]),
+        data(NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]]) {
+            if (!cx) cx = View::Right - View::Left;
+            if (!cy) cy = View::Bottom - View::Top;
+            if (cx < 0) cx = -cx;
+            if (cy < 0) cy = -cy;
     }
     bool Obj::operator<(Obj const & o) const {
         return z < o.z;
     }
     void Obj::Render() {
-        data.Draw(x, y, true, flip);
+        switch (flow) {
+        case 0:
+            data.Draw(x, y, true, flip, false, false, 0, 0);
+            break;
+        case 1:
+            data.Draw(x + Time::TDelta * rx / 100, y, true, flip, true, false, cx, 0);
+            break;
+        case 2:
+            data.Draw(x, y + Time::TDelta * ry / 100, true, flip, false, false, 0, cy);
+            break;
+        case 3:
+            data.Draw(x + Time::TDelta * rx / 100, y + Time::TDelta * ry / 100, true, flip, true, false, cx, cy);
+            break;
+        }
     }
 }

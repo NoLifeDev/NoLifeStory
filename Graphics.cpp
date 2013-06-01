@@ -73,7 +73,7 @@ namespace NL {
         void Update() {
             static Timer t;
             t.DoEvery(milliseconds(100), [](){
-                Window->setTitle(Title + " at " + to_string(Time::FPS) + " FPS");
+                Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
             });
             Window->display();
             GLenum err = glGetError();

@@ -15,15 +15,29 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "NoLifeClient.hpp"
 namespace NL {
-    namespace View {
-        extern int32_t X, Y;
-        extern int32_t Width, Height;
-        extern int32_t Left, Right, Top, Bottom;
-        void Resize(int32_t w, int32_t h);
-        void Reset();
-        void Update();
-        void DrawEdges();
+    vector<Foothold> Footholds;
+    Foothold::Foothold(Node n, int32_t id, int32_t group, int32_t layer) :
+        x1(n["x1"]), x2(n["x2"]), y1(n["y1"]), y2(n["y2"]),
+        force(n["force"]), piece(n["piece"]), nextid(n["next"]), previd(n["prev"]),
+        cantThrough(n["cantThrough"].GetBool()), forbidFallDown(n["forbidFallDown"].GetBool()),
+        id(id), group(group), layer(layer) {}
+    Foothold::Foothold(Foothold const & o) :
+        x1(o.x1), y1(o.y1), x2(o.x2), y2(o.y2),
+        force(o.force), piece(o.piece), next(o.next), prev(o.prev),
+        cantThrough(o.cantThrough), forbidFallDown(o.forbidFallDown),
+        id(o.id), group(o.group), layer(o.layer) {}
+    void Foothold::Load() {
+        Footholds.clear();
+        for (Node layer : Map::Current["foothold"]) for (Node group : layer) for (Node id : group) {
+            Footholds.emplace_back(id, stol(id.Name()), stol(group.Name()), stol(layer.Name()));
+        }
+        for (Foothold & f : Footholds) {
+            for (Foothold & ff : Footholds) {
+                if (f.nextid == ff.id) f.next = &ff;
+                if (f.previd == ff.id) f.prev = &ff;
+            }
+        }
     }
 }

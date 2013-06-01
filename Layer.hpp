@@ -21,8 +21,9 @@ namespace NL {
     public:
         static void RenderAll();
         static void LoadAll();
-    private:
         vector<Obj> Objs;
         vector<Tile> Tiles;
+    private:
     };
+    extern array<Layer, 8> Layers;
 }

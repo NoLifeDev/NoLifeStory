@@ -18,7 +18,7 @@
 #pragma once
 namespace NL {
     namespace Time {
-        extern int32_t FPS, TargetFPS, Delta;
+        extern int32_t FPS, TargetFPS, Delta, TDelta;
         extern bool FrameLimit;
         void Init();
         void Update();

@@ -49,31 +49,14 @@ namespace NL {
     }
     namespace Game {
         bool Over = false;
-        vector<File> Files;
+        vector<shared_ptr<File>> Files;
         void SetupFiles() {
             auto AddFile = [&](char const * c) {
                 if (!exists(path(c))) return Node();
-                Files.emplace_back(c);
-                return Files.back().Base();
+                Files.emplace_back(make_shared<File>(c));
+                return Files.back()->Base();
             };
-            if (exists(path("Data.nx"))) {
-                NXBase = AddFile("Data.nx");
-                NXCharacter = NXBase["Character"];
-                NXEffect = NXBase["Effect"];
-                NXEtc = NXBase["Etc"];
-                NXItem = NXBase["Item"];
-                NXMap = NXBase["Map"];
-                NXMob = NXBase["Mob"];
-                NXMorph = NXBase["Morph"];
-                NXNpc = NXBase["Npc"];
-                NXQuest = NXBase["Quest"];
-                NXReactor = NXBase["Reactor"];
-                NXSkill = NXBase["Skill"];
-                NXSound = NXBase["Sound"];
-                NXString = NXBase["String"];
-                NXTamingMob = NXBase["TamingMob"];
-                NXUI = NXBase["UI"];
-            } else if (exists(path("Base.nx"))) {
+            if (exists(path("Base.nx"))) {
                 NXBase = AddFile("Base.nx");
                 NXCharacter = AddFile("Character.nx");
                 NXEffect = AddFile("Effect.nx");
@@ -90,12 +73,27 @@ namespace NL {
                 NXString = AddFile("String.nx");
                 NXTamingMob = AddFile("TamingMob.nx");
                 NXUI = AddFile("UI.nx");
+            } else if (exists(path("Data.nx"))) {
+                NXBase = AddFile("Data.nx");
+                NXCharacter = NXBase["Character"];
+                NXEffect = NXBase["Effect"];
+                NXEtc = NXBase["Etc"];
+                NXItem = NXBase["Item"];
+                NXMap = NXBase["Map"];
+                NXMob = NXBase["Mob"];
+                NXMorph = NXBase["Morph"];
+                NXNpc = NXBase["Npc"];
+                NXQuest = NXBase["Quest"];
+                NXReactor = NXBase["Reactor"];
+                NXSkill = NXBase["Skill"];
+                NXSound = NXBase["Sound"];
+                NXString = NXBase["String"];
+                NXTamingMob = NXBase["TamingMob"];
+                NXUI = NXBase["UI"];
             } else {
                 Log::Write("Failed to load data files");
                 throw;
             }
-            for (Node n1 : NXMap["Obj"]) for (Node n2 : n1) for (Node n3 : n2) for (Node n4 : n3) for (Node n5 : n4) Dumper::push(n5);
-            Dumper::display("Obj stuff");
         }
         void Play() {
             SetupFiles();

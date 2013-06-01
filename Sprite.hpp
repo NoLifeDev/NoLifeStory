@@ -23,7 +23,9 @@ namespace NL {
         Sprite(Sprite const &);
         Sprite(Node const &);
         Sprite & operator=(Sprite const &);
-        void Draw(int32_t x, int32_t y, bool view, bool flipped);
+        void Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex = false, bool tiley = false, int32_t cx = 0, int32_t cy = 0);
+        static void Cleanup();
+        static void LoseBind();
     private:
         int32_t frame, delay;
         Node data;

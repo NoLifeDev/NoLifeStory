@@ -22,8 +22,8 @@ namespace NL {
         Tile(Node, Node);
         void Render();
         bool operator<(Tile const &) const;
+        int32_t x, y, z;
     private:
         Sprite data;
-        int32_t x, y, z;
     };
 }

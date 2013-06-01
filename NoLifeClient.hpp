@@ -22,6 +22,7 @@
 #elif defined(_WIN32)
 #define NL_WINDOWS
 #endif
+#define _USE_MATH_DEFINES
 //GLEW
 #include <GL/glew.h>
 //SFML
@@ -35,9 +36,12 @@
 //C++ Standard Library
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <deque>
 #include <fstream>
 #include <functional>
+#include <random>
+#include <set>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -58,6 +62,7 @@ using namespace boost::filesystem;
 #include "Sound.hpp"
 #include "Sprite.hpp"
 #include "View.hpp"
+#include "Foothold.hpp"
 #include "Log.hpp"
 #include "Game.hpp"
 #include "Map.hpp"
@@ -65,5 +70,6 @@ using namespace boost::filesystem;
 #include "Time.hpp"
 #include "Obj.hpp"
 #include "Tile.hpp"
+#include "Background.hpp"
 #include "Layer.hpp"
 #include "Player.hpp"

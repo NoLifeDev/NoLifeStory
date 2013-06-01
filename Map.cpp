@@ -21,25 +21,25 @@ namespace NL {
         Node Current;
         Sound Music;
         vector<string> Maps;
-        vector<string>::iterator Cur;
         void Init() {
-            for (Node n1 : NXMap["Map"]) {
-                for (Node n2 : n1) {
+            for (int i = 1; i < 9; ++i) {
+                for (Node n2 : NXMap["Map"]["Map" + to_string(i)]) {
                     string name = n2.Name();
-                    if (name.length() == 13) Maps.emplace_back(name.substr(0, name.size() - 4));
+                    Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            srand(clock() + time(nullptr));
-            random_shuffle(Maps.begin(), Maps.end());
-            random_shuffle(Maps.begin(), Maps.end());
-            Cur = Maps.begin();
-            Next();
+            Load("686000100");
+            //Next();
         }
         void Load(string name) {
             name.insert(0, 9 - name.size(), '0');
             Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
             if (!m) {
                 Log::Write("Failed to load map " + name);
+                return;
+            }
+            if (m["info"]["link"]) {
+                Load(m["info"]["link"]);
                 return;
             }
             Current = m;
@@ -49,9 +49,15 @@ namespace NL {
                     spawns.emplace_back(n["x"], n["y"]);
                 }
             }
-            auto spawn = spawns[rand() % spawns.size()];
-            Player::X = spawn.first;
-            Player::Y = spawn.second;
+            if (!spawns.empty()) {
+                auto spawn = spawns[rand() % spawns.size()];
+                Player::X = spawn.first;
+                Player::Y = spawn.second;
+            } else {
+                Log::Write("Map " + name + " has no spawn");
+                Player::X = 0;
+                Player::Y = 0;
+            }
             string bgm(Current["info"]["bgm"]);
             if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
             while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
@@ -60,15 +66,22 @@ namespace NL {
             if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + name);
             Music = sn;
             Music.Play(true);
-            Layer::LoadAll();
+            Foothold::Load();
             View::Reset();
+            Layer::LoadAll();
+            Background::Load();
+            Sprite::Cleanup();
         }
         void Render() {
+            for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
+            for (auto && b : Foregrounds) b.Render();
+            View::DrawEdges();
         }
         void Next() {
-            Load(*Cur++);
-            if (Cur == Maps.end()) Cur = Maps.begin();
+            static mt19937_64 engine(time(nullptr)); 
+            uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
+            Load(Maps[dist(engine)]);
         }
     }
 }

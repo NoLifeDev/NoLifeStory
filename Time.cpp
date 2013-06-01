@@ -18,7 +18,7 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Time {
-        int32_t FPS(0), TargetFPS(60), Delta(1);
+        int32_t FPS(0), TargetFPS(60), Delta(1), TDelta(0);
         bool FrameLimit(true);
         typedef high_resolution_clock Clock;
         typedef time_point<high_resolution_clock, milliseconds> Time_Point;
@@ -32,7 +32,8 @@ namespace NL {
             if (FrameLimit) sleep_until(last + step);
             Time_Point now = time_point_cast<milliseconds>(Clock::now());
             now = min(now, max(last + step, now - step));
-            Delta = duration_cast<milliseconds>(now - last).count();
+            Delta = (now - last).count();
+            TDelta = now.time_since_epoch().count();
             while (!LastFrames.empty() && now - LastFrames.front() > seconds(1)) LastFrames.pop_front();
             LastFrames.push_back(now);
             FPS = static_cast<uint32_t>(LastFrames.size());

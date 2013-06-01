@@ -24,8 +24,9 @@ namespace NL {
         bool operator<(Obj const &) const;
     private:
         Sprite data;
-        double rx, ry;
+        int32_t rx, ry;
         int32_t x, y, z;
-        bool flip, flow, repeat;
+        int32_t flow, cx, cy;
+        bool flip, repeat;
     };
 }

@@ -37,14 +37,37 @@ namespace NL {
             y = Bottom - Top <= Height ? (Bottom + Top) / 2 : y > Bottom - Height / 2 ? Bottom - Height / 2 : y < Top + Height / 2 ? Top + Height / 2 : y;
         }
         void Reset() {
-            if (Map::Current["VRTop"]) {
-                Top = Map::Current["VRTop"];
-                Bottom = Map::Current["VRBottom"];
-                Left = Map::Current["VRLeft"];
-                Right = Map::Current["VRRight"];
+            if (Map::Current["info"]["VRTop"]) {
+                Top = Map::Current["info"]["VRTop"];
+                Bottom = Map::Current["info"]["VRBottom"];
+                Left = Map::Current["info"]["VRLeft"];
+                Right = Map::Current["info"]["VRRight"];
+                if (Bottom - Top < 600) {
+                    int32_t d = (600 - (Bottom - Top)) / 2;
+                    Bottom += d;
+                    Top -= d;
+                }
+                if (Right - Left < 800) {
+                    int32_t d = (800 - (Right - Left)) / 2;
+                    Right += d;
+                    Left -= d;
+                }
             } else {
                 Left = INT32_MAX, Right = INT32_MIN;
                 Top = INT32_MAX, Bottom = INT32_MIN;
+                for (auto && f : Footholds) {
+                    if (Left > f.x1) Left = f.x1;
+                    if (Left > f.x2) Left = f.x2;
+                    if (Right < f.x1) Right = f.x1;
+                    if (Right < f.x2) Right = f.x2;
+                    if (Top > f.y1) Top = f.y1;
+                    if (Top > f.y2) Top = f.y2;
+                    if (Bottom < f.y1) Bottom = f.y1;
+                    if (Bottom < f.y2) Bottom = f.y2;
+                }
+                Top -= 256;
+                Bottom += 128;
+                if (Top > Bottom - 600) Top = Bottom - 600;
             }
             X = Player::X, Y = Player::Y;
             Restrict(X, Y);
@@ -61,6 +84,34 @@ namespace NL {
             FY += sy;
             X = FX;
             Y = FY;
+        }
+        void DrawEdges() {
+            Sprite::LoseBind();
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glColor4f(0, 0, 0, 1);
+            glBegin(GL_QUADS);
+
+            glVertex2i(0, 0);
+            glVertex2i(Width, 0);
+            glVertex2i(Width, Top - Y + Height / 2);
+            glVertex2i(0, Top - Y + Height / 2);
+
+            glVertex2i(0, Bottom - Y + Height / 2);
+            glVertex2i(Width, Bottom - Y + Height / 2);
+            glVertex2i(Width, Height);
+            glVertex2i(0, Height);
+
+            glVertex2i(0, Top - Y + Height / 2);
+            glVertex2i(Left - X + Width / 2, Top - Y + Height / 2);
+            glVertex2i(Left - X + Width / 2, Bottom - Y + Height / 2);
+            glVertex2i(0, Bottom - Y + Height / 2);
+
+            glVertex2i(Right - X + Width / 2, Top - Y + Height / 2);
+            glVertex2i(Width, Top - Y + Height / 2);
+            glVertex2i(Width, Bottom - Y + Height / 2);
+            glVertex2i(Right - X + Width / 2, Bottom - Y + Height / 2);
+
+            glEnd();
         }
     }
 }
