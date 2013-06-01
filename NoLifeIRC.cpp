@@ -25,7 +25,7 @@ namespace NL {
     string Source;
     map<string, function<void(void)>> IRCCommands;
     map<string, function<void(string)>> LookupCommands;
-    vector<File> Files;
+    vector<shared_ptr<File>> Files;
     Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
     void Send(string s) {
         if (s.size() > 510) s.resize(510);
@@ -163,8 +163,8 @@ namespace NL {
     }
     Node AddFile(char const * s) {
         if (!exists(path(s))) return Node();
-        Files.emplace_back(s);
-        return Files.back().Base();
+        Files.emplace_back(make_shared<File>(s));
+        return Files.back()->Base();
     }
     void SetupFiles() {
         if (exists(path("Data.nx"))) {
