@@ -31,6 +31,13 @@ namespace NL {
             View::Resize(Window->getSize().x, Window->getSize().y);
             if (Time::FrameLimit) Window->setVerticalSyncEnabled(true);
             Fullscreen = fullscreen;
+#ifdef _WIN32
+            DEVMODEA dev = {};
+            dev.dmSize = sizeof(DEVMODEA);
+            dev.dmDriverExtra = 0;
+            EnumDisplaySettingsA(nullptr, ENUM_CURRENT_SETTINGS, &dev);
+            Time::TargetFPS = dev.dmDisplayFrequency;
+#endif
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_TEXTURE_2D);
