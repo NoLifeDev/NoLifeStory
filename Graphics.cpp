@@ -162,5 +162,19 @@ namespace NL {
         void Unload() {
             delete Window;
         }
+        void DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool view) {
+            glBindTexture(GL_TEXTURE_2D, 0);
+            Sprite::LoseBind();
+            if (view) {
+                x1 = x1 + View::Width / 2 - View::X;
+                x2 = x2 + View::Width / 2 - View::X;
+                y1 = y1 + View::Height / 2 - View::Y;
+                y2 = y2 + View::Height / 2 - View::Y;
+            }
+            glTranslated(x1, y1, 0);
+            glScaled(x2 - x1, y2 - y1, 1);
+            glDrawArrays(GL_QUADS, 0, 4);
+            glLoadIdentity();
+        }
     }
 }

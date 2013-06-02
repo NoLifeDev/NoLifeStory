@@ -37,8 +37,8 @@ namespace NL {
         }
     }
     void Background::Render() {
-        int32_t ox = rx * View::X / 100 + View::Width / 2;
-        int32_t oy = ry * View::Y / 100 + View::Height / 2;
+        int32_t ox = int32_t(floor(rx * View::FX / 100)) + View::Width / 2;
+        int32_t oy = int32_t(floor(ry * View::FY / 100)) + View::Height / 2;
         switch (type) {
         case 0:
             spr.Draw(x + ox, y + oy, false, flipped, false, false, cx, cy);
@@ -53,16 +53,16 @@ namespace NL {
             spr.Draw(x + ox, y + oy, false, flipped, true, true, cx, cy);
             break;
         case 4:
-            spr.Draw(x + ox + Time::TDelta * rx / 100, y + oy, false, flipped, true, false, cx, cy);
+            spr.Draw(x + ox + Time::TDelta * rx * 10, y + oy, false, flipped, true, false, cx, cy);
             break;
         case 5:
-            spr.Draw(x + ox, y + oy + Time::TDelta * ry / 100, false, flipped, false, true, cx, cy);
+            spr.Draw(x + ox, y + oy + Time::TDelta * ry * 10, false, flipped, false, true, cx, cy);
             break;
         case 6:
-            spr.Draw(x + ox + Time::TDelta * rx / 100, y + oy, false, flipped, true, true, cx, cy);
+            spr.Draw(x + ox + Time::TDelta * rx * 10, y + oy, false, flipped, true, true, cx, cy);
             break;
         case 7:
-            spr.Draw(x + ox, y + oy + Time::TDelta * ry / 100, false, flipped, true, true, cx, cy);
+            spr.Draw(x + ox, y + oy + Time::TDelta * ry * 10, false, flipped, true, true, cx, cy);
             break;
         }
     }

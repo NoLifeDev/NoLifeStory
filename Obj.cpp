@@ -36,13 +36,13 @@ namespace NL {
             data.Draw(x, y, true, flip, false, false, 0, 0);
             break;
         case 1:
-            data.Draw(x + Time::TDelta * rx / 100, y, true, flip, true, false, cx, 0);
+            data.Draw(x + Time::TDelta * rx * 10, y, true, flip, true, false, cx, 0);
             break;
         case 2:
-            data.Draw(x, y + Time::TDelta * ry / 100, true, flip, false, false, 0, cy);
+            data.Draw(x, y + Time::TDelta * ry * 10, true, flip, false, false, 0, cy);
             break;
         case 3:
-            data.Draw(x + Time::TDelta * rx / 100, y + Time::TDelta * ry / 100, true, flip, true, false, cx, cy);
+            data.Draw(x + Time::TDelta * rx * 10, y + Time::TDelta * ry * 10, true, flip, true, false, cx, cy);
             break;
         }
     }

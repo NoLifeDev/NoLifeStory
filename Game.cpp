@@ -50,12 +50,12 @@ namespace NL {
     namespace Game {
         bool Over = false;
         vector<shared_ptr<File>> Files;
+        Node AddFile(char const * c) {
+            if (!exists(path(c))) return Node();
+            Files.emplace_back(make_shared<File>(c));
+            return Files.back()->Base();
+        }
         void SetupFiles() {
-            auto AddFile = [&](char const * c) -> Node {
-                if (!exists(path(c))) return Node();
-                Files.emplace_back(make_shared<File>(c));
-                return Files.back()->Base();
-            };
             if (exists(path("Base.nx"))) {
                 NXBase = AddFile("Base.nx");
                 NXCharacter = AddFile("Character.nx");
@@ -101,10 +101,10 @@ namespace NL {
             Graphics::Init();
             Map::Init();
             while (!Over) {
-                Time::Update();
                 Player::Update();
                 View::Update();
                 Map::Render();
+                Time::Update();
                 Graphics::Update();
             }
             Graphics::Unload();

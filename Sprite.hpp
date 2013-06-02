@@ -27,7 +27,8 @@ namespace NL {
         static void Cleanup();
         static void LoseBind();
     private:
-        int32_t frame, delay;
+        int32_t frame;
+        double delay;
         Node data;
         int32_t movetype;
         double movew, moveh, movep, mover;

@@ -80,12 +80,12 @@ namespace NL {
         Node n;
         float alpha(1);
         if (data.T() != Node::bitmap) {
-            delay += Time::Delta;
+            delay += Time::Delta * 1000;
             n = data[frame];
             int32_t d(n["delay"]);
             if (!d) d = 100;
             if (delay >= d) {
-                delay -= d;
+                delay = 0;
                 if (!(n = data[++frame])) n = data[frame = 0];
             }
             if (n["a0"] || n["a1"]) {
@@ -107,15 +107,15 @@ namespace NL {
         double ang(0);
         switch (movetype) {
         case 1:
-            if (movep) x += movew * sin(Time::TDelta * 2 * M_PI / movep);
-            else x += movew * sin(Time::TDelta * 0.001);
+            if (movep) x += movew * sin(Time::TDelta * 1000 * 2 * M_PI / movep);
+            else x += movew * sin(Time::TDelta);
             break;
         case 2:
-            if (movep) y += moveh * sin(Time::TDelta * 2 * M_PI / movep);
-            else y += moveh * sin(Time::TDelta * 0.001);
+            if (movep) y += moveh * sin(Time::TDelta * 1000 * 2 * M_PI / movep);
+            else y += moveh * sin(Time::TDelta);
             break;
         case 3:
-            ang = Time::TDelta * 180 / M_PI / mover;
+            ang = Time::TDelta * 1000 * 180 / M_PI / mover;
             break;
         }
         glColor4f(1, 1, 1, alpha);

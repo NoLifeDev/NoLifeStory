@@ -19,6 +19,7 @@
 namespace NL {
     namespace View {
         extern int32_t X, Y;
+        extern double FX, FY;
         extern int32_t Width, Height;
         extern int32_t Left, Right, Top, Bottom;
         void Resize(int32_t w, int32_t h);

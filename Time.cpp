@@ -18,25 +18,70 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Time {
-        int32_t FPS(0), TargetFPS(100), Delta(1), TDelta(0);
-        bool FrameLimit(false);
-        typedef high_resolution_clock Clock;
-        typedef time_point<high_resolution_clock, milliseconds> Time_Point;
-        deque<Time_Point> LastFrames;
+        uint32_t FPS(0), TargetFPS(100);
+        double Delta(1), TDelta(0);
+        bool FrameLimit(true);
+#ifdef _WIN32
+        deque<uint64_t> LastFrames;
+        uint64_t Freq;
+        uint64_t First;
+        uint64_t Now() {
+            LARGE_INTEGER n;
+            QueryPerformanceCounter(&n);
+            return n.QuadPart;
+        }
         void Init() {
-            LastFrames.push_back(time_point_cast<milliseconds>(Clock::now()));
+            LARGE_INTEGER n;
+            QueryPerformanceFrequency(&n);
+            Freq = n.QuadPart;
+            First = Now();
+            LastFrames.push_back(First);
         }
         void Update() {
-            Time_Point last = LastFrames.back();
-            milliseconds step = milliseconds(1000) / TargetFPS;
-            if (FrameLimit) sleep_until(last + step);
-            Time_Point now = time_point_cast<milliseconds>(Clock::now());
-            now = min(now, max(last + step, now - step));
-            Delta = (now - last).count();
-            TDelta = now.time_since_epoch().count();
+            uint64_t now = Now();
+            uint64_t last = LastFrames.back();
+            Delta = double(now - last) / Freq;
+            if (Delta < 0) Delta = 0;
+            if (Delta > 0.05) Delta = 0.05;
+            TDelta = double(now - First) / Freq;
+            while (!LastFrames.empty() && now - LastFrames.front() > Freq) LastFrames.pop_front();
+            LastFrames.push_back(now);
+            FPS = LastFrames.size();
+            glBindTexture(GL_TEXTURE_2D, 0);
+            Sprite::LoseBind();
+            glColor4f(1, 1, 1, 1);
+            glBegin(GL_LINE_STRIP);
+            for (size_t i = 1; i < LastFrames.size(); ++i) {
+                glVertex2i(i * 3, (LastFrames[i] - LastFrames[i - 1]) * 5000 / Freq);
+            }
+            glEnd();
+        }
+#else
+        deque<high_resolution_clock::time_point> LastFrames;
+        high_resolution_clock::time_point First;
+        void Init() {
+            First = high_resolution_clock::now();
+            LastFrames.push_back(First);
+        }
+        void Update() {
+            high_resolution_clock::time_point last = LastFrames.back();
+            high_resolution_clock::time_point now = high_resolution_clock::now();
+            Delta = duration_cast<duration<double>>(now - last).count();
+            if (Delta < 0) Delta = 0;
+            if (Delta > 0.05) Delta = 0.05;
+            TDelta = duration_cast<duration<double>>(now - First).count();
             while (!LastFrames.empty() && now - LastFrames.front() > seconds(1)) LastFrames.pop_front();
             LastFrames.push_back(now);
             FPS = static_cast<uint32_t>(LastFrames.size());
+            glBindTexture(GL_TEXTURE_2D, 0);
+            Sprite::LoseBind();
+            glColor4f(1, 1, 1, 1);
+            glBegin(GL_LINE_STRIP);
+            for (size_t i = 1; i < LastFrames.size(); ++i) {
+                glVertex2i(i * 3, duration_cast<microseconds>(LastFrames[i] - LastFrames[i - 1]).count() / 200);
+            }
+            glEnd();
         }
+#endif
     }
 }

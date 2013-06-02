@@ -77,13 +77,16 @@ namespace NL {
         }
         void Update() {
             Restrict(Player::X, Player::Y);//Temporary until player physics implemented
-            int32_t tx(Player::X);
-            int32_t ty(Player::Y);
+            double tx(Player::X);
+            double ty(Player::Y);
             Restrict(tx, ty);
-            double sx((tx - X) * Time::Delta * 0.02);
-            double sy((ty - Y) * Time::Delta * 0.02);
+            double sx((tx - FX) * Time::Delta * 10);
+            double sy((ty - FY) * Time::Delta * 10);
+            if (abs(sx) > abs(tx - FX)) sx = tx - FX;
+            if (abs(sy) > abs(ty - FY)) sy = ty - FY;
             FX += sx;
             FY += sy;
+            Restrict(FX, FY);
             X = FX;
             Y = FY;
         }
@@ -91,29 +94,10 @@ namespace NL {
             Sprite::LoseBind();
             glBindTexture(GL_TEXTURE_2D, 0);
             glColor4f(0, 0, 0, 1);
-            glBegin(GL_QUADS);
-
-            glVertex2i(0, 0);
-            glVertex2i(Width, 0);
-            glVertex2i(Width, Top - Y + Height / 2);
-            glVertex2i(0, Top - Y + Height / 2);
-
-            glVertex2i(0, Bottom - Y + Height / 2);
-            glVertex2i(Width, Bottom - Y + Height / 2);
-            glVertex2i(Width, Height);
-            glVertex2i(0, Height);
-
-            glVertex2i(0, Top - Y + Height / 2);
-            glVertex2i(Left - X + Width / 2, Top - Y + Height / 2);
-            glVertex2i(Left - X + Width / 2, Bottom - Y + Height / 2);
-            glVertex2i(0, Bottom - Y + Height / 2);
-
-            glVertex2i(Right - X + Width / 2, Top - Y + Height / 2);
-            glVertex2i(Width, Top - Y + Height / 2);
-            glVertex2i(Width, Bottom - Y + Height / 2);
-            glVertex2i(Right - X + Width / 2, Bottom - Y + Height / 2);
-
-            glEnd();
+            Graphics::DrawRect(0, 0, Width, Top - Y + Height / 2, false);
+            Graphics::DrawRect(0, Bottom - Y + Height / 2, Width, Height, false);
+            Graphics::DrawRect(0, Top - Y + Height / 2, Left - X + Width / 2, Bottom - Y + Height / 2, false);
+            Graphics::DrawRect(Right - X + Width / 2, Top - Y + Height / 2, Width, Bottom - Y + Height / 2, false);
         }
     }
 }
