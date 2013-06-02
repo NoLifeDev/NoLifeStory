@@ -1,0 +1,32 @@
+[submodule "NoLifeChannel"]
+	path = NoLifeChannel
+	url = git@github.com:NoLifeDev/NoLifeChannel.git
+	update = merge
+[submodule "NoLifeClient"]
+	path = NoLifeClient
+	url = git@github.com:NoLifeDev/NoLifeClient.git
+	update = merge
+[submodule "NoLifeIRC"]
+	path = NoLifeIRC
+	url = git@github.com:NoLifeDev/NoLifeIRC.git
+	update = merge
+[submodule "NoLifeLogin"]
+	path = NoLifeLogin
+	url = git@github.com:NoLifeDev/NoLifeLogin.git
+	update = merge
+[submodule "NoLifeNx"]
+	path = NoLifeNx
+	url = git@github.com:NoLifeDev/NoLifeNx.git
+	update = merge
+[submodule "NoLifeTrade"]
+	path = NoLifeTrade
+	url = git@github.com:NoLifeDev/NoLifeTrade.git
+	update = merge
+[submodule "NoLifeWorld"]
+	path = NoLifeWorld
+	url = git@github.com:NoLifeDev/NoLifeWorld.git
+	update = merge
+[submodule "NoLifeWzToNx"]
+	path = NoLifeWzToNx
+	url = git@github.com:NoLifeDev/NoLifeWzToNx.git
+	update = merge
