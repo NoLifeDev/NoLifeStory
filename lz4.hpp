@@ -31,7 +31,7 @@
     - LZ4 homepage : http://fastcompression.blogspot.com/p/lz4.html
     - LZ4 source repository : http://code.google.com/p/lz4/
 */
-// Modified by Peter Atechian
+// Modified by Peter Atashian
 namespace LZ4 {
     void Uncompress(void const * source, void * dest, size_t osize);
 }

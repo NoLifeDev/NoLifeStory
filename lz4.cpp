@@ -31,10 +31,11 @@
     - LZ4 homepage : http://fastcompression.blogspot.com/p/lz4.html
     - LZ4 source repository : http://code.google.com/p/lz4/
 */
-// Modified by Peter Atechian
+// Modified by Peter Atashian
 #include <cstdint>
 #include <cassert>
 #include <cstring>
+#include <cstddef>
 #include "lz4.hpp"
 namespace {
     size_t const copylength = 8;
@@ -44,8 +45,8 @@ namespace {
     size_t const runmask = (1 << runbits) - 1;
     size_t const stepsize = sizeof(size_t);
     bool const arch64 = stepsize == 8;
-    size_t const dectable1[] = {0, 3, 2, 3, 0, 0, 0, 0};
-    size_t const dectable2[] = {0, 0, 0, -1, 0, 1, 2, 3};
+    ptrdiff_t const dectable1[] = {0, 3, 2, 3, 0, 0, 0, 0};
+    ptrdiff_t const dectable2[] = {0, 0, 0, -1, 0, 1, 2, 3};
 }
 namespace LZ4 {
     void Uncompress(void const * source, void * dest, size_t osize) {
@@ -84,7 +85,7 @@ namespace LZ4 {
                 length += len;
             } while (len == 255);
             if (op - ref < stepsize) {
-                size_t const dec2 = arch64?dectable2[op - ref]:0;
+                ptrdiff_t const dec2 = arch64 ? dectable2[op - ref] : 0;
                 op[0] = ref[0];
                 op[1] = ref[1];
                 op[2] = ref[2];
