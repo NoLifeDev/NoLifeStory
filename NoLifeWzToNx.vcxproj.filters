@@ -15,13 +15,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Keys.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="WzToNx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-	<ClCompile Include="Keys.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
 </Project>
