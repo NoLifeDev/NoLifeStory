@@ -130,6 +130,10 @@ namespace NL {
             case sf::Event::JoystickMoved: break;
             case sf::Event::KeyPressed:
                 switch (e.key.code) {
+                case sf::Keyboard::M:
+                    if (Map::Music.GetVolume() > 0) Map::Music.SetVolume(0);
+                    else Map::Music.SetVolume(1);
+                    break;
                 case sf::Keyboard::F11:
                     Create(!Fullscreen);
                     break;

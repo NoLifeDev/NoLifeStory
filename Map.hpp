@@ -19,6 +19,7 @@
 namespace NL {
     namespace Map {
         extern Node Current;
+        extern Sound Music;
         void Init();
         void Next();
         void Load(string name);
