@@ -51,7 +51,7 @@ namespace NL {
         bool Over = false;
         vector<shared_ptr<File>> Files;
         void SetupFiles() {
-            auto AddFile = [&](char const * c) {
+            auto AddFile = [&](char const * c) -> Node {
                 if (!exists(path(c))) return Node();
                 Files.emplace_back(make_shared<File>(c));
                 return Files.back()->Base();

@@ -78,19 +78,19 @@ namespace NL {
     }
     void Sprite::Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex, bool tiley, int32_t cx, int32_t cy) {
         Node n;
-        float alpha = 1;
-        if (data["0"]) {
+        float alpha(1);
+        if (data.T() != Node::bitmap) {
             delay += Time::Delta;
             n = data[frame];
-            int32_t d = n["delay"];
+            int32_t d(n["delay"]);
             if (!d) d = 100;
             if (delay >= d) {
                 delay -= d;
                 if (!(n = data[++frame])) n = data[frame = 0];
             }
             if (n["a0"] || n["a1"]) {
-                double a0 = (n["a0"] ? n["a0"] : 255), a1 = (n["a1"] ? n["a1"] : 255);
-                double dif = double(delay) / d;
+                double a0(n["a0"] ? n["a0"] : 255), a1(n["a1"] ? n["a1"] : 255);
+                double dif(double(delay) / d);
                 alpha = (a0 * (1 - dif) + a1 * dif) / 255;
             }
         } else n = data;
@@ -98,12 +98,13 @@ namespace NL {
         Bitmap b(n);
         Node o(n["origin"]);
         uint16_t w(b.Width()), h(b.Height());
-        (flipped ? (x -= w - o.X()) : (x -= o.X())), y -= o.Y();
+        int32_t ox(o.X()), oy(o.Y());
+        (flipped ? (x -= w - ox) : (x -= ox)), y -= oy;
         if (view) {
             x += View::Width / 2, y += View::Height / 2;
             x -= View::X, y -= View::Y;
         }
-        double ang = 0;
+        double ang(0);
         switch (movetype) {
         case 1:
             if (movep) x += movew * sin(Time::TDelta * 2 * M_PI / movep);
@@ -118,52 +119,53 @@ namespace NL {
             break;
         }
         glColor4f(1, 1, 1, alpha);
-        BindTexture(b);
         auto single = [&]() {
-            glTranslated(x + o.X(), y + o.Y(), 0);
+            glTranslated(x + ox, y + oy, 0);
             glRotated(ang, 0, 0, 1);
-            glTranslated(flipped ? w - o.X() : -o.X(), -o.Y(), 0);
+            glTranslated(flipped ? w - ox : -ox, -oy, 0);
             glScaled(flipped ? -w : w, h, 1);
             glDrawArrays(GL_QUADS, 0, 4);
             glLoadIdentity();
         };
-        auto vert = [&]() {
-            if (!cy) cy = h;
-            int32_t y1 = y % cy - cy;
-            int32_t y2 = (y - View::Height) % cy + View::Height + cy;
-            for (y = y1; y < y2; y += cy) single();
-        };
-        auto horz = [&]() {
-            if (!cx) cx = w;
-            int32_t x1 = x % cx - cx;
-            int32_t x2 = (x - View::Width) % cx + View::Width + cx;
-            for (x = x1; x < x2; x += cx) single();
-        };
-        auto both = [&]() {
-            if (!cx) cx = w;
-            int32_t x1 = x % cx - cx;
-            int32_t x2 = (x - View::Width) % cx + View::Width + cx;
-            if (!cy) cy = h;
-            int32_t y1 = y % cy - cy;
-            int32_t y2 = (y - View::Height) % cy + View::Height + cy;
-            if (cx == w && cy == h) {
-                glBegin(GL_QUADS);
-                glTexCoord2i(0, 0);
-                glVertex2i(x1, y1);
-                glTexCoord2i((x2 - x1) / cx, 0);
-                glVertex2i(x2, y1);
-                glTexCoord2i((x2 - x1) / cx, (y2 - y1) / cy);
-                glVertex2i(x2, y2);
-                glTexCoord2i(0, (y2 - y1) / cy);
-                glVertex2i(x1, y2);
-                glEnd();
-            } else for (x = x1; x < x2; x += cx) for (y = y1; y < y2; y += cy) single();
-        };
-        if (tilex)
-            if (tiley) both();
-            else horz();
-        else
-            if (tiley) vert();
-            else single();
+        if (tilex) {
+            BindTexture(b);
+            if (tiley) {
+                if (!cx) cx = w;
+                int32_t x1 = x % cx - cx;
+                int32_t x2 = (x - View::Width) % cx + View::Width + cx;
+                if (!cy) cy = h;
+                int32_t y1 = y % cy - cy;
+                int32_t y2 = (y - View::Height) % cy + View::Height + cy;
+                if (cx == w && cy == h) {
+                    glBegin(GL_QUADS);
+                    glTexCoord2i(0, 0);
+                    glVertex2i(x1, y1);
+                    glTexCoord2i((x2 - x1) / cx, 0);
+                    glVertex2i(x2, y1);
+                    glTexCoord2i((x2 - x1) / cx, (y2 - y1) / cy);
+                    glVertex2i(x2, y2);
+                    glTexCoord2i(0, (y2 - y1) / cy);
+                    glVertex2i(x1, y2);
+                    glEnd();
+                } else for (x = x1; x < x2; x += cx) for (y = y1; y < y2; y += cy) single();
+            } else {
+                if (!cx) cx = w;
+                int32_t x1 = x % cx - cx;
+                int32_t x2 = (x - View::Width) % cx + View::Width + cx;
+                for (x = x1; x < x2; x += cx) single();
+            }
+        } else {
+            if (tiley) {
+                BindTexture(b);
+                if (!cy) cy = h;
+                int32_t y1 = y % cy - cy;
+                int32_t y2 = (y - View::Height) % cy + View::Height + cy;
+                for (y = y1; y < y2; y += cy) single();
+            } else if (x + w > 0 && x < View::Width && y + h > 0 && y < View::Height) {
+                BindTexture(b);
+                single();
+            }
+        }
     }
+
 }

@@ -19,7 +19,7 @@
 namespace NL {
     namespace Time {
         int32_t FPS(0), TargetFPS(100), Delta(1), TDelta(0);
-        bool FrameLimit(true);
+        bool FrameLimit(false);
         typedef high_resolution_clock Clock;
         typedef time_point<high_resolution_clock, milliseconds> Time_Point;
         deque<Time_Point> LastFrames;

@@ -22,6 +22,11 @@ namespace NL {
         int32_t Width(0), Height(0);
         double FX(0), FY(0);
         int32_t Left(0), Right(0), Top(0), Bottom(0);
+        template <typename T>
+        void Restrict(T & x, T & y) {
+            x = Right - Left <= Width ? (Right + Left) / 2 : x > Right - Width / 2 ? Right - Width / 2 : x < Left + Width / 2 ? Left + Width / 2 : x;
+            y = Bottom - Top <= Height ? (Bottom + Top) / 2 : y > Bottom - Height / 2 ? Bottom - Height / 2 : y < Top + Height / 2 ? Top + Height / 2 : y;
+        }
         void Resize(int32_t w, int32_t h) {
             Width = w, Height = h;
             glViewport(0, 0, Width, Height);
@@ -30,11 +35,8 @@ namespace NL {
             glOrtho(0, Width, Height, 0, -1, 1);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
-        }
-        template <typename T>
-        void Restrict(T & x, T & y) {
-            x = Right - Left <= Width ? (Right + Left) / 2 : x > Right - Width / 2 ? Right - Width / 2 : x < Left + Width / 2 ? Left + Width / 2 : x;
-            y = Bottom - Top <= Height ? (Bottom + Top) / 2 : y > Bottom - Height / 2 ? Bottom - Height / 2 : y < Top + Height / 2 ? Top + Height / 2 : y;
+            Restrict(FX, FY);
+            Restrict(X, Y);
         }
         void Reset() {
             if (Map::Current["info"]["VRTop"]) {
@@ -53,8 +55,8 @@ namespace NL {
                     Left -= d;
                 }
             } else {
-                Left = INT32_MAX, Right = INT32_MIN;
-                Top = INT32_MAX, Bottom = INT32_MIN;
+                Left = numeric_limits<int32_t>::max(), Right = numeric_limits<int32_t>::min();
+                Top = numeric_limits<int32_t>::max(), Bottom = numeric_limits<int32_t>::min();
                 for (auto && f : Footholds) {
                     if (Left > f.x1) Left = f.x1;
                     if (Left > f.x2) Left = f.x2;

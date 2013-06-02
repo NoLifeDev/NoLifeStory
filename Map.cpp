@@ -76,8 +76,11 @@ namespace NL {
             Layer::RenderAll();
             for (auto && b : Foregrounds) b.Render();
             View::DrawEdges();
-            //static Timer t;
-            //t.DoEvery(seconds(1), Next);
+            static Timer t;
+            t.DoEvery(milliseconds(1500), [&]() {
+                if (Time::FPS < 300) Log::Write("Map " + Map::Current.Name() + " had only " + to_string(Time::FPS) + " fps!");
+                Next();
+            });
         }
         void Next() {
             static mt19937_64 engine(time(nullptr)); 

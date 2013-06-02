@@ -18,7 +18,7 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Log {
-        ofstream LogFile("Log.txt");
+        ofstream LogFile("NoLifeClient.log");
         void Write(string s) {
             LogFile << s << endl;
         }
