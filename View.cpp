@@ -32,7 +32,10 @@ namespace NL {
             glViewport(0, 0, Width, Height);
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            glOrtho(0, Width, Height, 0, -1, 1);
+            if (Mindfuck) {
+                gluPerspective(90, Width / Height, 0.1, 10000);
+                gluLookAt(Width / 2, Height / 2, -Height / 2, Width / 2, Height / 2, 0, 0, -1, 0);
+            } else glOrtho(0, Width, Height, 0, -1, 1);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             Restrict(FX, FY);
@@ -71,28 +74,34 @@ namespace NL {
                 Bottom += 128;
                 if (Top > Bottom - 600) Top = Bottom - 600;
             }
-            X = Player::X, Y = Player::Y;
+            X = Player::Pos.x, Y = Player::Pos.y;
             Restrict(X, Y);
             FX = X, FY = Y;
         }
         void Update() {
-            Restrict(Player::X, Player::Y);//Temporary until player physics implemented
-            double tx(Player::X);
-            double ty(Player::Y);
-            Restrict(tx, ty);
-            double sx((tx - FX) * Time::Delta * 10);
-            double sy((ty - FY) * Time::Delta * 10);
+            double tx(Player::Pos.x), ty(Player::Pos.y);
+            if (!Mindfuck) Restrict(tx, ty);
+            double sx((tx - FX) * Time::Delta * 10), sy((ty - FY) * Time::Delta * 10);
             if (abs(sx) > abs(tx - FX)) sx = tx - FX;
             if (abs(sy) > abs(ty - FY)) sy = ty - FY;
-            FX += sx;
-            FY += sy;
-            Restrict(FX, FY);
-            X = FX;
-            Y = FY;
+            FX += sx, FY += sy;
+            if (!Mindfuck) Restrict(FX, FY);
+            X = FX, Y = FY;
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            if (Mindfuck) {
+                Engine.seed(high_resolution_clock::now().time_since_epoch().count());
+                uniform_real_distribution<double> dist(-10, 10);
+                FX += dist(Engine);
+                FY += dist(Engine);
+                gluPerspective(-5 * pow(sin(Time::TDelta * 13.6) + 1, 2) + 90, double(Width) / Height, 0.1, 10000);
+                gluLookAt(Width / 2, Height / 2, -Height / 2, Width / 2, Height / 2, 0, 0, -1, 0);
+            } else glOrtho(0, Width, Height, 0, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
         }
         void DrawEdges() {
-            Sprite::LoseBind();
-            glBindTexture(GL_TEXTURE_2D, 0);
+            Sprite::Unbind();
             glColor4f(0, 0, 0, 1);
             Graphics::DrawRect(0, 0, Width, Top - Y + Height / 2, false);
             Graphics::DrawRect(0, Bottom - Y + Height / 2, Width, Height, false);

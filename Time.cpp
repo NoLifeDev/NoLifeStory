@@ -47,8 +47,12 @@ namespace NL {
             while (!LastFrames.empty() && now - LastFrames.front() > Freq) LastFrames.pop_front();
             LastFrames.push_back(now);
             FPS = LastFrames.size();
-            glBindTexture(GL_TEXTURE_2D, 0);
-            Sprite::LoseBind();
+            Sprite::Unbind();
+            glColor4f(1, 0, 0, 1);
+            glBegin(GL_LINE_STRIP);
+            glVertex2i(0, 5000 / TargetFPS);
+            glVertex2i(LastFrames.size() * 3, 5000 / TargetFPS);
+            glEnd();
             glColor4f(1, 1, 1, 1);
             glBegin(GL_LINE_STRIP);
             for (size_t i = 1; i < LastFrames.size(); ++i) {
@@ -73,8 +77,12 @@ namespace NL {
             while (!LastFrames.empty() && now - LastFrames.front() > seconds(1)) LastFrames.pop_front();
             LastFrames.push_back(now);
             FPS = static_cast<uint32_t>(LastFrames.size());
-            glBindTexture(GL_TEXTURE_2D, 0);
-            Sprite::LoseBind();
+            Sprite::Unbind();
+            glColor4f(1, 0, 0, 1);
+            glBegin(GL_LINE_STRIP);
+            glVertex2i(0, 5000 / TargetFPS);
+            glVertex2i(LastFrames.size() * 3, 5000 / TargetFPS);
+            glEnd();
             glColor4f(1, 1, 1, 1);
             glBegin(GL_LINE_STRIP);
             for (size_t i = 1; i < LastFrames.size(); ++i) {

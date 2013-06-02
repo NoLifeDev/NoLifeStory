@@ -18,7 +18,9 @@
 #pragma once
 namespace NL {
     namespace Player {
-        extern double X, Y;
+        extern Physics Pos;
+        void Reset();
         void Update();
+        void Render();
     }
 }

@@ -48,6 +48,7 @@ namespace NL {
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glVertexPointer(2, GL_FLOAT, 0, nullptr);
             glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
+            if (Mindfuck) glEnable(GL_COLOR_LOGIC_OP);
         }
         void Init() {
             auto v = sf::VideoMode::getFullscreenModes()[0];
@@ -163,14 +164,8 @@ namespace NL {
             delete Window;
         }
         void DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool view) {
-            glBindTexture(GL_TEXTURE_2D, 0);
-            Sprite::LoseBind();
-            if (view) {
-                x1 = x1 + View::Width / 2 - View::X;
-                x2 = x2 + View::Width / 2 - View::X;
-                y1 = y1 + View::Height / 2 - View::Y;
-                y2 = y2 + View::Height / 2 - View::Y;
-            }
+            Sprite::Unbind();
+            if (view) glTranslated(View::Width / 2 - View::X, View::Height / 2 - View::Y, 0);
             glTranslated(x1, y1, 0);
             glScaled(x2 - x1, y2 - y1, 1);
             glDrawArrays(GL_QUADS, 0, 4);

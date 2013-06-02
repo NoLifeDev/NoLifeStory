@@ -28,6 +28,10 @@ namespace NL {
                     Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
+            if (Mindfuck) {
+                HSTREAM s = BASS_StreamCreateFile(false, "bgm.mp3", 0, 0, BASS_SAMPLE_FLOAT | BASS_SAMPLE_LOOP);
+                BASS_ChannelPlay(s, false);
+            }
             Next();
         }
         void Load(string name) {
@@ -50,21 +54,23 @@ namespace NL {
             }
             if (!spawns.empty()) {
                 auto spawn = spawns[rand() % spawns.size()];
-                Player::X = spawn.first;
-                Player::Y = spawn.second;
+                Player::Pos.x = spawn.first;
+                Player::Pos.y = spawn.second;
             } else {
                 Log::Write("Map " + name + " has no spawn");
-                Player::X = 0;
-                Player::Y = 0;
+                Player::Pos.x = 0;
+                Player::Pos.y = 0;
             }
-            string bgm(Current["info"]["bgm"]);
-            if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
-            while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
-            size_t p(bgm.find('/'));
-            Node sn(NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)]);
-            if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + name);
-            Music = sn;
-            Music.Play(true);
+            if (!Mindfuck) {
+                string bgm(Current["info"]["bgm"]);
+                if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
+                while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
+                size_t p(bgm.find('/'));
+                Node sn(NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)]);
+                if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + name);
+                Music = sn;
+                Music.Play(true);
+            }
             Foothold::Load();
             View::Reset();
             Layer::LoadAll();
@@ -72,15 +78,27 @@ namespace NL {
             Sprite::Cleanup();
         }
         void Render() {
+            if (Mindfuck) {
+                uniform_real_distribution<double> dist(-0.2, 1.2);
+                Engine.seed(floor(Time::TDelta * 3));
+                double r1(dist(Engine)), g1(dist(Engine)), b1(dist(Engine));
+                Engine.seed(floor(Time::TDelta * 3 + 1));
+                double r2(dist(Engine)), g2(dist(Engine)), b2(dist(Engine));
+                double d = floor(Time::TDelta * 3 + 1) - Time::TDelta * 3;
+                glColor4f(r1 * d + r2 * (1 - d), g1 * d + g2 * (1 - d), b1 * d + b2 * (1 - d), 1);
+                Engine.seed(Time::TDelta * 10);
+                if (dist(Engine) < 0.1) glLogicOp(GL_XOR);
+		        else glLogicOp (GL_OR);
+            }
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
             for (auto && b : Foregrounds) b.Render();
-            View::DrawEdges();
+            if (!Mindfuck) View::DrawEdges();
         }
         void Next() {
-            static mt19937_64 engine(time(nullptr)); 
             uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
-            Load(Maps[dist(engine)]);
+            Engine.seed(high_resolution_clock::now().time_since_epoch().count());
+            Load(Maps[dist(Engine)]);
         }
     }
 }

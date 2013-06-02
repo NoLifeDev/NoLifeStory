@@ -15,23 +15,18 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "NoLifeClient.hpp"
 namespace NL {
-    class Sprite {
-    public:
-        Sprite();
-        Sprite(Sprite const &);
-        Sprite(Node const &);
-        Sprite & operator=(Sprite const &);
-        void Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex = false, bool tiley = false, int32_t cx = 0, int32_t cy = 0);
-        static void Cleanup();
-        static void Unbind();
-    private:
-        int32_t frame;
-        double delay;
-        Node data;
-        int32_t movetype;
-        double movew, moveh, movep, mover;
-        bool repeat;
-    };
+    Physics::Physics() : x(0), y(0), layer(7) {}
+    void Physics::Update() {
+        const double mult(1000);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) x -= Time::Delta * mult;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) x += Time::Delta * mult;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) y -= Time::Delta * mult;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) y += Time::Delta * mult;
+        if (x < View::Left) x = View::Left;
+        if (x > View::Right) x = View::Right;
+        if (y < View::Top) y = View::Top;
+        if (y > View::Bottom) y = View::Bottom;
+    }
 }

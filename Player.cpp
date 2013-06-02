@@ -18,13 +18,16 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Player {
-        double X(0), Y(0);
+        Physics Pos;
+        void Reset() {
+        }
         void Update() {
-            const double mult(1000);
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) X -= Time::Delta * mult;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) X += Time::Delta * mult;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) Y -= Time::Delta * mult;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) Y += Time::Delta * mult;
+            Pos.Update();
+        }
+        void Render() {
+            Sprite::Unbind();
+            if (!Mindfuck) glColor4f(1, 1, 1, 1);
+            Graphics::DrawRect(Pos.x - 20, Pos.y - 60, Pos.x + 20, Pos.y, true);
         }
     }
 }

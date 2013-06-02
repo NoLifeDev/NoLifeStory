@@ -21,8 +21,9 @@ namespace NL {
     deque<size_t> LoadedSprites;
     GLuint LastBound(0);
     size_t const MaxTextures = 0x800;
-    void Sprite::LoseBind() {
+    void Sprite::Unbind() {
         LastBound = 0;
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
     void Sprite::Cleanup() {
         while (LoadedSprites.size() > MaxTextures) {
@@ -118,7 +119,7 @@ namespace NL {
             ang = Time::TDelta * 1000 * 180 / M_PI / mover;
             break;
         }
-        glColor4f(1, 1, 1, alpha);
+        if (!Mindfuck) glColor4f(1, 1, 1, alpha);
         auto single = [&]() {
             glTranslated(x + ox, y + oy, 0);
             glRotated(ang, 0, 0, 1);

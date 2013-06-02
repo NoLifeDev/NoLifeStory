@@ -72,4 +72,5 @@ using namespace boost::filesystem;
 #include "Tile.hpp"
 #include "Background.hpp"
 #include "Layer.hpp"
+#include "Physics.hpp"
 #include "Player.hpp"

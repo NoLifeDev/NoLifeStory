@@ -19,9 +19,10 @@
 namespace NL {
     array<Layer, 8> Layers;
     void Layer::RenderAll() {
-        for (Layer & l : Layers) {
-            for (Obj & o : l.Objs) o.Render();
-            for (Tile & t : l.Tiles) t.Render();
+        for (size_t i = 0; i < 8; ++i) {
+            for (Obj & o : Layers[i].Objs) o.Render();
+            for (Tile & t : Layers[i].Tiles) t.Render();
+            if (Player::Pos.layer == i) Player::Render();
         }
     }
     void Layer::LoadAll() {

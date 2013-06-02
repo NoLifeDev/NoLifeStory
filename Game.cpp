@@ -18,6 +18,8 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
+    bool Mindfuck = true;
+    mt19937_64 Engine(time(nullptr));
     namespace Dumper {
         map<pair<string, string>, size_t> values;
             string pad(string s, size_t n) {
