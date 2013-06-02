@@ -4,18 +4,36 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNx", "NoLifeNx\NoLifeNx.vcxproj", "{A9F2D040-71A0-4593-9EAE-0E6820DC39FE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeClient", "NoLifeClient\NoLifeClient.vcxproj", "{21EFC7E3-D40F-4E4D-96F2-D5CAEA30A4C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeWzToNx", "NoLifeWzToNx\NoLifeWzToNx.vcxproj", "{52EBD968-07B9-46B1-85F6-1491693355AF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeIRC", "NoLifeIRC\NoLifeIRC.vcxproj", "{2BBC5A8F-3E4A-4A43-998F-B9374280790F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeTrade", "NoLifeTrade\NoLifeTrade.vcxproj", "{1E3376E5-0F3A-4C02-B0C0-AFA1894EFB43}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeWorld", "NoLifeWorld\NoLifeWorld.vcxproj", "{A91099F5-F709-4A88-B7BE-AF8BBC2250E2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeChannel", "NoLifeChannel\NoLifeChannel.vcxproj", "{2FB0C1F1-3300-4981-BF4B-688892798B92}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeLogin", "NoLifeLogin\NoLifeLogin.vcxproj", "{4B82DE84-71D2-4E5C-8578-3EE1A2FCD360}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
