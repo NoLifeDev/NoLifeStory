@@ -48,18 +48,12 @@ namespace NL {
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glVertexPointer(2, GL_FLOAT, 0, nullptr);
             glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
-            if (Mindfuck) glEnable(GL_COLOR_LOGIC_OP);
         }
         void Init() {
             auto v = sf::VideoMode::getFullscreenModes()[0];
             FWidth = v.width;
             FHeight = v.height;
             Window = new sf::Window();
-#ifdef NL_WINDOWS
-            BASS_Init(-1, 44100, 0, Window->getSystemHandle(), 0);
-#else
-            BASS_Init(-1, 44100, 0, nullptr, 0);
-#endif
             GLenum err = glewInit();
             switch (err) {
             case GLEW_OK:
@@ -132,8 +126,6 @@ namespace NL {
             case sf::Event::KeyPressed:
                 switch (e.key.code) {
                 case sf::Keyboard::M:
-                    if (Map::Music.GetVolume() > 0) Map::Music.SetVolume(0);
-                    else Map::Music.SetVolume(1);
                     break;
                 case sf::Keyboard::F11:
                     Create(!Fullscreen);

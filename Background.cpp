@@ -37,8 +37,8 @@ namespace NL {
         }
     }
     void Background::Render() {
-        int32_t ox = int32_t(floor(rx * View::FX / 100)) + View::Width / 2;
-        int32_t oy = int32_t(floor(ry * View::FY / 100)) + View::Height / 2;
+        int32_t ox = rx * View::X / 100 + View::Width / 2;
+        int32_t oy = ry * View::Y / 100 + View::Height / 2;
         switch (type) {
         case 0:
             spr.Draw(x + ox, y + oy, false, flipped, false, false, cx, cy);

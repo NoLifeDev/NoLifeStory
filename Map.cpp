@@ -19,7 +19,6 @@
 namespace NL {
     namespace Map {
         Node Current;
-        Sound Music;
         vector<string> Maps;
         void Init() {
             for (int i = 1; i < 9; ++i) {
@@ -29,8 +28,9 @@ namespace NL {
                 }
             }
             if (Mindfuck) {
-                HSTREAM s = BASS_StreamCreateFile(false, "bgm.mp3", 0, 0, BASS_SAMPLE_FLOAT | BASS_SAMPLE_LOOP);
-                BASS_ChannelPlay(s, false);
+                BGM.LoadFile("bgm.mp3");
+                BGM.setLoop(true);
+                BGM.play();
             }
             Next();
         }
@@ -68,8 +68,9 @@ namespace NL {
                 size_t p(bgm.find('/'));
                 Node sn(NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)]);
                 if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + name);
-                Music = sn;
-                Music.Play(true);
+                BGM.LoadNode(sn);
+                BGM.setLoop(true);
+                BGM.play();
             }
             Foothold::Load();
             View::Reset();
@@ -79,25 +80,30 @@ namespace NL {
         }
         void Render() {
             if (Mindfuck) {
-                uniform_real_distribution<double> dist(-0.2, 1.2);
-                Engine.seed(floor(Time::TDelta * 3));
-                double r1(dist(Engine)), g1(dist(Engine)), b1(dist(Engine));
-                Engine.seed(floor(Time::TDelta * 3 + 1));
-                double r2(dist(Engine)), g2(dist(Engine)), b2(dist(Engine));
-                double d = floor(Time::TDelta * 3 + 1) - Time::TDelta * 3;
-                glColor4f(r1 * d + r2 * (1 - d), g1 * d + g2 * (1 - d), b1 * d + b2 * (1 - d), 1);
-                Engine.seed(Time::TDelta * 10);
-                if (dist(Engine) < 0.1) glLogicOp(GL_XOR);
-		        else glLogicOp (GL_OR);
+                uniform_real_distribution<double> dist(0, 2 * M_PI);
+                double t = Time::TDelta * 2.0822;
+                Engine.seed(floor(t) + 1);
+                double d = dist(Engine);
+                double r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
+                if (t * 0.5 - floor(t * 0.5) < 0.5) {
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+                    GLfloat c[] = {r * 2, g * 2, b * 2, 1};
+                    glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
+                    glColor4f(1, 1, 1, 1);
+                } else {
+                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+                    glColor4f(r * 2, g * 2, b * 2, 1);
+                }
             }
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
             for (auto && b : Foregrounds) b.Render();
-            if (!Mindfuck) View::DrawEdges();
+            glDisable(GL_COLOR_LOGIC_OP);
+            View::DrawEdges();
         }
         void Next() {
             uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
-            Engine.seed(high_resolution_clock::now().time_since_epoch().count());
+            Engine.seed(Time::TDelta * 1000 + high_resolution_clock::now().time_since_epoch().count());
             Load(Maps[dist(Engine)]);
         }
     }

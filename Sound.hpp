@@ -17,21 +17,18 @@
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
 namespace NL {
-	class Sound {
-	public:
-		Sound();
-        Sound(Sound const &);
-        Sound(Sound &&);
-		Sound(Node);
-		~Sound();
-        Sound & operator=(Sound const &);
-        Sound & operator=(Sound &&);
-		void Play(bool = false);
-		void Stop();
-		void SetVolume(float);
-		float GetVolume();
-	private:
-		uint32_t s;
-		Audio d;
-	};
+    class Music : public sf::SoundStream {
+    public:
+        Music();
+        void LoadNode(Node);
+        void LoadFile(string);
+    protected:
+        bool onGetData(sf::SoundStream::Chunk &);
+        void onSeek(sf::Time);
+    private:
+        mpg123_handle * handle;
+        Node node;
+        vector<unsigned char> buf;
+    };
+    extern Music BGM;
 }

@@ -7,5 +7,5 @@ Dependencies
 ------------
 
 SFML
-Bass
+libmpg123
 GLEW

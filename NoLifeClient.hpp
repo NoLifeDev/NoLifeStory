@@ -21,6 +21,8 @@
 #define NL_LINUX
 #elif defined(_WIN32)
 #define NL_WINDOWS
+#define NOMINMAX
+#include <Windows.h>
 #endif
 #define _USE_MATH_DEFINES
 //GLEW
@@ -29,8 +31,8 @@
 #include <SFML/Window.hpp>
 #include <SFML/Network.hpp>
 #include <SFML/Audio.hpp>
-//Bass
-#include <bass.h>
+//Libmpg123
+#include <mpg123.h>
 //C Standard Library
 #include <cstdint>
 //C++ Standard Library

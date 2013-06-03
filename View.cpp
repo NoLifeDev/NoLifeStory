@@ -30,16 +30,6 @@ namespace NL {
         void Resize(int32_t w, int32_t h) {
             Width = w, Height = h;
             glViewport(0, 0, Width, Height);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            if (Mindfuck) {
-                gluPerspective(90, Width / Height, 0.1, 10000);
-                gluLookAt(Width / 2, Height / 2, -Height / 2, Width / 2, Height / 2, 0, 0, -1, 0);
-            } else glOrtho(0, Width, Height, 0, -1, 1);
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            Restrict(FX, FY);
-            Restrict(X, Y);
         }
         void Reset() {
             if (Map::Current["info"]["VRTop"]) {
@@ -80,21 +70,21 @@ namespace NL {
         }
         void Update() {
             double tx(Player::Pos.x), ty(Player::Pos.y);
-            if (!Mindfuck) Restrict(tx, ty);
+            Restrict(tx, ty);
             double sx((tx - FX) * Time::Delta * 10), sy((ty - FY) * Time::Delta * 10);
             if (abs(sx) > abs(tx - FX)) sx = tx - FX;
             if (abs(sy) > abs(ty - FY)) sy = ty - FY;
             FX += sx, FY += sy;
-            if (!Mindfuck) Restrict(FX, FY);
+            Restrict(FX, FY);
             X = FX, Y = FY;
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             if (Mindfuck) {
                 Engine.seed(high_resolution_clock::now().time_since_epoch().count());
-                uniform_real_distribution<double> dist(-10, 10);
-                FX += dist(Engine);
-                FY += dist(Engine);
-                gluPerspective(-5 * pow(sin(Time::TDelta * 13.6) + 1, 2) + 90, double(Width) / Height, 0.1, 10000);
+                uniform_int_distribution<int> dist(-10, 10);
+                X += dist(Engine);
+                Y += dist(Engine);
+                gluPerspective(-0.2 * pow(sin(Time::TDelta * 13.0831) + 1, 5) + 90, double(Width) / Height, 0.1, 10000);
                 gluLookAt(Width / 2, Height / 2, -Height / 2, Width / 2, Height / 2, 0, 0, -1, 0);
             } else glOrtho(0, Width, Height, 0, -1, 1);
             glMatrixMode(GL_MODELVIEW);
