@@ -31,7 +31,7 @@ namespace NL {
             View::Resize(Window->getSize().x, Window->getSize().y);
             if (Time::FrameLimit) Window->setVerticalSyncEnabled(true);
             Fullscreen = fullscreen;
-#ifdef _WIN32
+#ifdef NL_WINDOWS
             DEVMODEA dev = {};
             dev.dmSize = sizeof(DEVMODEA);
             dev.dmDriverExtra = 0;

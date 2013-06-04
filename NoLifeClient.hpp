@@ -16,14 +16,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
-//Version Detection
-#ifdef __linux__
-#define NL_LINUX
-#elif defined(_WIN32)
-#define NL_WINDOWS
-#define NOMINMAX
-#include <Windows.h>
-#endif
 #define _USE_MATH_DEFINES
 //GLEW
 #include <GL/glew.h>
@@ -50,16 +42,17 @@
 using namespace std;
 using namespace std::chrono;
 using namespace std::this_thread;
+//NoLifeNx (along with platform detection)
+#include "../NoLifeNx/NX.hpp"
 //Platform Specifics
 #ifdef NL_WINDOWS
-#include <filesystem>
+#  include <filesystem>
+#  include <Windows.h>
 using namespace std::tr2::sys;
 #else
-#include <boost/filesystem.hpp>
+#  include <boost/filesystem.hpp>
 using namespace boost::filesystem;
 #endif
-//NoLifeNx
-#include "../NoLifeNx/NX.hpp"
 //NoLifeClient
 #include "Sound.hpp"
 #include "Sprite.hpp"

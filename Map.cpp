@@ -80,25 +80,16 @@ namespace NL {
         }
         void Render() {
             if (Mindfuck) {
-                uniform_real_distribution<double> dist(0, 2 * M_PI);
-                double t = Time::TDelta * 2.0822;
-                Engine.seed(floor(t) + 1);
-                double d = dist(Engine);
+                double d = floor(Time::TDelta * 2.0822) * 2;
                 double r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
-                if (t * 0.5 - floor(t * 0.5) < 0.5) {
-                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                    GLfloat c[] = {r * 2, g * 2, b * 2, 1};
-                    glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
-                    glColor4f(1, 1, 1, 1);
-                } else {
-                    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-                    glColor4f(r * 2, g * 2, b * 2, 1);
-                }
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+                GLfloat c[] = {r, g, b, 1};
+                glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
+                glColor4f(1 - r, 1 - g, 1 - b, 1);
             }
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
             for (auto && b : Foregrounds) b.Render();
-            glDisable(GL_COLOR_LOGIC_OP);
             View::DrawEdges();
         }
         void Next() {

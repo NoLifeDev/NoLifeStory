@@ -1,9 +1,33 @@
 project(NoLifeClient)
+cmake_minimum_required(VERSION 2.8)
 
-enable_cpp11()
+# Enable C++11 support.
+if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  add_definitions("-std=c++11 -pedantic -Wno-switch")
+endif ()
+
+# Access additional CMake modules.
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules" ${CMAKE_MODULE_PATH})
+
+# Boost
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIR})
+
+# SFML
+find_package(SFML 2 COMPONENTS system window audio REQUIRED)
+include_directories(${SFML_INCLUDE_DIR})
+
+# OpenGL
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
+
+# GLEW
+find_package(GLEW REQUIRED)
+include_directories(${GLEW_INCLUDE_DIRS})
 
 aux_source_directory(. NOLIFECLIENT_SOURCES)
 
 add_executable(NoLifeClient ${NOLIFECLIENT_SOURCES})
 
-target_link_libraries(NoLifeClient NoLifeNx boost_filesystem boost_system sfml-window sfml-system GL bass GLEW)
+target_link_libraries(NoLifeClient NoLifeNx ${Boost_LIBRARIES} ${SFML_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123)

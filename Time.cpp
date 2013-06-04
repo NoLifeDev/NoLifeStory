@@ -21,7 +21,7 @@ namespace NL {
         uint32_t FPS(0), TargetFPS(100);
         double Delta(1), TDelta(0);
         bool FrameLimit(true);
-#ifdef _WIN32
+#ifdef NL_WINDOWS
         deque<uint64_t> LastFrames;
         uint64_t Freq;
         uint64_t First;
