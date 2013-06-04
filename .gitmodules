@@ -2,31 +2,39 @@
 	path = NoLifeChannel
 	url = https://github.com/NoLifeDev/NoLifeChannel.git
 	update = merge
+	ignore = dirty
 [submodule "NoLifeClient"]
 	path = NoLifeClient
 	url = https://github.com/NoLifeDev/NoLifeClient.git
 	update = merge
+	ignore = dirty
 [submodule "NoLifeIRC"]
 	path = NoLifeIRC
 	url = https://github.com/NoLifeDev/NoLifeIRC.git
 	update = merge
+	ignore = dirty
 [submodule "NoLifeLogin"]
 	path = NoLifeLogin
 	url = https://github.com/NoLifeDev/NoLifeLogin.git
 	update = merge
+	ignore = dirty
 [submodule "NoLifeNx"]
 	path = NoLifeNx
 	url = https://github.com/NoLifeDev/NoLifeNx.git
 	update = merge
+	ignore = dirty
 [submodule "NoLifeTrade"]
 	path = NoLifeTrade
 	url = https://github.com/NoLifeDev/NoLifeTrade.git
 	update = merge
+	ignore = dirty
 [submodule "NoLifeWorld"]
 	path = NoLifeWorld
 	url = https://github.com/NoLifeDev/NoLifeWorld.git
 	update = merge
+	ignore = dirty
 [submodule "NoLifeWzToNx"]
 	path = NoLifeWzToNx
 	url = https://github.com/NoLifeDev/NoLifeWzToNx.git
 	update = merge
+	ignore = dirty
