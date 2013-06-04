@@ -19,20 +19,14 @@
 #include "lz4.hpp"
 #include <cstring>
 #include <vector>
-#ifdef _WIN32
-#  define NL_WINDOWS
-#ifndef NOMINMAX
-#  define NOMINMAX
-#endif
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#elif defined __linux__
-#define NL_LINUX
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
+#ifdef NL_WINDOWS
+#  include <Windows.h>
+#elif defined NL_POSIX
+#  include <sys/types.h>
+#  include <sys/stat.h>
+#  include <sys/fcntl.h>
+#  include <sys/mman.h>
+#  include <unistd.h>
 #endif
 
 namespace NL {
@@ -341,7 +335,7 @@ greater:
         if (!map) throw;
         base = MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0);
         if (!base) throw;
-#elif defined NL_LINUX
+#else
         file = open(name, O_RDONLY);
         if (file == -1) throw;
         struct stat finfo;
@@ -362,7 +356,7 @@ greater:
         UnmapViewOfFile(base);
         CloseHandle(map);
         CloseHandle(file);
-#elif defined NL_LINUX
+#else
         munmap(const_cast<void *>(base), size);
         close(file);
 #endif

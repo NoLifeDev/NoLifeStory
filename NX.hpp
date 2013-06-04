@@ -15,6 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+#ifdef _WIN32
+#  define NL_WINDOWS
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  define WIN32_LEAN_AND_MEAN
+#else
+#  define NL_POSIX
+#endif
 #include <string>
 #include <cstdint>
 namespace NL {
@@ -147,10 +156,10 @@ namespace NL {
         uint64_t const * btable;
         uint64_t const * atable;
         Header const * head;
-#ifdef _WIN32
+#ifdef NL_WINDOWS
         void * file;
         void * map;
-#elif defined __linux__
+#else
         int file;
         size_t size;
 #endif
