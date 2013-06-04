@@ -27,11 +27,6 @@ namespace NL {
                     Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            if (Mindfuck) {
-                BGM.LoadFile("bgm.mp3");
-                BGM.setLoop(true);
-                BGM.play();
-            }
             Next();
         }
         void Load(string name) {
@@ -61,17 +56,7 @@ namespace NL {
                 Player::Pos.x = 0;
                 Player::Pos.y = 0;
             }
-            if (!Mindfuck) {
-                string bgm(Current["info"]["bgm"]);
-                if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
-                while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
-                size_t p(bgm.find('/'));
-                Node sn(NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)]);
-                if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + name);
-                BGM.LoadNode(sn);
-                BGM.setLoop(true);
-                BGM.play();
-            }
+            BGM.PlayMusic();
             Foothold::Load();
             View::Reset();
             Layer::LoadAll();
@@ -80,13 +65,13 @@ namespace NL {
         }
         void Render() {
             if (Mindfuck) {
-                double d = floor(Time::TDelta * 2.0822) * 2;
+                double d = floor(Time::TDelta * 2.0822) * 1.95;
                 double r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
                 GLfloat c[] = {r, g, b, 1};
                 glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
                 glColor4f(1 - r, 1 - g, 1 - b, 1);
-            }
+            } else glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
             for (auto && b : Foregrounds) b.Render();
