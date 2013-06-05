@@ -36,6 +36,7 @@ namespace NL {
         Bitmap() : w(0), h(0), d(nullptr) {}
         Bitmap(Bitmap const & o) : w(o.w), h(o.h), d(o.d) {}
         Bitmap & operator=(Bitmap const &);
+        bool operator<(Bitmap) const;
         void const * Data() const;
         uint16_t Width() const;
         uint16_t Height() const;

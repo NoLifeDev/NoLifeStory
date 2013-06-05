@@ -73,6 +73,9 @@ namespace NL {
         h = o.h;
         return *this;
     }
+    bool Bitmap::operator<(Bitmap o) const {
+        return d < o.d;
+    }
     std::vector<uint8_t> buf;
     void const * Bitmap::Data() const {
         if (!d) return nullptr;
