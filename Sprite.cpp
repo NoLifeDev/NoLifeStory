@@ -23,8 +23,10 @@ namespace NL {
     size_t const MaxTextures = 0x800;
     mutex LoadedMutex, ToLoadMutex;
     set<Bitmap> SpritesToLoad;
+    atomic<bool> ThreadContextMade = false;
     void SpriteThread() {
         sf::Context context;
+        ThreadContextMade = true;
         while (!Game::Over) {
             for (;;) {
                 Bitmap b;
@@ -56,6 +58,7 @@ namespace NL {
     }
     void Sprite::Init() {
         thread([]{Log::Wrap(SpriteThread);}).detach();
+        while (!ThreadContextMade) sleep_for(milliseconds(1));
     }
     void Sprite::Unbind() {
         LastBound = 0;

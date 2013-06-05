@@ -29,6 +29,7 @@
 #include <cstdint>
 //C++ Standard Library
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <deque>

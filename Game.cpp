@@ -102,8 +102,8 @@ namespace NL {
 #endif
             SetupFiles();
             Time::Init();
-            Sprite::Init();
             Graphics::Init();
+            Sprite::Init();
             Map::Init();
             while (!Over) {
                 Player::Update();
