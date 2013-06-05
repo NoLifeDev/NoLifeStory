@@ -6,4 +6,4 @@
 !.gitignore
 !.gitmodules
 !CMakeLists.txt
-!*.mp3
+!bgm.mp3
