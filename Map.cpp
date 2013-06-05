@@ -41,14 +41,21 @@ namespace NL {
                 return;
             }
             Current = m;
+            BGM.PlayMusic();
+            Foothold::Load();
+            View::Reset();
+            Layer::LoadAll();
+            Background::Load();
+            Portal::Load();
+            Sprite::Cleanup();
             vector<pair<int32_t, int32_t>> spawns;
-            for (Node n : Current["portal"]) {
-                if ((string)n["pn"] == "sp") {
-                    spawns.emplace_back(n["x"], n["y"]);
+            for (auto && p : Portals) {
+                if (p.pn == "sp") {
+                    spawns.emplace_back(p.x, p.y);
                 }
             }
             if (!spawns.empty()) {
-                auto spawn = spawns[rand() % spawns.size()];
+                auto && spawn = spawns[rand() % spawns.size()];
                 Player::Pos.x = spawn.first;
                 Player::Pos.y = spawn.second;
             } else {
@@ -56,12 +63,6 @@ namespace NL {
                 Player::Pos.x = 0;
                 Player::Pos.y = 0;
             }
-            BGM.PlayMusic();
-            Foothold::Load();
-            View::Reset();
-            Layer::LoadAll();
-            Background::Load();
-            Sprite::Cleanup();
         }
         void Render() {
             if (Mindfuck) {
@@ -75,6 +76,7 @@ namespace NL {
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
             for (auto && b : Foregrounds) b.Render();
+            for (auto && p : NL::Portals) p.Render();
             View::DrawEdges();
         }
         void Next() {

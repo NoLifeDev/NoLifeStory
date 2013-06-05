@@ -22,32 +22,32 @@ namespace NL {
     mt19937_64 Engine(time(nullptr));
     namespace Dumper {
         map<pair<string, string>, size_t> values;
-            string pad(string s, size_t n) {
-                return move(s).append(n - s.size(), ' ');
+        string pad(string s, size_t n) {
+            return move(s).append(n - s.size(), ' ');
+        }
+        void push_combine(Node n, string s) {
+            string ss(move(s) + "/" + n.Name());
+            values[make_pair(ss, n.GetString())]++;
+            for (Node nn : n) push_combine(nn, ss);
+        }
+        void push (Node n) {
+            values[make_pair(n.Name(), n.GetString())]++;
+            for (Node nn : n) push_combine(nn, n.Name());
+        }
+        void display(string s) {
+            size_t l1 = 0, l2 = 0, l3 = 0;
+            for (auto i : values) {
+                l1 = max(l1, to_string(i.second).size());
+                l2 = max(l2, i.first.first.size());
+                l3 = max(l3, i.first.second.size());
             }
-            void push_combine(Node n, string s) {
-                string ss(move(s) + "/" + n.Name());
-                values[make_pair(ss, n.GetString())]++;
-                for (Node nn : n) push_combine(nn, ss);
-            }
-            void push (Node n) {
-                values[make_pair(n.Name(), n.GetString())]++;
-                for (Node nn : n) push_combine(nn, n.Name());
-            }
-            void display(string s) {
-                size_t l1 = 0, l2 = 0, l3 = 0;
-                for (auto i : values) {
-                    l1 = max(l1, to_string(i.second).size());
-                    l2 = max(l2, i.first.first.size());
-                    l3 = max(l3, i.first.second.size());
-                }
-                size_t l4 = max(s.size(), l1 + l2 + l3 + 6);
-                Log::Write(string(l4, '='));
-                Log::Write(s);
-                Log::Write(string(l4, '='));
-                for (auto i : values) Log::Write("[" + pad(to_string(i.second), l1) + "] " + pad(i.first.first, l2) + " = " + i.first.second);
-                values.clear();
-            }
+            size_t l4 = max(s.size(), l1 + l2 + l3 + 6);
+            Log::Write(string(l4, '='));
+            Log::Write(s);
+            Log::Write(string(l4, '='));
+            for (auto i : values) Log::Write("[" + pad(to_string(i.second), l1) + "] " + pad(i.first.first, l2) + " = " + i.first.second);
+            values.clear();
+        }
     }
     namespace Game {
         bool Over = false;
