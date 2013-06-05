@@ -19,25 +19,15 @@
 namespace NL {
     namespace Graphics {
         sf::Window * Window;
-        uint32_t WWidth = 800, WHeight = 600;
-        uint32_t FWidth, FHeight;
         string Title = "NoLifeStory";
-        bool Fullscreen = false;
         const sf::ContextSettings Context(0, 0, 0, 1, 5);
         GLuint VBO;
         void Create(bool fullscreen) {
-            if (fullscreen) Window->create(sf::VideoMode(FWidth, FHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
-            else Window->create(sf::VideoMode(WWidth, WHeight, 32), Title, sf::Style::Default, Context);
+            if (fullscreen) Window->create(sf::VideoMode(Config::FullscreenWidth, Config::FullscreenHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
+            else Window->create(sf::VideoMode(Config::WindowWidth, Config::WindowHeight, 32), Title, sf::Style::Default, Context);
             View::Resize(Window->getSize().x, Window->getSize().y);
-            if (Time::FrameLimit) Window->setVerticalSyncEnabled(true);
-            Fullscreen = fullscreen;
-#ifdef NL_WINDOWS
-            DEVMODEA dev = {};
-            dev.dmSize = sizeof(DEVMODEA);
-            dev.dmDriverExtra = 0;
-            EnumDisplaySettingsA(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-            Time::TargetFPS = dev.dmDisplayFrequency;
-#endif
+            if (Config::Vsync) Window->setVerticalSyncEnabled(true);
+            Config::Fullscreen = fullscreen;
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_TEXTURE_2D);
@@ -50,9 +40,6 @@ namespace NL {
             glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
         }
         void Init() {
-            auto v = sf::VideoMode::getFullscreenModes()[0];
-            FWidth = v.width;
-            FHeight = v.height;
             Window = new sf::Window();
             GLenum err = glewInit();
             switch (err) {
@@ -78,10 +65,7 @@ namespace NL {
             Create(false);
         }
         void Update() {
-            static Timer t;
-            t.DoEvery(milliseconds(100), [](){
-                Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
-            });
+            Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
             Window->display();
             GLenum err = glGetError();
             switch (err) {
@@ -118,11 +102,11 @@ namespace NL {
                     BGM.setVolume(BGM.getVolume() > 0 ? 0 : 100);
                     break;
                 case sf::Keyboard::R:
-                    Mindfuck = !Mindfuck;
+                    Config::Rave = !Config::Rave;
                     BGM.PlayMusic();
                     break;
                 case sf::Keyboard::F11:
-                    Create(!Fullscreen);
+                    Create(!Config::Fullscreen);
                     break;
                 case sf::Keyboard::Return:
                     Map::Next();

@@ -18,8 +18,6 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
-    bool Mindfuck = false;
-    mt19937_64 Engine(time(nullptr));
     namespace Dumper {
         map<pair<string, string>, size_t> values;
         string pad(string s, size_t n) {
@@ -100,12 +98,17 @@ namespace NL {
 #ifdef __X__
             XInitThreads();
 #endif
+            Config::Load();
             SetupFiles();
             Time::Init();
             Graphics::Init();
             Sprite::Init();
             Map::Init();
             while (!Over) {
+                if (Config::SafeThreading) {
+                    SpriteMutex.unlock();
+                    SpriteMutex.lock();
+                }
                 Player::Update();
                 View::Update();
                 Map::Render();
@@ -114,6 +117,8 @@ namespace NL {
             }
             BGM.stop();
             Graphics::Unload();
+            Config::Save();
+            SpriteMutex.unlock();
             sleep_for(seconds(1));//To let threads finish safely
         }
     }

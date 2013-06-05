@@ -18,49 +18,8 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace Time {
-        uint32_t FPS(0), TargetFPS(100);
+        uint32_t FPS(0);
         double Delta(1), TDelta(0);
-        bool FrameLimit(true);
-#ifdef NL_WINDOWS
-        deque<uint64_t> LastFrames;
-        uint64_t Freq;
-        uint64_t First;
-        uint64_t Now() {
-            LARGE_INTEGER n;
-            QueryPerformanceCounter(&n);
-            return n.QuadPart;
-        }
-        void Init() {
-            LARGE_INTEGER n;
-            QueryPerformanceFrequency(&n);
-            Freq = n.QuadPart;
-            First = Now();
-            LastFrames.push_back(First);
-        }
-        void Update() {
-            uint64_t now = Now();
-            uint64_t last = LastFrames.back();
-            Delta = double(now - last) / Freq;
-            if (Delta < 0) Delta = 0;
-            if (Delta > 0.05) Delta = 0.05;
-            TDelta = double(now - First) / Freq;
-            while (!LastFrames.empty() && now - LastFrames.front() > Freq) LastFrames.pop_front();
-            LastFrames.push_back(now);
-            FPS = LastFrames.size();
-            Sprite::Unbind();
-            glColor4f(1, 0, 0, 1);
-            glBegin(GL_LINE_STRIP);
-            glVertex2i(0, 5000 / TargetFPS);
-            glVertex2i(LastFrames.size() * 3, 5000 / TargetFPS);
-            glEnd();
-            glColor4f(1, 1, 1, 1);
-            glBegin(GL_LINE_STRIP);
-            for (size_t i = 1; i < LastFrames.size(); ++i) {
-                glVertex2i(i * 3, (LastFrames[i] - LastFrames[i - 1]) * 5000 / Freq);
-            }
-            glEnd();
-        }
-#else
         deque<high_resolution_clock::time_point> LastFrames;
         high_resolution_clock::time_point First;
         void Init() {
@@ -69,6 +28,7 @@ namespace NL {
         }
         void Update() {
             high_resolution_clock::time_point last = LastFrames.back();
+            if (Config::FrameLimit) sleep_until(last + duration_cast<high_resolution_clock::duration>(seconds(1)) / Config::TargetFPS);
             high_resolution_clock::time_point now = high_resolution_clock::now();
             Delta = duration_cast<duration<double>>(now - last).count();
             if (Delta < 0) Delta = 0;
@@ -80,8 +40,8 @@ namespace NL {
             Sprite::Unbind();
             glColor4f(1, 0, 0, 1);
             glBegin(GL_LINE_STRIP);
-            glVertex2i(0, 5000 / TargetFPS);
-            glVertex2i(LastFrames.size() * 3, 5000 / TargetFPS);
+            glVertex2i(0, 5000 / Config::TargetFPS);
+            glVertex2i(LastFrames.size() * 3, 5000 / Config::TargetFPS);
             glEnd();
             glColor4f(1, 1, 1, 1);
             glBegin(GL_LINE_STRIP);
@@ -90,6 +50,5 @@ namespace NL {
             }
             glEnd();
         }
-#endif
     }
 }

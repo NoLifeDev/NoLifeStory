@@ -37,6 +37,7 @@
 #include <functional>
 #include <mutex>
 #include <random>
+#include <regex>
 #include <set>
 #include <string>
 #include <thread>
@@ -60,6 +61,7 @@ using namespace boost::filesystem;
 #endif
 //NoLifeClient
 #include "Log.hpp"
+#include "Config.hpp"
 #include "Sound.hpp"
 #include "Sprite.hpp"
 #include "View.hpp"

@@ -65,7 +65,7 @@ namespace NL {
             View::Reset();
         }
         void Render() {
-            if (Mindfuck) {
+            if (Config::Rave) {
                 double d = floor(Time::TDelta * 2.088 - 0.1) * 1.95;
                 double r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
@@ -82,11 +82,11 @@ namespace NL {
         void Next() {
             uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
 #ifdef NL_WINDOWS
-            Engine.seed(__rdtsc());
+            mt19937_64 engine(__rdtsc());
 #else
-            Engine.seed(high_resolution_clock::now().time_since_epoch().count());
+            mt19937_64 engine(high_resolution_clock::now().time_since_epoch().count());
 #endif
-            Load(Maps[dist(Engine)]);
+            Load(Maps[dist(engine)]);
         }
     }
 }

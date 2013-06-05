@@ -26,7 +26,7 @@ namespace NL {
         }
         void Render() {
             Sprite::Unbind();
-            if (!Mindfuck) glColor4f(1, 1, 1, 1);
+            if (!Config::Rave) glColor4f(1, 1, 1, 1);
             Graphics::DrawRect(Pos.x - 20, Pos.y - 60, Pos.x + 20, Pos.y, true);
         }
     }

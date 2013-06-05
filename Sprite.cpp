@@ -22,43 +22,49 @@ namespace NL {
     size_t LastBound(0);
     size_t const MaxTextures = 0x800;
     mutex LoadedMutex, ToLoadMutex;
+    mutex SpriteMutex;
     set<Bitmap> SpritesToLoad;
-    atomic<bool> ThreadContextMade = false;
+    atomic<bool> ThreadContextMade(false);
     void SpriteThread() {
-        sf::Context context;
-        ThreadContextMade = true;
-        while (!Game::Over) {
-            for (;;) {
-                Bitmap b;
-                {
-                    lock_guard<mutex> lock(ToLoadMutex);
-                    if (SpritesToLoad.empty()) break;
-                    b = *SpritesToLoad.begin();
-                    SpritesToLoad.erase(SpritesToLoad.begin());
+        {
+            sf::Context context;
+            ThreadContextMade = true;
+            while (!Game::Over) {
+                if (Config::SafeThreading) SpriteMutex.lock();
+                for (;;) {
+                    Bitmap b;
+                    {
+                        lock_guard<mutex> lock(ToLoadMutex);
+                        if (SpritesToLoad.empty()) break;
+                        b = *SpritesToLoad.begin();
+                        SpritesToLoad.erase(SpritesToLoad.begin());
+                    }
+                    GLuint t;
+                    glGenTextures(1, &t);
+                    glBindTexture(GL_TEXTURE_2D, t);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                    {
+                        lock_guard<mutex> lock(LoadedMutex);
+                        Sprites[b.ID()] = t;
+                        LoadedSprites.push_back(b.ID());
+                    }
                 }
-                GLuint t;
-                glGenTextures(1, &t);
-                glBindTexture(GL_TEXTURE_2D, t);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                GLint nt;
-                glGetIntegerv(GL_TEXTURE_BINDING_2D, &nt);
-                if (t != nt) throw "Texture bindings are not local to OpenGL contexts.";
-                {
-                    lock_guard<mutex> lock(LoadedMutex);
-                    Sprites[b.ID()] = t;
-                    LoadedSprites.push_back(b.ID());
-                }
+                if (Config::SafeThreading) SpriteMutex.unlock();
+                sleep_for(milliseconds(10));
             }
-            sleep_for(milliseconds(10));
+            SpriteMutex.lock();
         }
+        SpriteMutex.unlock();
     }
     void Sprite::Init() {
         thread([]{Log::Wrap(SpriteThread);}).detach();
         while (!ThreadContextMade) sleep_for(milliseconds(1));
+        SpriteMutex.lock();
     }
     void Sprite::Unbind() {
         LastBound = 0;
@@ -83,10 +89,11 @@ namespace NL {
         if (t) {
             LastBound = b.ID();
             glBindTexture(GL_TEXTURE_2D, t);
+            if (!glIsTexture(t)) throw "Invalid texture detected!";
             return true;
         }
         {
-            lock_guard<mutex> lock(LoadedMutex);
+            lock_guard<mutex> lock(ToLoadMutex);
             SpritesToLoad.insert(b);
         }
         return false;
@@ -160,7 +167,7 @@ namespace NL {
             ang = Time::TDelta * 1000 * 180 / M_PI / mover;
             break;
         }
-        if (!Mindfuck) glColor4f(1, 1, 1, alpha);
+        if (!Config::Rave) glColor4f(1, 1, 1, alpha);
         auto single = [&]() {
             glTranslated(x + ox, y + oy, 0);
             glRotated(ang, 0, 0, 1);

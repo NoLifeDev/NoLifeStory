@@ -18,8 +18,6 @@
 #pragma once
 namespace NL {
     extern Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
-    extern bool Mindfuck;
-    extern mt19937_64 Engine;
     namespace Game {
         extern bool Over;
         void Play();

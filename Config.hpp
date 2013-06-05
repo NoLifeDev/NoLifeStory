@@ -17,21 +17,13 @@
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
 namespace NL {
-    extern mutex SpriteMutex;
-    class Sprite {
-    public:
-        Sprite();
-        Sprite(Node const &);
-        void Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex = false, bool tiley = false, int32_t cx = 0, int32_t cy = 0);
-        static void Init();
-        static void Cleanup();
-        static void Unbind();
-    private:
-        int32_t frame;
-        double delay;
-        Node data, current;
-        int32_t movetype;
-        double movew, moveh, movep, mover;
-        bool repeat;
-    };
+    namespace Config {
+        extern bool Rave, Fullscreen, SafeThreading;
+        extern bool Vsync, FrameLimit;
+        extern int32_t TargetFPS;
+        extern int32_t WindowWidth, WindowHeight;
+        extern int32_t FullscreenWidth, FullscreenHeight;
+        void Save();
+        void Load();
+    }
 }

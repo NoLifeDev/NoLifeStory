@@ -18,23 +18,9 @@
 #pragma once
 namespace NL {
     namespace Time {
-        extern uint32_t FPS, TargetFPS;
+        extern uint32_t FPS;
         extern double Delta, TDelta;
-        extern bool FrameLimit;
         void Init();
         void Update();
     }
-    class Timer {
-    public:
-        Timer() : last(high_resolution_clock::now()) {}
-        void DoEvery(high_resolution_clock::duration d, function<void(void)> f) {
-            high_resolution_clock::time_point now = high_resolution_clock::now();
-            if (now - last > d) {
-                f();
-                last = now;
-            }
-        }
-    private:
-        high_resolution_clock::time_point last;
-    };
 }

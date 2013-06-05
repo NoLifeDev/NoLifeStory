@@ -30,6 +30,8 @@ namespace NL {
         void Resize(int32_t w, int32_t h) {
             Width = w, Height = h;
             glViewport(0, 0, Width, Height);
+            if (Config::Fullscreen) Config::WindowWidth = Width, Config::WindowHeight = Height;
+            else Config::FullscreenWidth = Width, Config::FullscreenHeight = Height;
         }
         void Reset() {
             if (Map::Current["info"]["VRTop"]) {
@@ -79,11 +81,11 @@ namespace NL {
             X = FX, Y = FY;
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            if (Mindfuck) {
-                Engine.seed(high_resolution_clock::now().time_since_epoch().count());
+            if (Config::Rave) {
+                mt19937_64 engine(high_resolution_clock::now().time_since_epoch().count());
                 uniform_int_distribution<int> dist(-10, 10);
-                X += dist(Engine);
-                Y += dist(Engine);
+                X += dist(engine);
+                Y += dist(engine);
                 gluPerspective(-10 * pow(0.5 * sin(Time::TDelta * 2.088 * 2 * M_PI) + 0.5, 9) + 90, double(Width) / Height, 0.1, 10000);
                 gluLookAt(Width / 2, Height / 2, -Height / 2, Width / 2, Height / 2, 0, 0, -1, 0);
             } else glOrtho(0, Width, Height, 0, -1, 1);

@@ -69,7 +69,7 @@ namespace NL {
         } else mpg123_seek(handle, t.asSeconds(), SEEK_SET);
     }
     void Music::PlayMusic() {
-        if (Mindfuck) {
+        if (Config::Rave) {
             if (node || getStatus() == Stopped) {
                 LoadFile("bgm.mp3");
                 setLoop(true);
