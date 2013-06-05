@@ -17,5 +17,5 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 int main(int argc, char ** argv) {
-    NL::Game::Play();
+    NL::Log::Wrap(NL::Game::Play);
 }

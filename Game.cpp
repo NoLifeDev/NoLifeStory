@@ -93,15 +93,14 @@ namespace NL {
                 NXTamingMob = NXBase["TamingMob"];
                 NXUI = NXBase["UI"];
             } else {
-                Log::Write("Failed to load data files");
-                throw;
+                throw "Failed to load data files.";
             }
         }
         void Play() {
             SetupFiles();
             Time::Init();
-            Graphics::Init();
             Sprite::Init();
+            Graphics::Init();
             Map::Init();
             while (!Over) {
                 Player::Update();
@@ -110,7 +109,9 @@ namespace NL {
                 Time::Update();
                 Graphics::Update();
             }
+            BGM.stop();
             Graphics::Unload();
+            sleep_for(seconds(1));//To let threads finish safely
         }
     }
 }

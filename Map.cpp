@@ -65,7 +65,7 @@ namespace NL {
         }
         void Render() {
             if (Mindfuck) {
-                double d = floor(Time::TDelta * 2.0822) * 1.95;
+                double d = floor(Time::TDelta * 2.088) * 1.95;
                 double r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
                 GLfloat c[] = {r, g, b, 1};

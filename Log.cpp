@@ -22,5 +22,25 @@ namespace NL {
         void Write(string s) {
             LogFile << s << endl;
         }
+        void Wrap(function<void(void)> f) {
+            try {
+                f();
+            } catch (string s) {
+#ifdef NL_WINDOWS
+                MessageBoxA(nullptr, s.c_str(), "ERROR", MB_OK);
+#endif
+                Log::Write("ERROR: " + s);
+                Log::Write("ERROR: Aborting.");
+            } catch (char const * s) {
+#ifdef NL_WINDOWS
+                MessageBoxA(nullptr, s, "ERROR", MB_OK);
+#endif
+                Log::Write("ERROR: " + string(s));
+                Log::Write("ERROR: Aborting.");
+            } catch (...) {
+                Log::Write("ERROR: Unknown Exception.");
+                Log::Write("ERROR: Aborting.");
+            }
+        }
     }
 }

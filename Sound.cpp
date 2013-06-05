@@ -19,7 +19,7 @@
 namespace NL {
     Music BGM;
     Music::Music() {
-        if (mpg123_init() != MPG123_OK) throw;
+        if (mpg123_init() != MPG123_OK) throw "Failed to initialize mpg123";
         handle = 0;
         node = Node();
     }
@@ -31,12 +31,12 @@ namespace NL {
         Audio a = node;
         if (handle) mpg123_close(handle);
         handle = mpg123_new(nullptr, nullptr);
-        if (!handle) throw;
+        if (!handle) throw "Failed to create mpg123 handle";
         mpg123_open_feed(handle);
         mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.Data()), a.Length());
         long rate(0);
         int channels(0), encoding(0);
-        if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK) throw;
+        if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK) throw "Failed to obtain mpg123 handle format";
         buf.resize(mpg123_outblock(handle));
         initialize(channels, rate);
     }
@@ -45,11 +45,11 @@ namespace NL {
         stop();
         if (handle) mpg123_close(handle);
         handle = mpg123_new(nullptr, nullptr);
-        if (!handle) throw;
+        if (!handle) throw "Failed to create mpg123 handle";
         mpg123_open(handle, s.c_str());
         long rate(0);
         int channels(0), encoding(0);
-        if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK) throw;
+        if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK) throw "Failed to obtain mpg123 handle format";
         buf.resize(mpg123_outblock(handle));
         initialize(channels, rate);
     }

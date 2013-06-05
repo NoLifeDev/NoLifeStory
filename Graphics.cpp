@@ -59,22 +59,17 @@ namespace NL {
             case GLEW_OK:
                 break;
             case GLEW_ERROR_NO_GL_VERSION:
-                Log::Write("ERROR: You need OpenGL");
-                throw; break;
+                throw "You need OpenGL";
             case GLEW_ERROR_GL_VERSION_10_ONLY:
-                Log::Write("ERROR: You need something newer than OpenGL 1.0");
-                throw; break;
+                throw "You need something newer than OpenGL 1.0";
             case GLEW_ERROR_GLX_VERSION_11_ONLY:
-                Log::Write("ERROR: You need something newer than GLX 1.1");
-                throw; break;
+                throw "You need something newer than GLX 1.1";
             default:
-                Log::Write("ERROR: Unknown GLEW error code " + to_string(err));
-                throw;
+                throw "ERROR: Unknown GLEW error code " + to_string(err);
             }
-            if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5) {
-                Log::Write("ERROR: Your OpenGL lacks needed extensions");
-                Log::Write("Please update your drivers and/or buy a new GPU");
-                throw;
+            if (!GLEW_ARB_texture_non_power_of_two ||
+                !GLEW_VERSION_1_5) {
+                throw "Your OpenGL is out of date. Please update your drivers and/or buy a new GPU";
             }
             float a[] = {0, 0, 1, 0, 1, 1, 0, 1};
             glGenBuffers(1, &VBO);
@@ -93,23 +88,17 @@ namespace NL {
             case GL_NO_ERROR:
                 break;
             case GL_INVALID_ENUM:
-                Log::Write("ERROR: Invalid enum");
-                throw; break;
+                throw "Invalid enum";
             case GL_INVALID_VALUE:
-                Log::Write("ERROR: Invalid value");
-                throw; break;
+                throw "Invalid value";
             case GL_INVALID_OPERATION:
-                Log::Write("ERROR: Invalid operation");
-                throw; break;
+                throw "Invalid operation";
             case GL_INVALID_FRAMEBUFFER_OPERATION:
-                Log::Write("ERROR: Invalid framebuffer operation");
-                throw; break;
+                throw "Invalid framebuffer operation";
             case GL_OUT_OF_MEMORY:
-                Log::Write("ERROR: Out of memory");
-                throw; break;
+                throw "Out of memory";
             default:
-                Log::Write("ERROR: Unknown OpenGL error code " + to_string(err));
-                throw;
+                throw "Unknown OpenGL error code " + to_string(err);
             }
             sf::Event e;
             while (Window->pollEvent(e)) switch (e.type) {

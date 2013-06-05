@@ -23,19 +23,17 @@ namespace NL {
     size_t const MaxTextures = 0x800;
     mutex LoadedMutex, ToLoadMutex;
     set<Bitmap> SpritesToLoad;
-    void Sprite::Init() {
-        thread([&]{
-            sf::Context context;
-            while (!Game::Over) {
-                ToLoadMutex.lock();
-                if (SpritesToLoad.empty()) {
-                    ToLoadMutex.unlock();
-                    sleep_for(milliseconds(10));
-                    continue;
+    void SpriteThread() {
+        sf::Context context;
+        while (!Game::Over) {
+            for (;;) {
+                Bitmap b;
+                {
+                    lock_guard<mutex> lock(ToLoadMutex);
+                    if (SpritesToLoad.empty()) break;
+                    b = *SpritesToLoad.begin();
+                    SpritesToLoad.erase(SpritesToLoad.begin());
                 }
-                Bitmap b = *SpritesToLoad.begin();
-                SpritesToLoad.erase(SpritesToLoad.begin());
-                ToLoadMutex.unlock();
                 GLuint t;
                 glGenTextures(1, &t);
                 glBindTexture(GL_TEXTURE_2D, t);
@@ -44,40 +42,50 @@ namespace NL {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                LoadedMutex.lock();
-                Sprites[b.ID()] = t;
-                LoadedSprites.push_back(b.ID());
-                LoadedMutex.unlock();
+                GLint nt;
+                glGetIntegerv(GL_TEXTURE_BINDING_2D, &nt);
+                if (t != nt) throw "Texture bindings are not local to OpenGL contexts.";
+                {
+                    lock_guard<mutex> lock(LoadedMutex);
+                    Sprites[b.ID()] = t;
+                    LoadedSprites.push_back(b.ID());
+                }
             }
-        }).detach();
+            sleep_for(milliseconds(10));
+        }
+    }
+    void Sprite::Init() {
+        thread([]{Log::Wrap(SpriteThread);}).detach();
     }
     void Sprite::Unbind() {
         LastBound = 0;
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     void Sprite::Cleanup() {
-        LoadedMutex.lock();
+        lock_guard<mutex> lock(LoadedMutex);
         while (LoadedSprites.size() > MaxTextures) {
             size_t s = LoadedSprites.front();
             LoadedSprites.pop_front();
             glDeleteTextures(1, &Sprites[s]);
             Sprites.erase(s);
         }
-        LoadedMutex.unlock();
     }
     bool BindTexture(Bitmap b) {
         if (b.ID() == LastBound) return true;
-        LoadedMutex.lock();
-        GLuint t = Sprites[b.ID()];
-        LoadedMutex.unlock();
+        GLuint t;
+        {
+            lock_guard<mutex> lock(LoadedMutex);
+            t = Sprites[b.ID()];
+        }
         if (t) {
             LastBound = b.ID();
             glBindTexture(GL_TEXTURE_2D, t);
             return true;
         }
-        ToLoadMutex.lock();
-        SpritesToLoad.insert(b);
-        ToLoadMutex.unlock();
+        {
+            lock_guard<mutex> lock(LoadedMutex);
+            SpritesToLoad.insert(b);
+        }
         return false;
     }
     Sprite::Sprite() : frame(0), delay(0), data() {}

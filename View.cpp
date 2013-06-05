@@ -84,7 +84,7 @@ namespace NL {
                 uniform_int_distribution<int> dist(-10, 10);
                 X += dist(Engine);
                 Y += dist(Engine);
-                gluPerspective(-0.2 * pow(sin(Time::TDelta * 13.0831) + 1, 5) + 90, double(Width) / Height, 0.1, 10000);
+                gluPerspective(-10 * pow(0.5 * sin(Time::TDelta * 2.088 * 2 * M_PI) + 0.5, 9) + 90, double(Width) / Height, 0.1, 10000);
                 gluLookAt(Width / 2, Height / 2, -Height / 2, Width / 2, Height / 2, 0, 0, -1, 0);
             } else glOrtho(0, Width, Height, 0, -1, 1);
             glMatrixMode(GL_MODELVIEW);
