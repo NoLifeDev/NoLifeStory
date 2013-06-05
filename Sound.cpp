@@ -24,6 +24,7 @@ namespace NL {
         node = Node();
     }
     void Music::LoadNode(Node n) {
+        if (!n) return;
         if (n == node) return;
         node = n;
         stop();

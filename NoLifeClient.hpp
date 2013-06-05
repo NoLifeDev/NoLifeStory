@@ -34,6 +34,7 @@
 #include <deque>
 #include <fstream>
 #include <functional>
+#include <mutex>
 #include <random>
 #include <set>
 #include <string>
@@ -54,11 +55,11 @@ using namespace std::tr2::sys;
 using namespace boost::filesystem;
 #endif
 //NoLifeClient
+#include "Log.hpp"
 #include "Sound.hpp"
 #include "Sprite.hpp"
 #include "View.hpp"
 #include "Foothold.hpp"
-#include "Log.hpp"
 #include "Game.hpp"
 #include "Map.hpp"
 #include "Graphics.hpp"

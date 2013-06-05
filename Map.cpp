@@ -79,7 +79,11 @@ namespace NL {
         }
         void Next() {
             uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
-            Engine.seed(Time::TDelta * 1000 + high_resolution_clock::now().time_since_epoch().count());
+#ifdef NL_WINDOWS
+            Engine.seed(__rdtsc());
+#else
+            Engine.seed(high_resolution_clock::now().time_since_epoch().count());
+#endif
             Load(Maps[dist(Engine)]);
         }
     }
