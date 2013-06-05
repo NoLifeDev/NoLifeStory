@@ -43,7 +43,6 @@ namespace NL {
             Current = m;
             BGM.PlayMusic();
             Foothold::Load();
-            View::Reset();
             Layer::LoadAll();
             Background::Load();
             Portal::Load();
@@ -63,10 +62,11 @@ namespace NL {
                 Player::Pos.x = 0;
                 Player::Pos.y = 0;
             }
+            View::Reset();
         }
         void Render() {
             if (Mindfuck) {
-                double d = floor(Time::TDelta * 2.088) * 1.95;
+                double d = floor(Time::TDelta * 2.088 - 0.1) * 1.95;
                 double r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
                 GLfloat c[] = {r, g, b, 1};
@@ -75,8 +75,8 @@ namespace NL {
             } else glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
-            for (auto && b : Foregrounds) b.Render();
             for (auto && p : NL::Portals) p.Render();
+            for (auto && b : Foregrounds) b.Render();
             View::DrawEdges();
         }
         void Next() {

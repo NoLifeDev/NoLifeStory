@@ -54,6 +54,9 @@ using namespace std::tr2::sys;
 #  include <boost/filesystem.hpp>
 using namespace boost::filesystem;
 #endif
+#ifdef __X__
+#  include <X11/Xlib.h>
+#endif
 //NoLifeClient
 #include "Log.hpp"
 #include "Sound.hpp"

@@ -97,6 +97,9 @@ namespace NL {
             }
         }
         void Play() {
+#ifdef __X__
+            XInitThreads();
+#endif
             SetupFiles();
             Time::Init();
             Sprite::Init();
