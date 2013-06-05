@@ -126,6 +126,11 @@ namespace NL {
             case sf::Event::KeyPressed:
                 switch (e.key.code) {
                 case sf::Keyboard::M:
+                    BGM.setVolume(BGM.getVolume() > 0 ? 0 : 100);
+                    break;
+                case sf::Keyboard::R:
+                    Mindfuck = !Mindfuck;
+                    BGM.PlayMusic();
                     break;
                 case sf::Keyboard::F11:
                     Create(!Fullscreen);

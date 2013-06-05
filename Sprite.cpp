@@ -19,85 +19,115 @@
 namespace NL {
     unordered_map<size_t, GLuint> Sprites;
     deque<size_t> LoadedSprites;
-    GLuint LastBound(0);
+    size_t LastBound(0);
     size_t const MaxTextures = 0x800;
+    mutex LoadedMutex, ToLoadMutex;
+    set<Bitmap> SpritesToLoad;
+    void Sprite::Init() {
+        thread([&]{
+            sf::Context context;
+            while (!Game::Over) {
+                ToLoadMutex.lock();
+                if (SpritesToLoad.empty()) {
+                    ToLoadMutex.unlock();
+                    sleep_for(milliseconds(10));
+                    continue;
+                }
+                Bitmap b = *SpritesToLoad.begin();
+                SpritesToLoad.erase(SpritesToLoad.begin());
+                ToLoadMutex.unlock();
+                GLuint t;
+                glGenTextures(1, &t);
+                glBindTexture(GL_TEXTURE_2D, t);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                LoadedMutex.lock();
+                Sprites[b.ID()] = t;
+                LoadedSprites.push_back(b.ID());
+                LoadedMutex.unlock();
+            }
+        }).detach();
+    }
     void Sprite::Unbind() {
         LastBound = 0;
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     void Sprite::Cleanup() {
+        LoadedMutex.lock();
         while (LoadedSprites.size() > MaxTextures) {
             size_t s = LoadedSprites.front();
             LoadedSprites.pop_front();
             glDeleteTextures(1, &Sprites[s]);
             Sprites.erase(s);
         }
+        LoadedMutex.unlock();
     }
-    void BindTexture(Bitmap b) {
+    bool BindTexture(Bitmap b) {
+        if (b.ID() == LastBound) return true;
+        LoadedMutex.lock();
         GLuint t = Sprites[b.ID()];
+        LoadedMutex.unlock();
         if (t) {
-            if (t != LastBound) {
-                LastBound = t;
-                glBindTexture(GL_TEXTURE_2D, t);
-            }
-            return;
+            LastBound = b.ID();
+            glBindTexture(GL_TEXTURE_2D, t);
+            return true;
         }
-        glGenTextures(1, &t);
-        glBindTexture(GL_TEXTURE_2D, t);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        Sprites[b.ID()] = t;
-        LastBound = t;
-        LoadedSprites.push_back(b.ID());
+        ToLoadMutex.lock();
+        SpritesToLoad.insert(b);
+        ToLoadMutex.unlock();
+        return false;
     }
     Sprite::Sprite() : frame(0), delay(0), data() {}
-    Sprite::Sprite(Sprite const & o) : frame(o.frame), delay(o.delay), data(o.data), repeat(o.repeat),
-    movetype(o.movetype), movew(o.movew), moveh(o.moveh), movep(o.movep), mover(o.mover) {}
     Sprite::Sprite(Node const &o) : frame(0), delay(0), data(o) {
-        Node n = data["0"] ? data["0"] : data;
-        movetype = n["moveType"];
-        movew = n["moveW"];
-        moveh = n["moveH"];
-        movep = n["moveP"];
-        mover = n["moveR"];
-        repeat = n["repeat"].GetBool();
-    }
-    Sprite & Sprite::operator=(Sprite const & o) {
-        frame = o.frame;
-        delay = o.delay;
-        data = o.data;
-        repeat = o.repeat;
-        movetype = o.movetype;
-        movew = o.movew;
-        moveh = o.moveh;
-        movep = o.movep;
-        mover = o.mover;
-        return *this;
+        current = data["0"] ? data["0"] : data;
+        movetype = current["moveType"];
+        movew = current["moveW"];
+        moveh = current["moveH"];
+        movep = current["moveP"];
+        mover = current["moveR"];
+        repeat = current["repeat"].GetBool();
     }
     void Sprite::Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex, bool tiley, int32_t cx, int32_t cy) {
-        Node n;
+        if (!data) return;
         float alpha(1);
-        if (data.T() != Node::bitmap) {
+        Bitmap b;
+        if (current != data) {
             delay += Time::Delta * 1000;
-            n = data[frame];
-            int32_t d(n["delay"]);
+            int32_t d(current["delay"]);
             if (!d) d = 100;
             if (delay >= d) {
-                delay = 0;
-                if (!(n = data[++frame])) n = data[frame = 0];
+                int32_t f = frame + 1;
+                Node n = data[f];
+                if (!n) {
+                    f = 0;
+                    n = data[f];
+                }
+                b = n;
+                if (BindTexture(b)) {
+                    frame = f;
+                    current = n;
+                    delay = 0;
+                } else {
+                    b = current;
+                    if (!BindTexture(b)) return;
+                }
+            } else {
+                b = current;
+                if (!BindTexture(b)) return;
             }
-            if (n["a0"] || n["a1"]) {
-                double a0(n["a0"] ? n["a0"] : 255), a1(n["a1"] ? n["a1"] : 255);
+            if (current["a0"] || current["a1"]) {
+                double a0(current["a0"] ? current["a0"] : 255), a1(current["a1"] ? current["a1"] : 255);
                 double dif(double(delay) / d);
                 alpha = (a0 * (1 - dif) + a1 * dif) / 255;
             }
-        } else n = data;
-        if (n.T() != n.bitmap) return;
-        Bitmap b(n);
-        Node o(n["origin"]);
+        } else {
+            b = data;
+            if (!BindTexture(b)) return;
+        }
+        Node o(current["origin"]);
         uint16_t w(b.Width()), h(b.Height());
         int32_t ox(o.X()), oy(o.Y());
         (flipped ? (x -= w - ox) : (x -= ox)), y -= oy;
@@ -129,7 +159,6 @@ namespace NL {
             glLoadIdentity();
         };
         if (tilex) {
-            BindTexture(b);
             if (tiley) {
                 if (!cx) cx = w;
                 int32_t x1 = x % cx - cx;
@@ -157,15 +186,11 @@ namespace NL {
             }
         } else {
             if (tiley) {
-                BindTexture(b);
                 if (!cy) cy = h;
                 int32_t y1 = y % cy - cy;
                 int32_t y2 = (y - View::Height) % cy + View::Height + cy;
                 for (y = y1; y < y2; y += cy) single();
-            } else if (x + w > 0 && x < View::Width && y + h > 0 && y < View::Height) {
-                BindTexture(b);
-                single();
-            }
+            } else if (x + w > 0 && x < View::Width && y + h > 0 && y < View::Height) single();
         }
     }
 

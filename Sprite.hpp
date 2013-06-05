@@ -20,16 +20,15 @@ namespace NL {
     class Sprite {
     public:
         Sprite();
-        Sprite(Sprite const &);
         Sprite(Node const &);
-        Sprite & operator=(Sprite const &);
         void Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex = false, bool tiley = false, int32_t cx = 0, int32_t cy = 0);
+        static void Init();
         static void Cleanup();
         static void Unbind();
     private:
         int32_t frame;
         double delay;
-        Node data;
+        Node data, current;
         int32_t movetype;
         double movew, moveh, movep, mover;
         bool repeat;

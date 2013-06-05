@@ -21,8 +21,10 @@ namespace NL {
     Music::Music() {
         if (mpg123_init() != MPG123_OK) throw;
         handle = 0;
+        node = Node();
     }
     void Music::LoadNode(Node n) {
+        if (!n) return;
         if (n == node) return;
         node = n;
         stop();
@@ -65,5 +67,24 @@ namespace NL {
             mpg123_feedseek(handle, t.asSeconds(), SEEK_SET, &o);
             mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.Data()) + o, a.Length() - o);
         } else mpg123_seek(handle, t.asSeconds(), SEEK_SET);
+    }
+    void Music::PlayMusic() {
+        if (Mindfuck) {
+            if (node || getStatus() == Stopped) {
+                LoadFile("bgm.mp3");
+                setLoop(true);
+                play();
+            }
+        } else {
+            string bgm(Map::Current["info"]["bgm"]);
+            if (islower(bgm[0])) bgm[0] = toupper(bgm[0]);
+            while (bgm.find(' ') != bgm.npos) bgm.erase(bgm.find(' '), 1);
+            size_t p(bgm.find('/'));
+            Node sn(NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)]);
+            if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + Map::Current.Name());
+            LoadNode(sn);
+            setLoop(true);
+            play();
+        }
     }
 }

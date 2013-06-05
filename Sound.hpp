@@ -22,6 +22,7 @@ namespace NL {
         Music();
         void LoadNode(Node);
         void LoadFile(string);
+        void PlayMusic();
     protected:
         bool onGetData(sf::SoundStream::Chunk &);
         void onSeek(sf::Time);
