@@ -333,22 +333,22 @@ greater:
     File::File(char const * name) {
 #ifdef NL_WINDOWS
         file = CreateFileA(name, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, 0);
-        if (file == INVALID_HANDLE_VALUE) throw;
+        if (file == INVALID_HANDLE_VALUE) throw "Failed to open file " + std::string(name);
         map = CreateFileMappingA(file, 0, PAGE_READONLY, 0, 0, 0);
-        if (!map) throw;
+        if (!map) throw "Failed to create file mapping for " + std::string(name);
         base = MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0);
-        if (!base) throw;
+        if (!base) throw "Failed to map view of file " + std::string(name);
 #else
         file = open(name, O_RDONLY);
-        if (file == -1) throw;
+        if (file == -1) throw "Failed to open file " + std::string(name);
         struct stat finfo;
-        if (fstat(file, &finfo) == -1) throw;
+        if (fstat(file, &finfo) == -1) throw "Failed to create file mapping for " + std::string(name);
         size = finfo.st_size;
         base = mmap(nullptr, size, PROT_READ, MAP_SHARED, file, 0);
-        if (reinterpret_cast<size_t>(base) == -1) throw;
+        if (reinterpret_cast<size_t>(base) == -1) throw "Failed to map view of file " + std::string(name);
 #endif
         head = reinterpret_cast<Header const *>(base);
-        if (head->magic != 0x34474B50) throw;
+        if (head->magic != 0x34474B50) throw std::string(name) + " is not a PKG4 NX file";
         ntable = reinterpret_cast<Node::Data const *>(reinterpret_cast<char const *>(base) + head->noffset);
         stable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->soffset);
         btable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->boffset);
