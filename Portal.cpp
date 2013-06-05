@@ -1,6 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifeClient - Part of the NoLifeStory project                           //
 // Copyright (C) 2013 Peter Atashian                                        //
+// Additional Authors                                                       //
+// 2013 Cedric Van Goethem                                                  //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -15,58 +17,37 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
-#define _USE_MATH_DEFINES
-//GLEW
-#include <GL/glew.h>
-//SFML
-#include <SFML/Window.hpp>
-#include <SFML/Network.hpp>
-#include <SFML/Audio.hpp>
-//Libmpg123
-#include <mpg123.h>
-//C Standard Library
-#include <cstdint>
-//C++ Standard Library
-#include <array>
-#include <chrono>
-#include <cmath>
-#include <deque>
-#include <fstream>
-#include <functional>
-#include <random>
-#include <set>
-#include <string>
-#include <thread>
-#include <unordered_map>
-using namespace std;
-using namespace std::chrono;
-using namespace std::this_thread;
-//NoLifeNx (along with platform detection)
-#include "../NoLifeNx/NX.hpp"
-//Platform Specifics
-#ifdef NL_WINDOWS
-#  include <filesystem>
-#  include <Windows.h>
-using namespace std::tr2::sys;
-#else
-#  include <boost/filesystem.hpp>
-using namespace boost::filesystem;
-#endif
-//NoLifeClient
-#include "Sound.hpp"
-#include "Sprite.hpp"
-#include "View.hpp"
-#include "Foothold.hpp"
-#include "Log.hpp"
-#include "Game.hpp"
-#include "Map.hpp"
-#include "Graphics.hpp"
-#include "Time.hpp"
-#include "Obj.hpp"
-#include "Tile.hpp"
-#include "Background.hpp"
-#include "Layer.hpp"
-#include "Physics.hpp"
-#include "Player.hpp"
-#include "Portal.hpp"
+#include "NoLifeClient.hpp"
+namespace NL {
+    vector<Portal> Portals;
+    Node PortalSprites;
+    void Portal::Load() {
+        PortalSprites = NXMap["MapHelper.img"]["portal"]["game"];
+        Portals.clear();
+        for (Node n : Map::Current["portal"]) Portals.emplace_back(n);
+    }
+    Portal::Portal(Node n) :
+        x(n["x"]), y(n["y"]), tm(n["tm"]), tn(n["tn"]),
+        pt(n["pt"]), pn(n["pn"]) {
+        switch (pt) {
+        case 2:
+            spr = PortalSprites["pv"];
+            break;
+        case 10:
+            spr = PortalSprites["ph"]["default"];
+            break;
+        case 11:
+            spr = PortalSprites["psh"]["default"];
+            break;
+        }
+    }
+    void Portal::Render() {
+        switch (pt) {
+        case 2:
+        case 10:
+        case 11:
+            spr.Draw(x, y, true, false);
+            break;
+        }
+    }
+}
