@@ -20,7 +20,7 @@ namespace NL {
     unordered_map<size_t, GLuint> Sprites;
     deque<size_t> LoadedSprites;
     size_t LastBound(0);
-    size_t const MaxTextures = 0x800;
+    size_t const MaxTextures = 0;
     mutex LoadedMutex, ToLoadMutex;
     mutex SpriteMutex;
     set<Bitmap> SpritesToLoad;
@@ -30,7 +30,6 @@ namespace NL {
             sf::Context context;
             ThreadContextMade = true;
             while (!Game::Over) {
-                if (Config::SafeThreading) SpriteMutex.lock();
                 for (;;) {
                     Bitmap b;
                     {
@@ -54,7 +53,7 @@ namespace NL {
                         LoadedSprites.push_back(b.ID());
                     }
                 }
-                if (Config::SafeThreading) SpriteMutex.unlock();
+                glFlush();
                 sleep_for(milliseconds(10));
             }
             SpriteMutex.lock();
@@ -98,57 +97,41 @@ namespace NL {
         }
         return false;
     }
-    Sprite::Sprite() : frame(0), delay(0), data() {}
-    Sprite::Sprite(Node const &o) : frame(0), delay(0), data(o) {
-        current = data["0"] ? data["0"] : data;
-        movetype = current["moveType"];
-        movew = current["moveW"];
-        moveh = current["moveH"];
-        movep = current["moveP"];
-        mover = current["moveR"];
-        repeat = current["repeat"].GetBool();
+    Sprite::Sprite() : frame(0), delay(0), data(), last(), next() {}
+    Sprite::Sprite(Node const &o) : frame(0), delay(0), data(o), last(), next() {
+        last = next = data.T() == Node::bitmap ? data : data["0"];
+        movetype = next["moveType"];
+        movew = next["moveW"];
+        moveh = next["moveH"];
+        movep = next["moveP"];
+        mover = next["moveR"];
+        repeat = next["repeat"].GetBool();
     }
     void Sprite::Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex, bool tiley, int32_t cx, int32_t cy) {
         if (!data) return;
         float alpha(1);
-        Bitmap b;
-        if (current != data) {
+        if (data != next) {
             delay += Time::Delta * 1000;
-            int32_t d(current["delay"]);
+            int32_t d(next["delay"]);
             if (!d) d = 100;
             if (delay >= d) {
-                int32_t f = frame + 1;
-                Node n = data[f];
-                if (!n) {
-                    f = 0;
-                    n = data[f];
-                }
-                b = n;
-                if (BindTexture(b)) {
-                    frame = f;
-                    current = n;
-                    delay = 0;
-                } else {
-                    b = current;
-                    if (!BindTexture(b)) return;
-                }
-            } else {
-                b = current;
-                if (!BindTexture(b)) return;
+                delay = 0;
+                if (!(next = data[++frame])) next = data[frame = 0];
             }
-            if (current["a0"] || current["a1"]) {
-                double a0(current["a0"] ? current["a0"] : 255), a1(current["a1"] ? current["a1"] : 255);
+            if (next["a0"] || next["a1"]) {
+                double a0(next["a0"] ? next["a0"] : 255), a1(next["a1"] ? next["a1"] : 255);
                 double dif(double(delay) / d);
                 alpha = (a0 * (1 - dif) + a1 * dif) / 255;
             }
-        } else {
-            b = data;
-            if (!BindTexture(b)) return;
         }
-        Node o(current["origin"]);
+        Bitmap b;
+        if (next.T() == Node::bitmap && BindTexture(b = next)) last = next;
+        else if (last.T() == Node::bitmap && BindTexture(b = last));
+        else return;
+        Node o(last["origin"]);
         uint16_t w(b.Width()), h(b.Height());
         int32_t ox(o.X()), oy(o.Y());
-        (flipped ? (x -= w - ox) : (x -= ox)), y -= oy;
+        flipped ? x -= w - ox : x -= ox, y -= oy;
         if (view) {
             x += View::Width / 2, y += View::Height / 2;
             x -= View::X, y -= View::Y;

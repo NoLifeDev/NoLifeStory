@@ -18,6 +18,7 @@
 #pragma once
 namespace NL {
     namespace Graphics {
+        extern sf::Window * Window;
         void Init();
         void Update();
         void Unload();

@@ -68,6 +68,10 @@ namespace NL {
     }
     void Physics::Update() {
         //First get player input
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+            auto p = sf::Mouse::getPosition(*Graphics::Window);
+            Reset(p.x + View::X - View::Width / 2, p.y + View::Y - View::Height / 2);
+        }
         bool left = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
         bool right = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
         bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);

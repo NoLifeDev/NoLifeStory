@@ -105,10 +105,6 @@ namespace NL {
             Sprite::Init();
             Map::Init();
             while (!Over) {
-                if (Config::SafeThreading) {
-                    SpriteMutex.unlock();
-                    SpriteMutex.lock();
-                }
                 Player::Update();
                 View::Update();
                 Map::Render();

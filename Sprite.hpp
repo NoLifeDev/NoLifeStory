@@ -29,7 +29,7 @@ namespace NL {
     private:
         int32_t frame;
         double delay;
-        Node data, current;
+        Node data, last, next;
         int32_t movetype;
         double movew, moveh, movep, mover;
         bool repeat;
