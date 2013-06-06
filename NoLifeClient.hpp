@@ -56,7 +56,10 @@ using namespace std::tr2::sys;
 #  include <boost/filesystem.hpp>
 #  include <boost/regex.hpp>
 using namespace boost::filesystem;
-using boost::smatch, boost::regex_constants, boost::regex_match, boost::regex;
+using boost::smatch;
+using boost::regex_constants;
+using boost::regex_match;
+using boost::regex;
 #endif
 #ifdef __X__
 #  include <X11/Xlib.h>
