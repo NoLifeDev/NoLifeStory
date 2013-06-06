@@ -82,7 +82,7 @@ namespace NL {
                     getline(file, s);
                     transform(s.begin(), s.end(), s.begin(), [](char c){return tolower(c);});
                     smatch m;
-                    if (!regex_match(s, m, reg, regex_constants::match_default)) continue;
+                    if (!regex_match(s, m, reg)) continue;
                     Configs[m[1]] = m[2];
                 }
             }
