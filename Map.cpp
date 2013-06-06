@@ -29,7 +29,13 @@ namespace NL {
             }
             Next();
         }
+
+
         void Load(string name) {
+            Load(name, nullptr);
+        }
+
+        void Load(string name, string *portal) {
             name.insert(0, 9 - name.size(), '0');
             Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
             if (!m) {
@@ -47,7 +53,7 @@ namespace NL {
             Background::Load();
             Portal::Load();
             Sprite::Cleanup();
-            Player::Respawn();
+            Player::Respawn(portal);
             View::Reset();
         }
         void Render() {

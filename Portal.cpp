@@ -41,6 +41,38 @@ namespace NL {
             break;
         }
     }
+
+    bool Portal::IsInRange() {
+        return abs(NL::Player::Pos.x - x) < 60 && abs(NL::Player::Pos.y - y) < 60;
+    }
+
+    bool Portal::Check() {
+        bool use = false;
+
+        switch (pt) {
+        case 1:
+        case 2:
+            use = IsInRange() && sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
+            break;
+        case 3:
+            use = IsInRange();
+            break;
+        }
+
+        if(use)
+            Use();
+
+        return use;
+    }
+
+    void Portal::Use() {
+        if(tm != 999999999) {
+            NL::Map::Load(to_string(tm), &string(tn)); // To other map
+        } else {
+            NL::Player::Respawn(&string(tn));
+        }
+    }
+
     void Portal::Render() {
         switch (pt) {
         case 2:

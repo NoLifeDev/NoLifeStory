@@ -22,6 +22,7 @@ namespace NL {
         void Init();
         void Next();
         void Load(string name);
+        void Load(string name, string *portal);
         void Render();
     }
 }

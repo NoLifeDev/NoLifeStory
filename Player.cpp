@@ -19,23 +19,52 @@
 namespace NL {
     namespace Player {
         Physics Pos;
+
         void Respawn() {
-            vector<pair<int32_t, int32_t>> spawns;
-            for (auto && p : Portals) {
-                if (p.pn == "sp") {
-                    spawns.emplace_back(p.x, p.y);
+            Respawn(nullptr);
+        }
+
+        void Respawn(string *portal) {
+            int32_t x, y;
+            bool found = false;
+
+            if(portal != nullptr) {
+                for (auto && p : Portals) {
+                    if (p.pn == *portal) {
+                        x = p.x;
+                        y = p.y;
+                        found = true;
+                        break;
+                    }
                 }
             }
-            if (!spawns.empty()) {
-                auto && spawn = spawns[rand() % spawns.size()];
-                Pos.Reset(spawn.first, spawn.second);
-            } else {
-                Log::Write("Map " + Map::Current.Name() + " has no spawn");
-                Pos.Reset(0, 0);
-            }
+
+            if(!found) { // When the portal isn't found, we choose a spawnpoint randomly
+                vector<pair<int32_t, int32_t>> spawns;
+                for (auto && p : Portals) {
+                    if (p.pn == "sp") {
+                        spawns.emplace_back(p.x, p.y);
+                    }
+                }
+
+                if (!spawns.empty()) {
+                    auto && spawn = spawns[rand() % spawns.size()];
+                    x = spawn.first;
+                    y = spawn.second;
+                } else {
+                    Log::Write("Map " + Map::Current.Name() + " has no spawn");
+                    x = 0;
+                    y = 0;
+                }
+            } 
+            Pos.Reset(x, y);
         }
         void Update() {
             Pos.Update();
+            for (auto && p : Portals) { //TODO: reset physics such as float/walking speed
+                if(p.Check())
+                    break;
+            }
         }
         void Render() {
             Sprite::Unbind();
