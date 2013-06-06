@@ -57,7 +57,7 @@ using namespace std::tr2::sys;
 #  include <boost/regex.hpp>
 using namespace boost::filesystem;
 using boost::smatch;
-using boost::regex_constants;
+using namespace boost::regex_constants;
 using boost::regex_match;
 using boost::regex;
 #endif
