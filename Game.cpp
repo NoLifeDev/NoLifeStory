@@ -103,11 +103,13 @@ namespace NL {
             Time::Init();
             Graphics::Init();
             Sprite::Init();
+            UI::Init();
             Map::Init();
             while (!Over) {
                 Player::Update();
                 View::Update();
                 Map::Render();
+                UI::Render();
                 Time::Update();
                 Graphics::Update();
             }
