@@ -17,16 +17,130 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    Physics::Physics() : x(0), y(0), layer(7) {}
+    double const FallSpeed = 670;
+    double const FloatCoefficient = 0.01;
+    double const FloatDrag1 = 100000;
+    double const FloatDrag2 = 10000;
+    double const FlyForce = 120000;
+    double const FlyJumpDec = 0.35;
+    double const FlySpeed = 200;
+    double const GravityAcc = 2000;
+    double const JumpSpeed = 555;
+    double const MaxFriction = 2;
+    double const MinFriction = 0.05;
+    double const ShoeFlyAcc = 0;
+    double const ShoeFlySpeed = 0;
+    double const ShoeMass = 100;
+    double const ShoeSwimAcc = 1;
+    double const ShoeSwimSpeedH = 1;
+    double const ShoeSwimSpeedV = 1;
+    double const ShoeWalkAcc = 1;
+    double const ShoeWalkDrag = 1;
+    double const ShoeWalkJump = 1.2;
+    double const ShoeWalkSlant = 0.9;
+    double const ShoeWalkSpeed = 1.4;
+    double const SlipForce = 60000;
+    double const SlipSpeed = 120;
+    double const SwimForce = 120000;
+    double const SwimSpeed = 140;
+    double const SwimSpeedDec = 0.9;
+    double const WalkDrag = 80000;
+    double const WalkForce = 140000;
+    double const WalkSpeed = 125;
+    double const Wat1 = 0.0008928571428571428;
+    double const Wat2 = 0.35355339;
+    double const Wat3 = 700;
+    double const Wat4 = 162.5;
+    Physics::Physics() {
+        Reset(0, 0);
+    }
+    void Physics::Reset(double nx, double ny) {
+        x = nx, y = ny, r = 0;
+        vx = 0, vy = 0, vr = 0;
+        layer = 7, group = 0;
+        fh = nullptr, lr = nullptr;
+    }
+    void Physics::Jump() {
+        bool flying = Map::Current["info"]["swim"].GetBool() || true;
+        if (flying) {
+            vy = -ShoeSwimSpeedV * Wat3;
+        }
+    }
     void Physics::Update() {
-        const double mult(1000);
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) x -= Time::Delta * mult;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) x += Time::Delta * mult;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) y -= Time::Delta * mult;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) y += Time::Delta * mult;
-        if (x < View::Left) x = View::Left;
-        if (x > View::Right) x = View::Right;
-        if (y < View::Top) y = View::Top;
-        if (y > View::Bottom) y = View::Bottom;
+        //First get player input
+        bool left = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+        bool right = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+        bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
+        bool down = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
+        if (left && right) left = false, right = false;
+        if (up && down) up = false, down = false;
+        if (lr) {//Do ladderrope stuff
+
+        } else if (fh) {//Do foothold stuff
+            
+        } else {
+            bool flying = Map::Current["info"]["swim"].GetBool() || true;
+            if (flying) {
+				double vmid = ShoeSwimAcc;
+				double vmax = ShoeSwimSpeedH*SwimSpeed;
+                double shoefloat = FloatDrag1 / ShoeMass * Time::Delta;
+                if (vx < -vmax) vx = min(-vmax, vx + shoefloat);
+			    else if (vx > vmax) vx = max(vmax, vx - shoefloat);
+                else if (left) vx = max(-vmax, vx - shoefloat);
+                else if (right) vx = min(vmax, vx + shoefloat);
+                else if (vx > 0) vx = max(0., vx - shoefloat);
+                else vx = min(0., vx + shoefloat);
+                double flys = FlyForce / ShoeMass * Time::Delta * vmid;
+                if (up)
+                    if (vy < vmax * 0.3) vy = min(vmax * 0.3, vy + flys * 0.5);
+					else vy = max(vmax * 0.3, vy - flys);
+                else if (down)
+                    if (vy < vmax * 1.5) vy = min(vmax * 1.5, vy + flys);
+					else vy = max(vmax * 1.5, vy - flys * 0.5);
+                else if (vy < vmax) vy = min(vmax, vy + flys);
+                else vy = max(vmax, vy - flys);
+            } else {
+       //         if (vy > 0.) {
+				   // vy = max(0., vy-floatDrag2/shoe::mass*Time::delta);
+			    //} else {
+				   // vy = min(0., vy+floatDrag2/shoe::mass*Time::delta);
+			    //}
+			    //vy += gravityAcc*Time::delta;
+			    //vy = min(vy, fallSpeed);
+			    //if (moving) {
+				   // double l = floatDrag2*wat1;
+				   // if (left) {
+					  //  if (vx > -l) {
+						 //   vx = max(-l, vx-floatDrag2*2/shoe::mass*Time::delta);
+					  //  }
+				   // } else {
+					  //  if (vx < l) {
+						 //   vx = min(l, vx+floatDrag2*2/shoe::mass*Time::delta);
+					  //  }
+				   // }
+			    //} else {
+				   // if (vy < fallSpeed) {
+					  //  if (vx > 0) {
+						 //   vx = max(0., vx-floatDrag2*floatCoefficient/shoe::mass*Time::delta);
+					  //  } else {
+						 //   vx = min(0., vx+floatDrag2*floatCoefficient/shoe::mass*Time::delta);
+					  //  }
+				   // } else {
+					  //  if (vx > 0) {
+						 //   vx = max(0., vx-floatDrag2/shoe::mass*Time::delta);
+					  //  } else {
+						 //   vx = min(0., vx+floatDrag2/shoe::mass*Time::delta);
+					  //  }
+				   // }
+			    //}
+            }
+            x += vx * Time::Delta;
+            y += vy * Time::Delta;
+            //View culling
+            if (x < View::Left + 20) x = View::Left + 20, vx = 0;
+            if (x > View::Right - 20) x = View::Right - 20, vx = 0;
+            if (y < View::Top - 60) y = View::Top - 60, vy = 0;
+            if (y > View::Bottom) y = View::Bottom, vy = 0;
+        }
     }
 }

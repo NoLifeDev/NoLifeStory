@@ -21,8 +21,13 @@ namespace NL {
     public:
         Physics();
         void Update();
-        double x, y;
-        int layer;
+        void Reset(double x, double y);
+        void Jump();
+        double x, y, r;
+        double vx, vy, vr;
+        int32_t layer, group;
+        Foothold * fh;
+        void * lr;//Todo ladderropes
     private:
 
     };

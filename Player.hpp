@@ -19,7 +19,7 @@
 namespace NL {
     namespace Player {
         extern Physics Pos;
-        void Reset();
+        void Respawn();
         void Update();
         void Render();
     }

@@ -23,11 +23,11 @@ namespace NL {
         const sf::ContextSettings Context(0, 0, 0, 1, 5);
         GLuint VBO;
         void Create(bool fullscreen) {
-            if (fullscreen) Window->create(sf::VideoMode(Config::FullscreenWidth, Config::FullscreenHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
-            else Window->create(sf::VideoMode(Config::WindowWidth, Config::WindowHeight, 32), Title, sf::Style::Default, Context);
+            Config::Fullscreen = fullscreen;
+            if (Config::Fullscreen) Window->create(sf::VideoMode(Config::FullscreenWidth, Config::FullscreenHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
+            else Window->create(sf::VideoMode(Config::WindowWidth, Config::WindowHeight, 32), Title, sf::Style::Titlebar, Context);
             View::Resize(Window->getSize().x, Window->getSize().y);
             if (Config::Vsync) Window->setVerticalSyncEnabled(true);
-            Config::Fullscreen = fullscreen;
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_TEXTURE_2D);
@@ -62,7 +62,7 @@ namespace NL {
             glGenBuffers(1, &VBO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(a), a, GL_STATIC_DRAW);
-            Create(false);
+            Create(Config::Fullscreen);
         }
         void Update() {
             Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
@@ -113,6 +113,9 @@ namespace NL {
                     break;
                 case sf::Keyboard::Escape:
                     Game::Over = true;
+                    break;
+                case sf::Keyboard::LAlt:
+                    Player::Pos.Jump();
                     break;
                 }
                 break;

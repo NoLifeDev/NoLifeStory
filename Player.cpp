@@ -19,7 +19,20 @@
 namespace NL {
     namespace Player {
         Physics Pos;
-        void Reset() {
+        void Respawn() {
+            vector<pair<int32_t, int32_t>> spawns;
+            for (auto && p : Portals) {
+                if (p.pn == "sp") {
+                    spawns.emplace_back(p.x, p.y);
+                }
+            }
+            if (!spawns.empty()) {
+                auto && spawn = spawns[rand() % spawns.size()];
+                Pos.Reset(spawn.first, spawn.second);
+            } else {
+                Log::Write("Map " + Map::Current.Name() + " has no spawn");
+                Pos.Reset(0, 0);
+            }
         }
         void Update() {
             Pos.Update();

@@ -21,7 +21,7 @@ namespace NL {
         Node Current;
         vector<string> Maps;
         void Init() {
-            for (int i = 1; i < 9; ++i) {
+            for (int i = 0; i <= 9; ++i) {
                 for (Node n2 : NXMap["Map"]["Map" + to_string(i)]) {
                     string name = n2.Name();
                     Maps.emplace_back(name.substr(0, name.size() - 4));
@@ -47,27 +47,13 @@ namespace NL {
             Background::Load();
             Portal::Load();
             Sprite::Cleanup();
-            vector<pair<int32_t, int32_t>> spawns;
-            for (auto && p : Portals) {
-                if (p.pn == "sp") {
-                    spawns.emplace_back(p.x, p.y);
-                }
-            }
-            if (!spawns.empty()) {
-                auto && spawn = spawns[rand() % spawns.size()];
-                Player::Pos.x = spawn.first;
-                Player::Pos.y = spawn.second;
-            } else {
-                Log::Write("Map " + name + " has no spawn");
-                Player::Pos.x = 0;
-                Player::Pos.y = 0;
-            }
+            Player::Respawn();
             View::Reset();
         }
         void Render() {
             if (Config::Rave) {
-                double d = floor(Time::TDelta * 2.088 - 0.1) * 1.95;
-                double r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
+                float d = floor(Time::TDelta * 2.088 - 0.1) * 1.95;
+                float r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
                 GLfloat c[] = {r, g, b, 1};
                 glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);

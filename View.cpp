@@ -30,8 +30,8 @@ namespace NL {
         void Resize(int32_t w, int32_t h) {
             Width = w, Height = h;
             glViewport(0, 0, Width, Height);
-            if (Config::Fullscreen) Config::WindowWidth = Width, Config::WindowHeight = Height;
-            else Config::FullscreenWidth = Width, Config::FullscreenHeight = Height;
+            if (Config::Fullscreen) Config::FullscreenWidth = Width, Config::FullscreenHeight = Height;
+            else Config::WindowWidth = Width, Config::WindowHeight = Height;
         }
         void Reset() {
             if (Map::Current["info"]["VRTop"]) {
