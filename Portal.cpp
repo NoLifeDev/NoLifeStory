@@ -21,7 +21,11 @@
 namespace NL {
     vector<Portal> Portals;
     Node PortalSprites;
+    high_resolution_clock::time_point Last_use;
+
     void Portal::Load() {
+        Last_use = high_resolution_clock::now();
+
         PortalSprites = NXMap["MapHelper.img"]["portal"]["game"];
         Portals.clear();
         for (Node n : Map::Current["portal"]) Portals.emplace_back(n);
@@ -60,13 +64,19 @@ namespace NL {
             break;
         }
 
-        if(use)
-            Use();
+        if(use) {
+            high_resolution_clock::time_point now = high_resolution_clock::now();
+            if(duration_cast<duration<int, milli>>(now  - Last_use).count() > 2000) {
+                Last_use = now;
+                Use();
+            }
+        }
 
         return use;
     }
 
     void Portal::Use() {
+
         if(tm != 999999999) {
             NL::Map::Load(to_string(tm), &string(tn)); // To other map
         } else {
