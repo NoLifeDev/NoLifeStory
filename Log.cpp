@@ -30,16 +30,19 @@ namespace NL {
                 MessageBoxA(nullptr, s.c_str(), "ERROR", MB_OK);
 #endif
                 Log::Write("ERROR: " + s);
-                Log::Write("ERROR: Aborting.");
+                Log::Write("ERROR: Aborting");
             } catch (char const * s) {
 #ifdef NL_WINDOWS
                 MessageBoxA(nullptr, s, "ERROR", MB_OK);
 #endif
                 Log::Write("ERROR: " + string(s));
-                Log::Write("ERROR: Aborting.");
+                Log::Write("ERROR: Aborting");
             } catch (...) {
-                Log::Write("ERROR: Unknown Exception.");
-                Log::Write("ERROR: Aborting.");
+#ifdef NL_WINDOWS
+                MessageBoxA(nullptr, "Unknown exception!", "ERROR", MB_OK);
+#endif
+                Log::Write("ERROR: Unknown exception");
+                Log::Write("ERROR: Aborting");
             }
         }
     }

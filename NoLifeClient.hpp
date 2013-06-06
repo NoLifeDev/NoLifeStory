@@ -37,7 +37,6 @@
 #include <functional>
 #include <mutex>
 #include <random>
-#include <regex>
 #include <set>
 #include <string>
 #include <thread>
@@ -50,11 +49,14 @@ using namespace std::this_thread;
 //Platform Specifics
 #ifdef NL_WINDOWS
 #  include <filesystem>
+#  include <regex>
 #  include <Windows.h>
 using namespace std::tr2::sys;
 #else
 #  include <boost/filesystem.hpp>
+#  include <boost/regex.hpp>
 using namespace boost::filesystem;
+using boost::smatch, boost::regex_constants, boost::regex_match, boost::regex;
 #endif
 #ifdef __X__
 #  include <X11/Xlib.h>

@@ -74,15 +74,17 @@ namespace NL {
             //First we save the defaults in case the config doesn't have them
             for (auto & m : Mappings) m.second.first();
             //Now we load the config itself
-            ifstream file("NoLifeClient.cfg");
-            regex reg("[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*");
-            while (!file.eof()) {
-                string s;
-                getline(file, s);
-                transform(s.begin(), s.end(), s.begin(), tolower);
-                smatch m;
-                if (!regex_match(s, m, reg, regex_constants::match_default)) continue;
-                Configs[m[1]] = m[2];
+            {
+                ifstream file("NoLifeClient.cfg");
+                regex reg("[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*");
+                if (file.is_open()) while (!file.eof()) {
+                    string s;
+                    getline(file, s);
+                    transform(s.begin(), s.end(), s.begin(), [](char c){return tolower(c);});
+                    smatch m;
+                    if (!regex_match(s, m, reg, regex_constants::match_default)) continue;
+                    Configs[m[1]] = m[2];
+                }
             }
             for (auto & m : Mappings) m.second.second();
             //And then we save the config
