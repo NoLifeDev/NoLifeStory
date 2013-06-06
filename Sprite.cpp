@@ -61,6 +61,7 @@ namespace NL {
         SpriteMutex.unlock();
     }
     void Sprite::Init() {
+        if (!Config::Threaded) return;
         thread([]{Log::Wrap(SpriteThread);}).detach();
         while (!ThreadContextMade) sleep_for(milliseconds(1));
         SpriteMutex.lock();
@@ -91,7 +92,20 @@ namespace NL {
             if (!glIsTexture(t)) throw "Invalid texture detected!";
             return true;
         }
-        {
+        if (!Config::Threaded) {
+            GLuint t;
+            glGenTextures(1, &t);
+            glBindTexture(GL_TEXTURE_2D, t);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            LastBound = b.ID();
+            Sprites[b.ID()] = t;
+            LoadedSprites.push_back(b.ID());
+            return true;
+        } else {
             lock_guard<mutex> lock(ToLoadMutex);
             SpritesToLoad.insert(b);
         }

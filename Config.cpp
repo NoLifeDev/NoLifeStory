@@ -19,7 +19,7 @@
 namespace NL {
     namespace Config {
         //Various config variables
-        bool Rave = false, Fullscreen = false;
+        bool Rave = false, Fullscreen = false, Threaded = true;
         bool Vsync = true, FrameLimit = false;
         int32_t TargetFPS = 100;
         int32_t WindowWidth = 1024, WindowHeight = 768;
@@ -68,6 +68,7 @@ namespace NL {
             IntMapping("fps", TargetFPS);
             BoolMapping("fullscreen", Fullscreen);
             BoolMapping("rave", Rave);
+            BoolMapping("threaded", Threaded);
             BoolMapping("vsync", Vsync);
             BoolMapping("capfps", FrameLimit);
             //First we save the defaults in case the config doesn't have them

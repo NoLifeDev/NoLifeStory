@@ -114,7 +114,7 @@ namespace NL {
             BGM.stop();
             Graphics::Unload();
             Config::Save();
-            SpriteMutex.unlock();
+            if (Config::Threaded) SpriteMutex.unlock();
             sleep_for(seconds(1));//To let threads finish safely
         }
     }
