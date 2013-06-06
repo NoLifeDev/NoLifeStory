@@ -52,6 +52,7 @@ namespace NL {
         switch (pt) {
         case 1:
         case 2:
+        case 10:
             use = IsInRange() && sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
             break;
         case 3:
