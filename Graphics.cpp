@@ -118,12 +118,16 @@ namespace NL {
                     Player::Pos.Jump();
                     break;
                 case sf::Keyboard::Up:
+                    Player::Pos.up = true;
                     break;
                 case sf::Keyboard::Down:
+                    Player::Pos.down = true;
                     break;
                 case sf::Keyboard::Left:
+                    Player::Pos.left = true;
                     break;
                 case sf::Keyboard::Right:
+                    Player::Pos.right = true;
                     break;
                 }
                 break;

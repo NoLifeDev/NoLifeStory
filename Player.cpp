@@ -20,6 +20,7 @@ namespace NL {
     namespace Player {
         Physics Pos;
         uint16_t Level = 69;
+        double LastTele = Time::TDelta;
         void Respawn(string portal) {
             vector<pair<int32_t, int32_t>> spawns;
             for (auto && p : Portals) {
@@ -42,11 +43,17 @@ namespace NL {
             if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) Pos.up = false;
             if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) Pos.down = false;
             Pos.Update();
+            if (LastTele + 1 > Time::TDelta) return;
             for (Portal & p : Portals) {
-                if (p.x < Pos.x - 20 || p.x > Pos.x + 20 || p.y < Pos.y - 20 || p.y > Pos.y + 20) continue;
-                if (Pos.up && p.tm != 999999999) Map::Load(to_string(p.tm), p.tn);
+                if (p.x < Pos.x - 30 || p.x > Pos.x + 30 || p.y < Pos.y - 30 || p.y > Pos.y + 30) continue;
                 switch (p.pt) {//Handle stuff like bouncies here
-
+                case 1:
+                case 2:
+                    if (!Pos.up) break;
+                case 3:
+                    Map::Load(to_string(p.tm), p.tn);
+                    LastTele = Time::TDelta;
+                    return;
                 }
             }
         }

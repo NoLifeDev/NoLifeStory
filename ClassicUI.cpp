@@ -20,6 +20,34 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     namespace ClassicUI {
+        class Button {
+        public:
+            enum State : uint8_t {
+                Disabled = 0,
+                MouseOver,
+                Normal,
+                Pressed
+            };
+            Button(Node n, int32_t x = 0, int32_t y = 0);
+            void Render(int32_t rel_x, int32_t rel_y);
+            State state;
+            void SetState(State st) { state = st; }
+            uint32_t Width, Height;
+        private:
+            Sprite sprites[4];
+            int32_t x, y;
+        };
+        class StatusBar {
+        public:
+            StatusBar();
+            void Render();
+            void Load();
+            static void Init();
+        private:
+            void RenderLevel();
+            void RenderGauge();
+            void RenderButtons();
+        };
         StatusBar bar;
 
         void Init() {
@@ -32,7 +60,7 @@ namespace NL {
         Sprite backgrnd, backgrnd2;
         Sprite level_no[10];
         Sprite gauge_bar, gauge_grad;
-        Button::Button(Node n, int32_t x = 0, int32_t y = 0) : state(Normal), x(x), y(y) {
+        Button::Button(Node n, int32_t x, int32_t y) : state(Normal), x(x), y(y) {
             sprites[Disabled] = n["disabled"];
             sprites[Normal] = n["normal"];
             sprites[MouseOver] = n["mouseOver"];

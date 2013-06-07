@@ -34,8 +34,12 @@ namespace NL {
             Load("100000000");
         }
         void Load(string name, string portal) {
-            if (Shade > 0) return;//To prevent getting stuck in portal loops
+            if (Next) return;
             name.insert(0, 9 - name.size(), '0');
+            if (Name == name) {
+                Player::Respawn(portal);
+                return;
+            }
             Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
             if (!m) {
                 Log::Write("Failed to load map " + name);

@@ -22,34 +22,5 @@ namespace NL {
     namespace ClassicUI {
         void Init();
         void Render();
-        class Button {
-        public:
-            Button(Node n, int32_t x, int32_t y);
-            void Render(int32_t rel_x, int32_t rel_y);
-            enum ButtonState state;
-            void SetState(enum ButtonState st) { state = st; }
-            uint32_t Width, Height;
-        private:
-            Sprite sprites[4];
-            int32_t x, y;
-        };
-
-        enum ButtonState : unsigned char {
-            Disabled = 0,
-            MouseOver,
-            Normal,
-            Pressed
-        };
-        class StatusBar {
-        public:
-            StatusBar();
-            void Render();
-            void Load();
-            static void Init();
-        private:
-            void RenderLevel();
-            void RenderGauge();
-            void RenderButtons();
-        };
     }
 }
