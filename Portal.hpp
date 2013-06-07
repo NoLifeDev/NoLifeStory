@@ -24,9 +24,6 @@ namespace NL {
 		Portal(Node);
         static void Load();
 		void Render();
-        void Use();
-        bool Check();
-        bool IsInRange();
 		int32_t pt, tm, delay;
 		int32_t x, y;
         int32_t horizontalImpact, verticalImpact;

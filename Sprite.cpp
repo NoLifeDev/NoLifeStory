@@ -20,7 +20,7 @@ namespace NL {
     unordered_map<size_t, GLuint> Sprites;
     deque<size_t> LoadedSprites;
     size_t LastBound(0);
-    size_t const MaxTextures = 0;
+    size_t const MaxTextures = 0x800;
     mutex LoadedMutex, ToLoadMutex;
     mutex SpriteMutex;
     set<Bitmap> SpritesToLoad;

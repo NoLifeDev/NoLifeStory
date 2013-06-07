@@ -25,7 +25,7 @@ namespace NL {
         void Create(bool fullscreen) {
             Config::Fullscreen = fullscreen;
             if (Config::Fullscreen) Window->create(sf::VideoMode(Config::FullscreenWidth, Config::FullscreenHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
-            else Window->create(sf::VideoMode(Config::WindowWidth, Config::WindowHeight, 32), Title, sf::Style::Titlebar, Context);
+            else Window->create(sf::VideoMode(Config::WindowWidth, Config::WindowHeight, 32), Title, sf::Style::Titlebar | sf::Style::Resize, Context);
             View::Resize(Window->getSize().x, Window->getSize().y);
             if (Config::Vsync) Window->setVerticalSyncEnabled(true);
             glEnable(GL_BLEND);
@@ -109,13 +109,21 @@ namespace NL {
                     Create(!Config::Fullscreen);
                     break;
                 case sf::Keyboard::Return:
-                    Map::Next();
+                    Map::Random();
                     break;
                 case sf::Keyboard::Escape:
                     Game::Over = true;
                     break;
                 case sf::Keyboard::LAlt:
                     Player::Pos.Jump();
+                    break;
+                case sf::Keyboard::Up:
+                    break;
+                case sf::Keyboard::Down:
+                    break;
+                case sf::Keyboard::Left:
+                    break;
+                case sf::Keyboard::Right:
                     break;
                 }
                 break;

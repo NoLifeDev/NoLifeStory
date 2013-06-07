@@ -21,11 +21,7 @@
 namespace NL {
     vector<Portal> Portals;
     Node PortalSprites;
-    high_resolution_clock::time_point Last_use;
-
     void Portal::Load() {
-        Last_use = high_resolution_clock::now();
-
         PortalSprites = NXMap["MapHelper.img"]["portal"]["game"];
         Portals.clear();
         for (Node n : Map::Current["portal"]) Portals.emplace_back(n);
@@ -45,45 +41,6 @@ namespace NL {
             break;
         }
     }
-
-    bool Portal::IsInRange() {
-        return abs(NL::Player::Pos.x - x) < 60 && abs(NL::Player::Pos.y - y) < 60;
-    }
-
-    bool Portal::Check() {
-        bool use = false;
-
-        switch (pt) {
-        case 1:
-        case 2:
-        case 10:
-            use = IsInRange() && sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
-            break;
-        case 3:
-            use = IsInRange();
-            break;
-        }
-
-        if(use) {
-            high_resolution_clock::time_point now = high_resolution_clock::now();
-            if(duration_cast<duration<int, milli>>(now  - Last_use).count() > 800) {
-                Last_use = now;
-                Use();
-            }
-        }
-
-        return use;
-    }
-
-    void Portal::Use() {
-
-        if(tm != 999999999) {
-            NL::Map::Load(to_string(tm), &string(tn)); // To other map
-        } else {
-            NL::Player::Respawn(&string(tn));
-        }
-    }
-
     void Portal::Render() {
         switch (pt) {
         case 2:

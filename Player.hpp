@@ -19,8 +19,8 @@
 namespace NL {
     namespace Player {
         extern Physics Pos;
-        void Respawn();
-        void Respawn(string *portal);
+        extern uint16_t Level;//Srsly, we want epic levels :D
+        void Respawn(string portal);
         void Update();
         void Render();
     }

@@ -19,6 +19,10 @@
 namespace NL {
     namespace Map {
         Node Current;
+        string Name;
+        Node Next;
+        string NextPortal;
+        float Shade = 0;
         vector<string> Maps;
         void Init() {
             for (int i = 0; i <= 9; ++i) {
@@ -27,15 +31,10 @@ namespace NL {
                     Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            Next();
+            Load("100000000");
         }
-
-
-        void Load(string name) {
-            Load(name, nullptr);
-        }
-
-        void Load(string name, string *portal) {
+        void Load(string name, string portal) {
+            if (Shade > 0) return;//To prevent getting stuck in portal loops
             name.insert(0, 9 - name.size(), '0');
             Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
             if (!m) {
@@ -43,17 +42,24 @@ namespace NL {
                 return;
             }
             if (m["info"]["link"]) {
-                Load(m["info"]["link"]);
+                Load(m["info"]["link"], portal);
                 return;
             }
-            Current = m;
+            Next = m;
+            NextPortal = portal;
+        }
+        void LoadNow() {
+            Shade = 2;
+            Current = Next;
+            Name = Current.Name().erase(Current.Name().size() - 4);
+            Next = Node();
             BGM.PlayMusic();
             Foothold::Load();
             Layer::LoadAll();
             Background::Load();
             Portal::Load();
             Sprite::Cleanup();
-            Player::Respawn(portal);
+            Player::Respawn(NextPortal);
             View::Reset();
         }
         void Render() {
@@ -70,14 +76,18 @@ namespace NL {
             for (auto && p : NL::Portals) p.Render();
             for (auto && b : Foregrounds) b.Render();
             View::DrawEdges();
+            if (Shade > 0) {
+                glColor4f(0, 0, 0, pow(Shade, 2));
+                Graphics::DrawRect(0, 0, View::Width, View::Height, false);
+            }
+            if (Next) {
+                Shade += Time::Delta * 5;
+                if (Shade > 1) Map::LoadNow();
+            } else if (Shade > 0) Shade -= Time::Delta * 5;
         }
-        void Next() {
+        void Random() {
             uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
-#ifdef NL_WINDOWS
-            mt19937_64 engine(__rdtsc());
-#else
-            mt19937_64 engine(high_resolution_clock::now().time_since_epoch().count());
-#endif
+            mt19937_64 engine(Time::TDelta * 1000);
             Load(Maps[dist(engine)]);
         }
     }

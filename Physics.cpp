@@ -53,6 +53,7 @@ namespace NL {
     double const Wat4 = 162.5;
     Physics::Physics() {
         Reset(0, 0);
+        left = false, right = false, up = false, down = false;
     }
     void Physics::Reset(double nx, double ny) {
         x = nx, y = ny, r = 0;
@@ -72,12 +73,10 @@ namespace NL {
             auto p = sf::Mouse::getPosition(*Graphics::Window);
             Reset(p.x + View::X - View::Width / 2, p.y + View::Y - View::Height / 2);
         }
-        bool left = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
-        bool right = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
-        bool up = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
-        bool down = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
-        if (left && right) left = false, right = false;
-        if (up && down) up = false, down = false;
+        bool left = this->left && !this->right;
+        bool right = !this->left && this->right;
+        bool up = this->up && !this->down;
+        bool down = !this->up && this->down;
         if (lr) {//Do ladderrope stuff
 
         } else if (fh) {//Do foothold stuff

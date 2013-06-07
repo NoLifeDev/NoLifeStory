@@ -81,8 +81,4 @@ using boost::regex;
 #include "Physics.hpp"
 #include "Player.hpp"
 #include "Portal.hpp"
-
-// UI stuff
-#include "UI.hpp"
-#include "StatusBar.hpp"
-#include "Button.hpp"
+#include "ClassicUI.hpp"

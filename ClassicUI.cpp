@@ -19,11 +19,32 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    namespace UI {
-        NL::Sprite backgrnd, backgrnd2;
-        NL::Sprite level_no[10];
-        NL::Sprite gauge_bar, gauge_grad;
+    namespace ClassicUI {
+        StatusBar bar;
 
+        void Init() {
+            StatusBar::Init();
+        }
+
+        void Render() {
+            bar.Render();
+        }
+        Sprite backgrnd, backgrnd2;
+        Sprite level_no[10];
+        Sprite gauge_bar, gauge_grad;
+        Button::Button(Node n, int32_t x = 0, int32_t y = 0) : state(Normal), x(x), y(y) {
+            sprites[Disabled] = n["disabled"];
+            sprites[Normal] = n["normal"];
+            sprites[MouseOver] = n["mouseOver"];
+            sprites[Pressed] = n["pressed"];
+
+            Width = sprites[Normal].Width;
+            Height = sprites[Normal].Height;
+        }
+
+        void Button::Render(int32_t rel_x, int32_t rel_y) {
+            sprites[state].Draw(rel_x + x, rel_y + y, false, false);
+        }
         vector<Button> buttons;
 
         StatusBar::StatusBar() {}// eventually load everything here}
@@ -35,9 +56,9 @@ namespace NL {
             gauge_grad = NXUI["StatusBar.img"]["gauge"]["graduation"];
 
             // Load level numbers
-            NL::Node levels = NXUI["Basic.img"]["LevelNo"];
-            for (unsigned char i = 0; i < 10; ++i) {
-                level_no[i] = levels[to_string(i)];
+            Node levels = NXUI["Basic.img"]["LevelNo"];
+            for (uint8_t i = 0; i < 10; ++i) {
+                level_no[i] = levels[i];
             }
 
             buttons.push_back(Button(NXUI["StatusBar.img"]["BtMenu"], 0, 0));
@@ -46,25 +67,17 @@ namespace NL {
         }
 
         void StatusBar::Render() {
-            unsigned char cnt = (View::Width / backgrnd.Width) + 1;
-            for (unsigned char i = 0; i < cnt; ++i) {
-                backgrnd.Draw(i * backgrnd.Width, View::Height - backgrnd.Height, false, false);
-            }
+            backgrnd.Draw(0, View::Height - backgrnd.Height, false, false, true);
             backgrnd2.Draw(0, View::Height - backgrnd.Height, false, false);
-
             RenderLevel();
             RenderGauge();
             RenderButtons();
         }
 
         void StatusBar::RenderLevel() {
-            unsigned char level = 69;
-
-            for (unsigned char i = 0; i < 3; ++i) {
-                unsigned char n = level % 10;
-                level /= 10;
-                level_no[n].Draw(60 - i*12, View::Height - 24, false, false);
-            }
+            string level = to_string(Player::Level);
+            int32_t x = 0;
+            for (char c : level) level_no[c - 0x30].Draw(30 + (x += 12), View::Height - 24, false, false);
         }
 
         void StatusBar::RenderGauge() {
@@ -72,7 +85,7 @@ namespace NL {
         }
 
         void StatusBar::RenderButtons() {
-            unsigned int offset = 580;
+            uint32_t offset = 580;
 
             for (auto && b : buttons) {
                 b.Render(offset, View::Height - b.Height);

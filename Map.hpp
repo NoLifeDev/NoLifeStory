@@ -19,10 +19,10 @@
 namespace NL {
     namespace Map {
         extern Node Current;
+        extern string Name;
         void Init();
-        void Next();
-        void Load(string name);
-        void Load(string name, string *portal);
+        void Random();
+        void Load(string name, string portal = "sp");
         void Render();
     }
 }

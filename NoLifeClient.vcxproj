@@ -159,7 +159,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Background.hpp" />
-    <ClInclude Include="Button.hpp" />
     <ClInclude Include="Config.hpp" />
     <ClInclude Include="Foothold.hpp" />
     <ClInclude Include="Game.hpp" />
@@ -174,15 +173,13 @@
     <ClInclude Include="Portal.hpp" />
     <ClInclude Include="Sound.hpp" />
     <ClInclude Include="Sprite.hpp" />
-    <ClInclude Include="StatusBar.hpp" />
     <ClInclude Include="Tile.hpp" />
     <ClInclude Include="Time.hpp" />
-    <ClInclude Include="UI.hpp" />
+    <ClInclude Include="ClassicUI.hpp" />
     <ClInclude Include="View.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Background.cpp" />
-    <ClCompile Include="Button.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Foothold.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -202,10 +199,9 @@
     <ClCompile Include="Portal.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Sprite.cpp" />
-    <ClCompile Include="StatusBar.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Time.cpp" />
-    <ClCompile Include="UI.cpp" />
+    <ClCompile Include="ClassicUI.cpp" />
     <ClCompile Include="View.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

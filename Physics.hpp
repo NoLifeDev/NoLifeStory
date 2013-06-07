@@ -28,6 +28,7 @@ namespace NL {
         int32_t layer, group;
         Foothold * fh;
         void * lr;//Todo ladderropes
+        bool left, right, up, down;
     private:
 
     };

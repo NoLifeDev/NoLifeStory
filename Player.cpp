@@ -19,51 +19,35 @@
 namespace NL {
     namespace Player {
         Physics Pos;
-
-        void Respawn() {
-            Respawn(nullptr);
-        }
-
-        void Respawn(string *portal) {
-            int32_t x, y;
-            bool found = false;
-
-            if(portal != nullptr) {
-                for (auto && p : Portals) {
-                    if (p.pn == *portal) {
-                        x = p.x;
-                        y = p.y;
-                        found = true;
-                        break;
-                    }
+        uint16_t Level = 69;
+        void Respawn(string portal) {
+            vector<pair<int32_t, int32_t>> spawns;
+            for (auto && p : Portals) {
+                if (p.pn == portal) {
+                    spawns.emplace_back(p.x, p.y);
                 }
             }
-
-            if(!found) { // When the portal isn't found, we choose a spawnpoint randomly
-                vector<pair<int32_t, int32_t>> spawns;
-                for (auto && p : Portals) {
-                    if (p.pn == "sp") {
-                        spawns.emplace_back(p.x, p.y);
-                    }
-                }
-
-                if (!spawns.empty()) {
-                    auto && spawn = spawns[rand() % spawns.size()];
-                    x = spawn.first;
-                    y = spawn.second;
-                } else {
-                    Log::Write("Map " + Map::Current.Name() + " has no spawn");
-                    x = 0;
-                    y = 0;
-                }
-            } 
-            Pos.Reset(x, y);
+            if (!spawns.empty()) {
+                auto && spawn = spawns[rand() % spawns.size()];
+                Pos.Reset(spawn.first, spawn.second);
+            } else {
+                Log::Write("Failed to find portal " + portal + " for map " + Map::Name);
+                if (portal != "sp") Respawn("sp");
+                else Pos.Reset(0, 0);
+            }
         }
         void Update() {
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) Pos.left = false;
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) Pos.right = false;
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) Pos.up = false;
+            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) Pos.down = false;
             Pos.Update();
-            for (auto && p : Portals) { //TODO: reset physics such as float/walking speed
-                if(p.Check())
-                    break;
+            for (Portal & p : Portals) {
+                if (p.x < Pos.x - 20 || p.x > Pos.x + 20 || p.y < Pos.y - 20 || p.y > Pos.y + 20) continue;
+                if (Pos.up && p.tm != 999999999) Map::Load(to_string(p.tm), p.tn);
+                switch (p.pt) {//Handle stuff like bouncies here
+
+                }
             }
         }
         void Render() {
