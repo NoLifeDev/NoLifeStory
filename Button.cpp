@@ -17,19 +17,24 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
+#include "NoLifeClient.hpp"
 namespace NL {
     namespace UI {
-        class StatusBar {
-        public:
-            StatusBar();
-            void Render();
-            void Load();
-            static void Init();
-        private:
-            void RenderLevel();
-            void RenderGauge();
-            void RenderButtons();
-        };
+
+        Button::Button(Node n, int32_t x = 0, int32_t y = 0)
+            : state(Normal), x(x), y(y)
+        {
+            sprites[Disabled] = n["disabled"];
+            sprites[Normal] = n["normal"];
+            sprites[MouseOver] = n["mouseOver"];
+            sprites[Pressed] = n["pressed"];
+
+            Width = sprites[Normal].Width;
+            Height = sprites[Normal].Height;
+        }
+
+        void Button::Render(int32_t rel_x, int32_t rel_y) {
+            sprites[state].Draw(rel_x + x, rel_y + y, false, false);
+        }
     }
 }

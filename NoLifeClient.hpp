@@ -85,3 +85,4 @@ using boost::regex;
 // UI stuff
 #include "UI.hpp"
 #include "StatusBar.hpp"
+#include "Button.hpp"

@@ -18,18 +18,26 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "NoLifeClient.hpp"
 namespace NL {
     namespace UI {
-        class StatusBar {
+        class Button {
         public:
-            StatusBar();
-            void Render();
-            void Load();
-            static void Init();
+            Button(Node n, int32_t x, int32_t y);
+            void Render(int32_t rel_x, int32_t rel_y);
+            enum ButtonState state;
+            void SetState(enum ButtonState st) { state = st; }
+            uint32_t Width, Height;
         private:
-            void RenderLevel();
-            void RenderGauge();
-            void RenderButtons();
+            Sprite sprites[4];
+            int32_t x, y;
+        };
+
+        enum ButtonState : unsigned char {
+            Disabled = 0,
+            MouseOver,
+            Normal,
+            Pressed
         };
     }
 }

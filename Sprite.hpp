@@ -26,6 +26,7 @@ namespace NL {
         static void Init();
         static void Cleanup();
         static void Unbind();
+        uint32_t Width, Height;
     private:
         int32_t frame;
         double delay;

@@ -120,6 +120,10 @@ namespace NL {
         movep = next["moveP"];
         mover = next["moveR"];
         repeat = next["repeat"].GetBool();
+        
+        Bitmap b = last;
+        Width = b.Width();
+        Height = b.Height();
     }
     void Sprite::Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex, bool tiley, int32_t cx, int32_t cy) {
         if (!data) return;

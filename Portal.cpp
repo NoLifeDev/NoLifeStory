@@ -66,7 +66,7 @@ namespace NL {
 
         if(use) {
             high_resolution_clock::time_point now = high_resolution_clock::now();
-            if(duration_cast<duration<int, milli>>(now  - Last_use).count() > 2000) {
+            if(duration_cast<duration<int, milli>>(now  - Last_use).count() > 800) {
                 Last_use = now;
                 Use();
             }
