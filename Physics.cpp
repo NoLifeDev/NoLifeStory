@@ -81,62 +81,58 @@ namespace NL {
         if (lr) {//Do ladderrope stuff
 
         } else if (fh) {//Do foothold stuff
-            
+
         } else {
             bool flying = Map::Current["info"]["swim"].GetBool() || true;
             if (flying) {
-				double vmid = ShoeSwimAcc;
-				double vmax = ShoeSwimSpeedH*SwimSpeed;
+                double vmid = ShoeSwimAcc;
+                double vmax = ShoeSwimSpeedH*SwimSpeed;
                 double shoefloat = FloatDrag1 / ShoeMass * Time::Delta;
                 if (vx < -vmax) vx = min(-vmax, vx + shoefloat);
-			    else if (vx > vmax) vx = max(vmax, vx - shoefloat);
+                else if (vx > vmax) vx = max(vmax, vx - shoefloat);
                 else if (left) vx = max(-vmax, vx - shoefloat);
                 else if (right) vx = min(vmax, vx + shoefloat);
                 else if (vx > 0) vx = max(0., vx - shoefloat);
                 else vx = min(0., vx + shoefloat);
                 double flys = FlyForce / ShoeMass * Time::Delta * vmid;
-                if (up)
-                    if (vy < vmax * 0.3) vy = min(vmax * 0.3, vy + flys * 0.5);
-					else vy = max(vmax * 0.3, vy - flys);
-                else if (down)
-                    if (vy < vmax * 1.5) vy = min(vmax * 1.5, vy + flys);
-					else vy = max(vmax * 1.5, vy - flys * 0.5);
+                if (up) vy < vmax * 0.3 ? vy = min(vmax * 0.3, vy + flys * 0.5) : vy = max(vmax * 0.3, vy - flys);
+                else if (down) vy < vmax * 1.5 ? vy = min(vmax * 1.5, vy + flys) : vy = max(vmax * 1.5, vy - flys * 0.5);
                 else if (vy < vmax) vy = min(vmax, vy + flys);
                 else vy = max(vmax, vy - flys);
             } else {
-       //         if (vy > 0.) {
-				   // vy = max(0., vy-floatDrag2/shoe::mass*Time::delta);
-			    //} else {
-				   // vy = min(0., vy+floatDrag2/shoe::mass*Time::delta);
-			    //}
-			    //vy += gravityAcc*Time::delta;
-			    //vy = min(vy, fallSpeed);
-			    //if (moving) {
-				   // double l = floatDrag2*wat1;
-				   // if (left) {
-					  //  if (vx > -l) {
-						 //   vx = max(-l, vx-floatDrag2*2/shoe::mass*Time::delta);
-					  //  }
-				   // } else {
-					  //  if (vx < l) {
-						 //   vx = min(l, vx+floatDrag2*2/shoe::mass*Time::delta);
-					  //  }
-				   // }
-			    //} else {
-				   // if (vy < fallSpeed) {
-					  //  if (vx > 0) {
-						 //   vx = max(0., vx-floatDrag2*floatCoefficient/shoe::mass*Time::delta);
-					  //  } else {
-						 //   vx = min(0., vx+floatDrag2*floatCoefficient/shoe::mass*Time::delta);
-					  //  }
-				   // } else {
-					  //  if (vx > 0) {
-						 //   vx = max(0., vx-floatDrag2/shoe::mass*Time::delta);
-					  //  } else {
-						 //   vx = min(0., vx+floatDrag2/shoe::mass*Time::delta);
-					  //  }
-				   // }
-			    //}
+                //         if (vy > 0.) {
+                // vy = max(0., vy-floatDrag2/shoe::mass*Time::delta);
+                //} else {
+                // vy = min(0., vy+floatDrag2/shoe::mass*Time::delta);
+                //}
+                //vy += gravityAcc*Time::delta;
+                //vy = min(vy, fallSpeed);
+                //if (moving) {
+                // double l = floatDrag2*wat1;
+                // if (left) {
+                //  if (vx > -l) {
+                //   vx = max(-l, vx-floatDrag2*2/shoe::mass*Time::delta);
+                //  }
+                // } else {
+                //  if (vx < l) {
+                //   vx = min(l, vx+floatDrag2*2/shoe::mass*Time::delta);
+                //  }
+                // }
+                //} else {
+                // if (vy < fallSpeed) {
+                //  if (vx > 0) {
+                //   vx = max(0., vx-floatDrag2*floatCoefficient/shoe::mass*Time::delta);
+                //  } else {
+                //   vx = min(0., vx+floatDrag2*floatCoefficient/shoe::mass*Time::delta);
+                //  }
+                // } else {
+                //  if (vx > 0) {
+                //   vx = max(0., vx-floatDrag2/shoe::mass*Time::delta);
+                //  } else {
+                //   vx = min(0., vx+floatDrag2/shoe::mass*Time::delta);
+                //  }
+                // }
+                //}
             }
             x += vx * Time::Delta;
             y += vy * Time::Delta;
