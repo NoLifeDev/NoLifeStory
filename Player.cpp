@@ -45,7 +45,7 @@ namespace NL {
             Pos.Update();
             if (LastTele + 1 > Time::TDelta) return;
             for (Portal & p : Portals) {
-                if (p.x < Pos.x - 30 || p.x > Pos.x + 30 || p.y < Pos.y - 30 || p.y > Pos.y + 30) continue;
+                if (p.x < Pos.x - 40 || p.x > Pos.x + 40 || p.y < Pos.y - 40 || p.y > Pos.y + 40) continue;
                 switch (p.pt) {//Handle stuff like bouncies here
                 case 1:
                 case 2:

@@ -62,9 +62,13 @@ namespace NL {
         fh = nullptr, lr = nullptr;
     }
     void Physics::Jump() {
-        bool flying = Map::Current["info"]["swim"].GetBool() || true;
-        if (flying) {
-            vy = -ShoeSwimSpeedV * Wat3;
+        if (fh) {
+            vy = - JumpSpeed;
+        } else {
+            bool flying = Map::Current["info"]["swim"].GetBool() || true;
+            if (flying) {
+                vy = -ShoeSwimSpeedV * Wat3;
+            }
         }
     }
     void Physics::Update() {
@@ -80,12 +84,12 @@ namespace NL {
         if (lr) {//Do ladderrope stuff
 
         } else if (fh) {//Do foothold stuff
-
+            x += vx * Time::Delta, y += vy * Time::Delta;
         } else {
-            bool flying = Map::Current["info"]["swim"].GetBool() || true;
+            bool flying = Map::Current["info"]["swim"].GetBool() || false;
             if (flying) {
                 double vmid = ShoeSwimAcc;
-                double vmax = ShoeSwimSpeedH*SwimSpeed;
+                double vmax = ShoeSwimSpeedH * SwimSpeed;
                 double shoefloat = FloatDrag1 / ShoeMass * Time::Delta;
                 if (vx < -vmax) vx = min(-vmax, vx + shoefloat);
                 else if (vx > vmax) vx = max(vmax, vx - shoefloat);
@@ -99,47 +103,47 @@ namespace NL {
                 else if (vy < vmax) vy = min(vmax, vy + flys);
                 else vy = max(vmax, vy - flys);
             } else {
-                //         if (vy > 0.) {
-                // vy = max(0., vy-floatDrag2/shoe::mass*Time::delta);
-                //} else {
-                // vy = min(0., vy+floatDrag2/shoe::mass*Time::delta);
-                //}
-                //vy += gravityAcc*Time::delta;
-                //vy = min(vy, fallSpeed);
-                //if (moving) {
-                // double l = floatDrag2*wat1;
-                // if (left) {
-                //  if (vx > -l) {
-                //   vx = max(-l, vx-floatDrag2*2/shoe::mass*Time::delta);
-                //  }
-                // } else {
-                //  if (vx < l) {
-                //   vx = min(l, vx+floatDrag2*2/shoe::mass*Time::delta);
-                //  }
-                // }
-                //} else {
-                // if (vy < fallSpeed) {
-                //  if (vx > 0) {
-                //   vx = max(0., vx-floatDrag2*floatCoefficient/shoe::mass*Time::delta);
-                //  } else {
-                //   vx = min(0., vx+floatDrag2*floatCoefficient/shoe::mass*Time::delta);
-                //  }
-                // } else {
-                //  if (vx > 0) {
-                //   vx = max(0., vx-floatDrag2/shoe::mass*Time::delta);
-                //  } else {
-                //   vx = min(0., vx+floatDrag2/shoe::mass*Time::delta);
-                //  }
-                // }
-                //}
+                if (vy > 0) max(0., vy - FloatDrag2 / ShoeMass * Time::Delta);
+                else min(0., vy + FloatDrag2 / ShoeMass * Time::Delta);
+                vy += GravityAcc * Time::Delta;
+                vy = min(vy, FallSpeed);
+                if (left) vx > -FloatDrag1 * Wat1 ? vx = max(-FloatDrag1 * Wat1, vx - 2 * FloatDrag2 / ShoeMass * Time::Delta) : 0;
+                else if (right) vx < FloatDrag1 * Wat1 ? vx = min(FloatDrag1 * Wat1, vx + 2 * FloatDrag2 / ShoeMass * Time::Delta) : 0;
+                else if (vy < FallSpeed) vx > 0 ? vx = max(0., vx - FloatDrag2 * FloatCoefficient / ShoeMass * Time::Delta) : 
+                    vx = min(0., vx + FloatDrag2 * FloatCoefficient / ShoeMass * Time::Delta);
+                else vx > 0 ? vx = max(0., vx - FloatDrag2 / ShoeMass * Time::Delta) : 
+                    vx = min(0., vx + FloatDrag2 / ShoeMass * Time::Delta);
             }
-            x += vx * Time::Delta;
-            y += vy * Time::Delta;
             //View culling
             if (x < View::Left + 20) x = View::Left + 20, vx = 0;
             if (x > View::Right - 20) x = View::Right - 20, vx = 0;
             if (y < View::Top - 60) y = View::Top - 60, vy = 0;
             if (y > View::Bottom) y = View::Bottom, vy = 0;
+            //Collisions
+            double dx1 = vx * Time::Delta, dy1 = vy * Time::Delta;
+            double distance = 1;
+            double nnx = x + dx1, nny = y + dy1;
+            for (Foothold & f : Footholds) {
+                double dx2 = f.x2 - f.x1, dy2 = f.y2 - f.y1;
+                double dx3 = x - f.x1, dy3 = y - f.y1;
+                double denom = dx1 * dy2 - dy1 * dx2;
+                double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
+                double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
+                if (n1 >= 0 && n1 <= 1 && n2 >= 0 && n2 <= distance) {
+                    nnx = x + n2 * dx1, nny = y + n2 * dy1;
+                    distance = n2;
+                    fh = &f;
+                }
+            }
+            x = nnx, y = nny;
+            if (fh) {
+                double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                double div = (vx * fx + vy * fy) / (fx * fx);
+                vx = div * fx, vy = div * fy;
+                if (fh->x1 > fh->x2) {
+
+                }
+            }
         }
     }
 }
