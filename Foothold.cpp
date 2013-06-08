@@ -23,11 +23,6 @@ namespace NL {
         force(n["force"]), piece(n["piece"]), nextid(n["next"]), previd(n["prev"]),
         cantThrough(n["cantThrough"].GetBool()), forbidFallDown(n["forbidFallDown"].GetBool()),
         id(id), group(group), layer(layer), next(nullptr), prev(nullptr) {}
-    Foothold::Foothold(Foothold const & o) :
-        x1(o.x1), y1(o.y1), x2(o.x2), y2(o.y2),
-        force(o.force), piece(o.piece), next(o.next), prev(o.prev),
-        cantThrough(o.cantThrough), forbidFallDown(o.forbidFallDown),
-        id(o.id), group(o.group), layer(o.layer) {}
     void Foothold::Load() {
         Footholds.clear();
         for (Node layer : Map::Current["foothold"]) for (Node group : layer) for (Node id : group) {

@@ -63,9 +63,10 @@ namespace NL {
     }
     void Physics::Jump() {
         if (fh) {
-            vy = - JumpSpeed;
+            vy = -JumpSpeed;
+            fh = nullptr;
         } else {
-            bool flying = Map::Current["info"]["swim"].GetBool() || true;
+            bool flying = Map::Current["info"]["swim"].GetBool();
             if (flying) {
                 vy = -ShoeSwimSpeedV * Wat3;
             }
@@ -82,11 +83,45 @@ namespace NL {
         bool up = this->up && !this->down;
         bool down = !this->up && this->down;
         if (lr) {//Do ladderrope stuff
-
         } else if (fh) {//Do foothold stuff
+            double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+            double add = (left ? -1000 : right ? 1000 : 0) * Time::Delta;
+            double dot = add * fx / (fx * fx + fy * fy);
+            vx += fx * dot, vy += fy * dot;
             x += vx * Time::Delta, y += vy * Time::Delta;
+            if (x > fh->x2) {
+                if (!fh->next) {
+                    fh = nullptr;
+                } else if (fh->next->x1 < fh->next->x2) {
+                    fh = fh->next;
+                    double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                    double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
+                    vx = dot * fx, vy = dot * fy;
+                    x = fh->x1, y = fh->y1;
+                } else if (fh->next->y1 > fh->next->y2) {
+                    x = fh->x1 + 0.99999 * fx, y = fh->y1 + 0.99999 * fy;
+                    vx = 0, vy = 0;
+                } else {
+                    fh = nullptr;
+                }
+            } else if (x < fh->x1) {
+                if (!fh->prev) {
+                    fh = nullptr;
+                } else if (fh->prev->x1 < fh->prev->x2) {
+                    fh = fh->prev;
+                    double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                    double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
+                    vx = dot * fx, vy = dot * fy;
+                    x = fh->x2, y = fh->y2;
+                } else if (fh->prev->y1 < fh->prev->y2) {
+                    x = fh->x1 + 0.00001 * fx, y = fh->y1 + 0.00001 * fy;
+                    vx = 0, vy = 0;
+                } else {
+                    fh = nullptr;
+                }
+            }
         } else {
-            bool flying = Map::Current["info"]["swim"].GetBool() || false;
+            bool flying = Map::Current["info"]["swim"].GetBool();
             if (flying) {
                 double vmid = ShoeSwimAcc;
                 double vmax = ShoeSwimSpeedH * SwimSpeed;
@@ -129,7 +164,7 @@ namespace NL {
                 double denom = dx1 * dy2 - dy1 * dx2;
                 double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
                 double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
-                if (n1 >= 0 && n1 <= 1 && n2 >= 0 && n2 <= distance) {
+                if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && n2 <= distance) {
                     nnx = x + n2 * dx1, nny = y + n2 * dy1;
                     distance = n2;
                     fh = &f;
@@ -138,10 +173,16 @@ namespace NL {
             x = nnx, y = nny;
             if (fh) {
                 double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
-                double div = (vx * fx + vy * fy) / (fx * fx);
-                vx = div * fx, vy = div * fy;
+                double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
+                Log::Write("(" + to_string(fx) + ", " + to_string(fy) + ") * " + to_string(dot));
+                vx = dot * fx, vy = dot * fy;
                 if (fh->x1 > fh->x2) {
-
+                    y += 0.01;
+                    fh = nullptr;
+                } else if (fh->x1 == fh->x2) {
+                    if (fh->y1 < fh->y2) x += 0.01;
+                    else x -= 0.01;
+                    fh = nullptr;
                 }
             }
         }

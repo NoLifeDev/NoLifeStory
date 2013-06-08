@@ -30,7 +30,7 @@ namespace NL {
             }
             if (!spawns.empty()) {
                 auto && spawn = spawns[rand() % spawns.size()];
-                Pos.Reset(spawn.first, spawn.second);
+                Pos.Reset(spawn.first, spawn.second - 20);
             } else {
                 Log::Write("Failed to find portal " + portal + " for map " + Map::Name);
                 if (portal != "sp") Respawn("sp");

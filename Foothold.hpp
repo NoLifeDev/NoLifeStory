@@ -20,7 +20,6 @@ namespace NL {
     class Foothold {
     public:
         Foothold(Node, int32_t, int32_t, int32_t);
-        Foothold(Foothold const &);
         static void Load();
         Foothold * next, * prev;
         int32_t x1, y1, x2, y2;
