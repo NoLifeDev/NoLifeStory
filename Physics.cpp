@@ -62,18 +62,17 @@ namespace NL {
         layer = 7, group = -1;
         fh = nullptr, lr = nullptr, djump = nullptr;
     }
-    bool Physics::CanJumpDown() {
-        if (fh->cantThrough || fh->forbidFallDown) return false;
-        for (Foothold & f : Footholds) if (f.id != fh->id && f.x1 < x && f.x2 > x && f.y1 > y && f.y2 > y) return true;
-        return false;
-    }
     void Physics::Jump() {
         bool flying = Map::Current["info"]["swim"].GetBool();
         if (fh) {
-            if (down && CanJumpDown()) {
+            if (down && any_of(Footholds.begin(), Footholds.end(), [&](Foothold & f) {
+                if (fh->cantThrough || fh->forbidFallDown) return false;
+                for (Foothold & f : Footholds) if (f.id != fh->id && f.x1 < x && f.x2 > x && f.y1 > y && f.y2 > y) return true;
+                return false;
+            })) {
                 djump = fh;
                 vx = 0, vy = -JumpSpeed * Wat2;
-                fh = nullptr; 
+                fh = nullptr;
             } else {
                 vy = -JumpSpeed;
                 fh = nullptr;
@@ -167,11 +166,11 @@ namespace NL {
                     double denom = dx1 * dy2 - dy1 * dx2;
                     double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
                     double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
-                    if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump
-                        && n2 <= distance && (group == f.group || dx2 > 0)) {
-                        nnx = x + n2 * dx1, nny = y + n2 * dy1;
-                        distance = n2;
-                        fh = &f;
+                    if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump &&
+                        n2 <= distance && (group == f.group || dx2 > 0)) {
+                            nnx = x + n2 * dx1, nny = y + n2 * dy1;
+                            distance = n2;
+                            fh = &f;
                     }
                 }
                 x = nnx, y = nny;
