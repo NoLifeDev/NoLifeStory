@@ -23,10 +23,11 @@ namespace NL {
         void Update();
         void Reset(double x, double y);
         void Jump();
+        bool CanJumpDown();
         double x, y, r;
         double vx, vy, vr;
         int32_t layer, group;
-        Foothold * fh;
+        Foothold * fh, * djump;
         void * lr;//Todo ladderropes
         bool left, right, up, down;
     private:

@@ -59,15 +59,27 @@ namespace NL {
     void Physics::Reset(double nx, double ny) {
         x = nx, y = ny, r = 0;
         vx = 0, vy = 0, vr = 0;
-        layer = 7, group = 0;
-        fh = nullptr, lr = nullptr;
+        layer = 7, group = -1;
+        fh = nullptr, lr = nullptr, djump = nullptr;
+    }
+    bool Physics::CanJumpDown() {
+        if (fh->cantThrough || fh->forbidFallDown) return false;
+        for (Foothold & f : Footholds) if (f.id != fh->id && f.x1 < x && f.x2 > x && f.y1 > y && f.y2 > y) return true;
+        return false;
     }
     void Physics::Jump() {
+        bool flying = Map::Current["info"]["swim"].GetBool();
         if (fh) {
-            vy = -JumpSpeed;
-            fh = nullptr;
+            if (down && CanJumpDown()) {
+                djump = fh;
+                vx = 0, vy = -JumpSpeed * Wat2;
+                fh = nullptr; 
+            } else {
+                vy = -JumpSpeed;
+                fh = nullptr;
+                if (flying) vy *= 0.7;
+            }
         } else {
-            bool flying = Map::Current["info"]["swim"].GetBool();
             if (flying) {
                 vy = -ShoeSwimSpeedV * Wat3;
             }
@@ -91,13 +103,13 @@ namespace NL {
 
             } else if (fh) {
                 double nx = x + vx * delta, ny = y + vy * delta;
-                if (nx > View::Right) {
-                    ny = y + (View::Right - x) * vy / vx;
-                    nx = View::Right - Epsilon;
+                if (nx > View::Right - 20) {
+                    ny = y + (View::Right - 20 - x) * vy / vx;
+                    nx = View::Right - 20 - Epsilon;
                     vx = 0, vy = 0;
-                } else if (nx < View::Left) {
-                    ny = y + (View::Left - x) * vy / vx;
-                    nx = View::Left + Epsilon;
+                } else if (nx < View::Left + 20) {
+                    ny = y + (View::Left + 20 - x) * vy / vx;
+                    nx = View::Left + 20 + Epsilon;
                     vx = 0, vy = 0;
                 } else if (nx > fh->x2) {
                     if (!fh->next) {
@@ -155,7 +167,8 @@ namespace NL {
                     double denom = dx1 * dy2 - dy1 * dx2;
                     double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
                     double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
-                    if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && n2 <= distance) {
+                    if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump
+                        && n2 <= distance && (group == f.group || dx2 > 0)) {
                         nnx = x + n2 * dx1, nny = y + n2 * dy1;
                         distance = n2;
                         fh = &f;
@@ -163,6 +176,7 @@ namespace NL {
                 }
                 x = nnx, y = nny;
                 if (fh) {
+                    djump = nullptr;
                     double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
                     double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
                     vx = dot * fx, vy = dot * fy;
@@ -173,6 +187,8 @@ namespace NL {
                         if (fh->y1 < fh->y2) x += Epsilon;
                         else x -= Epsilon;
                         fh = nullptr;
+                    } else {
+                        group = fh->group, layer = fh->layer;
                     }
                     delta *= distance;
                 }

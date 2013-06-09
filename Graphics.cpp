@@ -146,6 +146,7 @@ namespace NL {
             glClear(GL_COLOR_BUFFER_BIT);
         }
         void Unload() {
+            Window->close();
             delete Window;
         }
         void DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool view) {

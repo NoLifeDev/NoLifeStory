@@ -20,7 +20,7 @@ namespace NL {
     namespace Config {
         extern bool Rave, Fullscreen, Threaded;
         extern bool Vsync, FrameLimit;
-        extern int32_t TargetFPS;
+        extern int32_t TargetFPS, MaxTextures;
         extern int32_t WindowWidth, WindowHeight;
         extern int32_t FullscreenWidth, FullscreenHeight;
         void Save();

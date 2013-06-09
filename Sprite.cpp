@@ -20,7 +20,6 @@ namespace NL {
     unordered_map<size_t, GLuint> Sprites;
     deque<size_t> LoadedSprites;
     size_t LastBound(0);
-    size_t const MaxTextures = 0x800;
     mutex LoadedMutex, ToLoadMutex;
     mutex SpriteMutex;
     set<Bitmap> SpritesToLoad;
@@ -72,7 +71,7 @@ namespace NL {
     }
     void Sprite::Cleanup() {
         lock_guard<mutex> lock(LoadedMutex);
-        while (LoadedSprites.size() > MaxTextures) {
+        while (LoadedSprites.size() > Config::MaxTextures) {
             size_t s = LoadedSprites.front();
             LoadedSprites.pop_front();
             glDeleteTextures(1, &Sprites[s]);
@@ -137,7 +136,7 @@ namespace NL {
                 if (!(next = data[++frame])) next = data[frame = 0];
             }
             if (next["a0"] || next["a1"]) {
-                double a0(next["a0"] ? next["a0"] : 255), a1(next["a1"] ? next["a1"] : 255);
+                double a0(next["a0"]), a1(next["a1"]);
                 double dif(double(delay) / d);
                 alpha = (a0 * (1 - dif) + a1 * dif) / 255;
             }

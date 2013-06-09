@@ -40,13 +40,13 @@ namespace NL {
             Sprite::Unbind();
             glColor4f(1, 0, 0, 1);
             glBegin(GL_LINE_STRIP);
-            glVertex2i(0, 5000 / Config::TargetFPS);
-            glVertex2i(LastFrames.size() * 3, 5000 / Config::TargetFPS);
+            glVertex2i(0, 2500 / Config::TargetFPS);
+            glVertex2i(LastFrames.size() * 2, 2500 / Config::TargetFPS);
             glEnd();
             glColor4f(1, 1, 1, 1);
             glBegin(GL_LINE_STRIP);
             for (size_t i = 1; i < LastFrames.size(); ++i) {
-                glVertex2i(i * 3, duration_cast<microseconds>(LastFrames[i] - LastFrames[i - 1]).count() / 200);
+                glVertex2i(i * 2, duration_cast<microseconds>(LastFrames[i] - LastFrames[i - 1]).count() / 400);
             }
             glEnd();
         }

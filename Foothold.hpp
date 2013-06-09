@@ -22,7 +22,7 @@ namespace NL {
         Foothold(Node, int32_t, int32_t, int32_t);
         static void Load();
         Foothold * next, * prev;
-        int32_t x1, y1, x2, y2;
+        double x1, y1, x2, y2;
         int32_t force, piece, nextid, previd;
         int32_t id, group, layer;
         bool cantThrough, forbidFallDown;

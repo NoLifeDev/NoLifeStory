@@ -85,9 +85,9 @@ namespace NL {
                 Graphics::DrawRect(0, 0, View::Width, View::Height, false);
             }
             if (Next) {
-                Shade += Time::Delta * 5;
+                Shade += Time::Delta * 10;
                 if (Shade > 1) Map::LoadNow();
-            } else if (Shade > 0) Shade -= Time::Delta * 5;
+            } else if (Shade > 0) Shade -= Time::Delta * 10;
         }
         void Random() {
             uniform_int_distribution<size_t> dist(0, Maps.size() - 1);

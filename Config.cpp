@@ -21,7 +21,7 @@ namespace NL {
         //Various config variables
         bool Rave = false, Fullscreen = false, Threaded = true;
         bool Vsync = true, FrameLimit = false;
-        int32_t TargetFPS = 100;
+        int32_t TargetFPS = 100, MaxTextures = 4000;
         int32_t WindowWidth = 1024, WindowHeight = 768;
         int32_t FullscreenWidth = 1024, FullscreenHeight = 768;
         //Stuff to hold configs and their mappings
@@ -66,6 +66,7 @@ namespace NL {
             IntMapping("fullwidth", FullscreenWidth);
             IntMapping("fullheight", FullscreenHeight);
             IntMapping("fps", TargetFPS);
+            IntMapping("maxtextures", MaxTextures);
             BoolMapping("fullscreen", Fullscreen);
             BoolMapping("rave", Rave);
             BoolMapping("threaded", Threaded);
