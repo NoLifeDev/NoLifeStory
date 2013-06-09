@@ -51,9 +51,8 @@ namespace {
 namespace LZ4 {
     void Uncompress(void const * source, void * dest, size_t osize) {
         uint8_t const * const in = reinterpret_cast<uint8_t const *>(source);
-        uint8_t * const out = reinterpret_cast<uint8_t *>(dest);
         uint8_t const * ip = in;
-        uint8_t * op = out;
+        uint8_t * op = reinterpret_cast<uint8_t *>(dest);
         uint8_t const * const oend = op + osize;
         for (;;) {
             size_t length;
@@ -77,7 +76,6 @@ namespace LZ4 {
             ip = ipc;
             if (op > oend - copylength) return;
             uint8_t const * ref = op - *reinterpret_cast<uint16_t const *>(ip);
-            assert(ref >= out);
             ip += 2;
             length = token & mlmask;
             if (length == mlmask) do {

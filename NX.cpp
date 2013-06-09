@@ -173,29 +173,29 @@ namespace NL {
     Node Node::operator[](Node o) const {
         return operator[](o.GetString());
     }
-    Node::operator int64_t () const {
-        return static_cast<int64_t >(GetInt());
+    Node::operator int64_t() const {
+        return static_cast<int64_t>(GetInt());
     }
     Node::operator uint64_t() const {
         return static_cast<uint64_t>(GetInt());
     }
-    Node::operator int32_t () const {
+    Node::operator int32_t() const {
         return static_cast<int32_t >(GetInt());
     }
     Node::operator uint32_t() const {
         return static_cast<uint32_t>(GetInt());
     }
-    Node::operator int16_t () const {
-        return static_cast<int16_t >(GetInt());
+    Node::operator int16_t() const {
+        return static_cast<int16_t>(GetInt());
     }
     Node::operator uint16_t() const {
         return static_cast<uint16_t>(GetInt());
     }
-    Node::operator int8_t  () const {
-        return static_cast<int8_t  >(GetInt());
+    Node::operator int8_t () const {
+        return static_cast<int8_t>(GetInt());
     }
-    Node::operator uint8_t () const {
-        return static_cast<uint8_t >(GetInt());
+    Node::operator uint8_t() const {
+        return static_cast<uint8_t>(GetInt());
     }
     Node::operator double() const {
         return static_cast<double>(GetFloat());
