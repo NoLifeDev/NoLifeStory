@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
+    double const Epsilon = 0.00001;
     double const FallSpeed = 670;
     double const FloatCoefficient = 0.01;
     double const FloatDrag1 = 100000;
@@ -76,115 +77,138 @@ namespace NL {
         //First get player input
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
             auto p = sf::Mouse::getPosition(*Graphics::Window);
-            Reset(p.x + View::X - View::Width / 2, p.y + View::Y - View::Height / 2);
+            return Reset(p.x + View::X - View::Width / 2, p.y + View::Y - View::Height / 2);
         }
         bool left = this->left && !this->right;
         bool right = !this->left && this->right;
         bool up = this->up && !this->down;
         bool down = !this->up && this->down;
-        if (lr) {//Do ladderrope stuff
-        } else if (fh) {//Do foothold stuff
-            double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
-            double add = (left ? -1000 : right ? 1000 : 0) * Time::Delta;
-            double dot = add * fx / (fx * fx + fy * fy);
-            vx += fx * dot, vy += fy * dot;
-            x += vx * Time::Delta, y += vy * Time::Delta;
-            if (x > fh->x2) {
-                if (!fh->next) {
-                    fh = nullptr;
-                } else if (fh->next->x1 < fh->next->x2) {
-                    fh = fh->next;
-                    double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
-                    double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
-                    vx = dot * fx, vy = dot * fy;
-                    x = fh->x1, y = fh->y1;
-                } else if (fh->next->y1 > fh->next->y2) {
-                    x = fh->x1 + 0.99999 * fx, y = fh->y1 + 0.99999 * fy;
+        double total = Time::Delta;
+        while (total > 0) {
+            double delta = min(total, 0.01);
+            //First compute movement itself such as collisions and such to determine delta
+            if (lr) {
+
+            } else if (fh) {
+                double nx = x + vx * delta, ny = y + vy * delta;
+                if (nx > View::Right) {
+                    ny = y + (View::Right - x) * vy / vx;
+                    nx = View::Right - Epsilon;
                     vx = 0, vy = 0;
-                } else {
-                    fh = nullptr;
-                }
-            } else if (x < fh->x1) {
-                if (!fh->prev) {
-                    fh = nullptr;
-                } else if (fh->prev->x1 < fh->prev->x2) {
-                    fh = fh->prev;
-                    double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
-                    double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
-                    vx = dot * fx, vy = dot * fy;
-                    x = fh->x2, y = fh->y2;
-                } else if (fh->prev->y1 < fh->prev->y2) {
-                    x = fh->x1 + 0.00001 * fx, y = fh->y1 + 0.00001 * fy;
+                } else if (nx < View::Left) {
+                    ny = y + (View::Left - x) * vy / vx;
+                    nx = View::Left + Epsilon;
                     vx = 0, vy = 0;
-                } else {
-                    fh = nullptr;
+                } else if (nx > fh->x2) {
+                    if (!fh->next) {
+                        nx = fh->x2 + Epsilon, ny = fh->y2;
+                        fh = nullptr;
+                        delta *= (nx - x) / (vx * delta);
+                    } else if (fh->next->x1 < fh->next->x2) {
+                        fh = fh->next;
+                        double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                        double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
+                        vx = dot * fx, vy = dot * fy;
+                        nx = fh->x1, ny = fh->y1;
+                        delta *= (nx - x) / (vx * delta);
+                    } else if (fh->next->y1 > fh->next->y2) {
+                        nx = fh->x2 - Epsilon, ny = fh->y2;
+                        vx = 0, vy = 0;
+                    } else {
+                        nx = fh->x2 + Epsilon, ny = fh->y2;
+                        fh = nullptr;
+                        delta *= (nx - x) / (vx * delta);
+                    }
+                } else if (nx < fh->x1) {
+                    if (!fh->prev) {
+                        nx = fh->x1 - Epsilon, ny = fh->y1;
+                        fh = nullptr;
+                        delta *= (nx - x) / (vx * delta);
+                    } else if (fh->prev->x1 < fh->prev->x2) {
+                        fh = fh->prev;
+                        double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                        double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
+                        vx = dot * fx, vy = dot * fy;
+                        nx = fh->x2, ny = fh->y2;
+                        delta *= (nx - x) / (vx * delta);
+                    } else if (fh->prev->y1 < fh->prev->y2) {
+                        nx = fh->x1 + Epsilon, ny = fh->y1;
+                        vx = 0, vy = 0;
+                    } else {
+                        nx = fh->x1 - Epsilon, ny = fh->y1;
+                        fh = nullptr;
+                        delta *= (nx - x) / (vx * delta);
+                    }
                 }
-            }
-        } else {
-            bool flying = Map::Current["info"]["swim"].GetBool();
-            if (flying) {
-                double vmid = ShoeSwimAcc;
-                double vmax = ShoeSwimSpeedH * SwimSpeed;
-                double shoefloat = FloatDrag1 / ShoeMass * Time::Delta;
-                if (vx < -vmax) vx = min(-vmax, vx + shoefloat);
-                else if (vx > vmax) vx = max(vmax, vx - shoefloat);
-                else if (left) vx = max(-vmax, vx - shoefloat);
-                else if (right) vx = min(vmax, vx + shoefloat);
-                else if (vx > 0) vx = max(0., vx - shoefloat);
-                else vx = min(0., vx + shoefloat);
-                double flys = FlyForce / ShoeMass * Time::Delta * vmid;
-                if (up) vy < vmax * 0.3 ? vy = min(vmax * 0.3, vy + flys * 0.5) : vy = max(vmax * 0.3, vy - flys);
-                else if (down) vy < vmax * 1.5 ? vy = min(vmax * 1.5, vy + flys) : vy = max(vmax * 1.5, vy - flys * 0.5);
-                else if (vy < vmax) vy = min(vmax, vy + flys);
-                else vy = max(vmax, vy - flys);
+                x = nx, y = ny;
             } else {
-                if (vy > 0) max(0., vy - FloatDrag2 / ShoeMass * Time::Delta);
-                else min(0., vy + FloatDrag2 / ShoeMass * Time::Delta);
-                vy += GravityAcc * Time::Delta;
-                vy = min(vy, FallSpeed);
-                if (left) vx > -FloatDrag1 * Wat1 ? vx = max(-FloatDrag1 * Wat1, vx - 2 * FloatDrag2 / ShoeMass * Time::Delta) : 0;
-                else if (right) vx < FloatDrag1 * Wat1 ? vx = min(FloatDrag1 * Wat1, vx + 2 * FloatDrag2 / ShoeMass * Time::Delta) : 0;
-                else if (vy < FallSpeed) vx > 0 ? vx = max(0., vx - FloatDrag2 * FloatCoefficient / ShoeMass * Time::Delta) : 
-                    vx = min(0., vx + FloatDrag2 * FloatCoefficient / ShoeMass * Time::Delta);
-                else vx > 0 ? vx = max(0., vx - FloatDrag2 / ShoeMass * Time::Delta) : 
-                    vx = min(0., vx + FloatDrag2 / ShoeMass * Time::Delta);
-            }
-            //View culling
-            if (x < View::Left + 20) x = View::Left + 20, vx = 0;
-            if (x > View::Right - 20) x = View::Right - 20, vx = 0;
-            if (y < View::Top - 60) y = View::Top - 60, vy = 0;
-            if (y > View::Bottom) y = View::Bottom, vy = 0;
-            //Collisions
-            double dx1 = vx * Time::Delta, dy1 = vy * Time::Delta;
-            double distance = 1;
-            double nnx = x + dx1, nny = y + dy1;
-            for (Foothold & f : Footholds) {
-                double dx2 = f.x2 - f.x1, dy2 = f.y2 - f.y1;
-                double dx3 = x - f.x1, dy3 = y - f.y1;
-                double denom = dx1 * dy2 - dy1 * dx2;
-                double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
-                double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
-                if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && n2 <= distance) {
-                    nnx = x + n2 * dx1, nny = y + n2 * dy1;
-                    distance = n2;
-                    fh = &f;
+                double dx1 = vx * delta, dy1 = vy * delta;
+                double distance = 1;
+                double nnx = x + dx1, nny = y + dy1;
+                if (nnx < View::Left + 20) nnx = View::Left + 20, vx = 0;
+                if (nnx > View::Right - 20) nnx = View::Right - 20, vx = 0;
+                if (nny < View::Top - 60) nny = View::Top - 60, vy = 0;
+                if (nny > View::Bottom) nny = View::Bottom, vy = 0;
+                for (Foothold & f : Footholds) {
+                    double dx2 = f.x2 - f.x1, dy2 = f.y2 - f.y1;
+                    double dx3 = x - f.x1, dy3 = y - f.y1;
+                    double denom = dx1 * dy2 - dy1 * dx2;
+                    double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
+                    double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
+                    if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && n2 <= distance) {
+                        nnx = x + n2 * dx1, nny = y + n2 * dy1;
+                        distance = n2;
+                        fh = &f;
+                    }
+                }
+                x = nnx, y = nny;
+                if (fh) {
+                    double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                    double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
+                    vx = dot * fx, vy = dot * fy;
+                    if (fh->x1 > fh->x2) {
+                        y += Epsilon;
+                        fh = nullptr;
+                    } else if (fh->x1 == fh->x2) {
+                        if (fh->y1 < fh->y2) x += Epsilon;
+                        else x -= Epsilon;
+                        fh = nullptr;
+                    }
+                    delta *= distance;
                 }
             }
-            x = nnx, y = nny;
-            if (fh) {
+            //Then adjust the velocity through friction and such
+            if (lr) {
+
+            } else if (fh) {
                 double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
-                double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
-                Log::Write("(" + to_string(fx) + ", " + to_string(fy) + ") * " + to_string(dot));
-                vx = dot * fx, vy = dot * fy;
-                if (fh->x1 > fh->x2) {
-                    y += 0.01;
-                    fh = nullptr;
-                } else if (fh->x1 == fh->x2) {
-                    if (fh->y1 < fh->y2) x += 0.01;
-                    else x -= 0.01;
-                    fh = nullptr;
+                double add = (left ? -1000 : right ? 1000 : 0) * delta;
+                double dot = add * fx / (fx * fx + fy * fy);
+                vx += fx * dot, vy += fy * dot;
+            } else {
+                bool flying = Map::Current["info"]["swim"].GetBool();
+                if (flying) {
+                    double vmid = ShoeSwimAcc;
+                    double vmax = ShoeSwimSpeedH * SwimSpeed;
+                    double shoefloat = FloatDrag1 / ShoeMass * delta;
+                    vx < -vmax ? vx = min(-vmax, vx + shoefloat) : vx > vmax ? vx = max(vmax, vx - shoefloat) :
+                        left ? vx = max(-vmax, vx - shoefloat) : right ? vx = min(vmax, vx + shoefloat) :
+                        vx > 0 ? vx = max(0., vx - shoefloat) : vx = min(0., vx + shoefloat);
+                    double flys = FlyForce / ShoeMass * delta * vmid;
+                    up ? vy < vmax * 0.3 ? vy = min(vmax * 0.3, vy + flys * 0.5) : vy = max(vmax * 0.3, vy - flys) :
+                        down ? vy < vmax * 1.5 ? vy = min(vmax * 1.5, vy + flys) : vy = max(vmax * 1.5, vy - flys * 0.5) :
+                        vy < vmax ? vy = min(vmax, vy + flys) : vy = max(vmax, vy - flys);
+                } else {
+                    double shoefloat = FloatDrag2 / ShoeMass * delta;
+                    vy > 0 ? vy = max(0., vy - shoefloat) : vy = min(0., vy + shoefloat);
+                    vy = min(vy + GravityAcc * delta, FallSpeed);
+                    left ? vx > -FloatDrag2 * Wat1 ? vx = max(-FloatDrag2 * Wat1, vx - 2 * shoefloat) : 0 :
+                        right? vx < FloatDrag2 * Wat1 ? vx = min(FloatDrag2 * Wat1, vx + 2 * shoefloat) : 0 :
+                        vy < FallSpeed ? vx > 0 ? vx = max(0., vx - FloatCoefficient * shoefloat) : vx = min(0., vx + FloatCoefficient * shoefloat) :
+                        vx > 0 ? vx = max(0., vx - shoefloat) : vx = min(0., vx + shoefloat);
                 }
             }
+            total -= delta;
         }
     }
 }
