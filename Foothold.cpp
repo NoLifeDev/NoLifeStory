@@ -18,21 +18,34 @@
 #include "NoLifeClient.hpp"
 namespace NL {
     vector<Foothold> Footholds;
-    Foothold::Foothold(Node n, int32_t id, int32_t group, int32_t layer) :
-        x1(n["x1"]), x2(n["x2"]), y1(n["y1"]), y2(n["y2"]),
-        force(n["force"]), piece(n["piece"]), nextid(n["next"]), previd(n["prev"]),
-        cantThrough(n["cantThrough"].GetBool()), forbidFallDown(n["forbidFallDown"].GetBool()),
-        id(id), group(group), layer(layer), next(nullptr), prev(nullptr) {}
+    void Foothold::Construct(Node n, int32_t id, int32_t group, int32_t layer) {
+        x1 = n["x1"];
+        x2 = n["x2"];
+        y1 = n["y1"];
+        y2 = n["y2"],
+        force = n["force"];
+        piece = n["piece"];
+        nextid = n["next"];
+        previd = n["prev"];
+        cantThrough = n["cantThrough"].GetBool();
+        forbidFallDown = n["forbidFallDown"].GetBool();
+        this->id = id;
+        this->group = group;
+        this->layer = layer;
+        next = nullptr;
+        prev = nullptr;
+    }
     void Foothold::Load() {
         Footholds.clear();
+        size_t s = 0;
+        for (Node layer : Map::Current["foothold"]) for (Node group : layer) for (Node id : group) s = max<size_t>(stol(id.Name()), s);
+        Footholds.resize(s + 1);
         for (Node layer : Map::Current["foothold"]) for (Node group : layer) for (Node id : group) {
-            Footholds.emplace_back(id, stol(id.Name()), stol(group.Name()), stol(layer.Name()));
+            Footholds[stol(id.Name())].Construct(id, stol(id.Name()), stol(group.Name()), stol(layer.Name()));
         }
         for (Foothold & f : Footholds) {
-            for (Foothold & ff : Footholds) {
-                if (f.nextid == ff.id) f.next = &ff;
-                if (f.previd == ff.id) f.prev = &ff;
-            }
+            if (f.nextid) f.next = &Footholds[f.nextid];
+            if (f.previd) f.prev = &Footholds[f.previd];
         }
     }
 }

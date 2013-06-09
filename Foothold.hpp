@@ -19,7 +19,7 @@
 namespace NL {
     class Foothold {
     public:
-        Foothold(Node, int32_t, int32_t, int32_t);
+        void Construct(Node, int32_t, int32_t, int32_t);
         static void Load();
         Foothold * next, * prev;
         double x1, y1, x2, y2;
