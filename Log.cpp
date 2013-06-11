@@ -25,7 +25,7 @@ namespace NL {
         void Wrap(function<void(void)> f) {
             try {
                 f();
-            } catch (string s) {
+            } catch (string const & s) {
 #ifdef NL_WINDOWS
                 MessageBoxA(nullptr, s.c_str(), "ERROR", MB_OK);
 #endif

@@ -70,12 +70,12 @@ namespace NL {
             })) {
                 djump = fh;
                 vx = 0, vy = -JumpSpeed * Wat2;
-                fh = nullptr;
             } else {
-                vy = -JumpSpeed;
-                fh = nullptr;
-                if (flying) vy *= 0.7;
+                vy = ShoeWalkJump * JumpSpeed * (flying ? -0.7 : -1);
+                double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1, fmax = WalkSpeed * ShoeWalkSpeed * (1 + (fy * fy) / (fx * fx +  fy * fy));
+                vx = left ? max(min(vx, -fmax * 0.8), -fmax) : right ? min(max(vx, fmax * 0.8), fmax) : vx;
             }
+            fh = nullptr;
         } else {
             if (flying) {
                 vy = -ShoeSwimSpeedV * Wat3;
@@ -92,6 +92,7 @@ namespace NL {
         bool right = !this->left && this->right;
         bool up = this->up && !this->down;
         bool down = !this->up && this->down;
+        bool flying = Map::Current["info"]["swim"].GetBool();
         double total = Time::Delta;
         while (total > 0) {
             double delta = min(total, 0.01);
@@ -164,7 +165,7 @@ namespace NL {
                     double denom = dx1 * dy2 - dy1 * dx2;
                     double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
                     double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
-                    if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump && n2 <= distance && (group == f.group || dx2 > 0)) {
+                    if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump && n2 <= distance && (group == f.group || dx2 > 0 || f.group == 0)) {
                         nnx = x + n2 * dx1, nny = y + n2 * dy1;
                         distance = n2;
                         fh = &f;
@@ -174,6 +175,7 @@ namespace NL {
                 if (fh) {
                     djump = nullptr;
                     double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                    if (vy > Wat4) vy = Wat4;
                     double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
                     vx = dot * fx, vy = dot * fy;
                     if (fh->x1 > fh->x2) {
@@ -183,41 +185,142 @@ namespace NL {
                         if (fh->y1 < fh->y2) x += Epsilon;
                         else x -= Epsilon;
                         fh = nullptr;
-                    } else {
-                        group = fh->group, layer = fh->layer;
-                    }
+                    } else group = fh->group, layer = fh->layer;
                     delta *= distance;
                 }
             }
             //Then adjust the velocity through friction and such
             if (lr) {
-
             } else if (fh) {
-                double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
-                double add = (left ? -1000 : right ? 1000 : 0) * delta;
-                double dot = add * fx / (fx * fx + fy * fy);
-                vx += fx * dot, vy += fy * dot;
+                double const fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1, fx2 = fx * fx, fy2 = fy * fy, len = sqrt(fx2 + fy2);
+                double vr = vx * len / fx;
+                vr -= fh->force;
+                double fs = (Map::Current["info"]["fs"] ? Map::Current["info"]["fs"] : 1.) / ShoeMass * delta;
+                double maxf = (flying ? SwimSpeedDec : 1.) * WalkSpeed * ShoeWalkSpeed;
+                double horz = ShoeWalkAcc * WalkForce;
+                double drag = max(min(ShoeWalkDrag, MaxFriction), MinFriction) * WalkDrag;
+                double slip = fy / len;
+                if (ShoeWalkSlant < slip) {//Oh no, we're sliding!
+                    double slipf = SlipForce * slip;
+                    double slips = SlipSpeed * slip;
+                    vr += left ? -drag * fs : right ? drag * fs : 0;
+                    vr = slips > 0 ? min(slips, vr + slipf * delta) : max(slips, vr + slipf * delta);
+                } else {
+                    vr = left ? vr < -maxf ? min(-maxf, vr + drag * fs) : max(-maxf, vr - ShoeWalkAcc * WalkForce * fs) :
+                        right ? vr > maxf ? max(maxf, vr - drag * fs) : min(maxf, vr + ShoeWalkAcc * WalkForce * fs) :
+                        vr < 0. ? min(0., vr + drag * fs) :
+                        vr > 0. ? max(0., vr - drag * fs) : vr;
+                }
+                vr += fh->force;
+                vx = vr * fx / len, vy = vr * fy / len;
+                //if (fh) {
+                //	vr -= fh->force;
+                //	double fs = 1/shoe::mass;
+                //	if (Map::node["info"]["fs"]) {
+                //		fs *= (double)Map::node["info"]["fs"];
+                //	}
+                //	int dir = left&&!right?-1:right&&!left?1:0;
+                //	double slip = abs(fh->y1-fh->y2)/fh->len;
+                //	double maxl = sqr(slip);
+                //	double maxh = fh->walk?shoe::walkAcc*walkForce:0;
+                //	int hd = fh->y1<fh->y2?1:-1;
+                //	double force = dir*maxh;
+                //	double maxf = fh->walk ? shoe::walkSpeed * (walkSpeed - speedMin) : 0;
+                //	if (flying) {
+                //		maxf *= swimSpeedDec;
+                //	}
+                //	force *= fh->y1>fh->y2?1-maxl:1+maxl;
+                //	double drag = shoe::walkDrag;
+                //	drag = drag>maxFriction?maxFriction:drag<minFriction?minFriction:drag;
+                //	if (drag < 1) {
+                //		drag *= 0.5;
+                //	}
+                //	double fslip = drag*walkDrag;
+                //	double drag2 = walkDrag/5;
+                //	if (slip == 0) {
+
+                //	} else {
+                //		maxh = maxf;
+                //		maxl = (maxl+1)*maxf;
+                //		if (hd*vr > 0) {
+                //			maxl = maxh;
+                //		}
+                //		if (vr > maxl) {
+                //			vr = max(maxl, vr-drag2*fs*Time::delta);
+                //		} else if (vr < -maxl) {
+                //			vr = min(maxl, vr+drag2*fs*Time::delta);
+                //		}
+                //		if (shoe::walkSlant < slip) {
+                //			fslip = slip*slipForce*hd;
+                //			slip = slip*slipSpeed*hd;
+                //			if (dir*hd <= 0) {
+                //				if (moving) {
+                //					fslip += force;
+                //					slip += maxl;
+                //				}
+                //			} else {
+                //				fslip *= 0.5;
+                //				slip *= 0.5;
+                //			}
+                //			if (hd*dir < 0) {
+                //				if (vr < 0) {
+                //					vr = min(0., vr-drag2*fs*Time::delta);
+                //				} else {
+                //					vr = max(0., vr+drag2*fs*Time::delta);
+                //				}
+                //			}
+                //			if (hd < 0) {
+                //				if (vr > slip) {
+                //					vr = max(slip, vr+fslip*fs*Time::delta);
+                //				}
+                //			} else {
+                //				if (vr < slip) {
+                //					vr = min(slip, vr+fslip*fs*Time::delta);
+                //				}
+                //			}
+                //		} else {
+                //			if (moving) {
+                //				double fmax = hd*force>0?maxh:maxl;
+                //				if (force < 0) {
+                //					if (vr > -maxf) {
+                //						vr = max(-fmax, vr+force*fs*Time::delta);
+                //					}
+                //				} else {
+                //					if (vr < maxf) {
+                //						vr = min(fmax, vr+force*fs*Time::delta);
+                //					}
+                //				}
+                //			} else {
+                //				if (vr < 0) {
+                //					vr = min(0., vr+fslip*fs*Time::delta);
+                //				} else {
+                //					vr = max(0., vr-fslip*fs*Time::delta);
+                //				}
+                //			}
+                //		}
+                //	}
+                //	vr += fh->force;
+                //} else if (lr) {
             } else {
-                bool flying = Map::Current["info"]["swim"].GetBool();
                 if (flying) {
                     double vmid = ShoeSwimAcc;
                     double vmax = ShoeSwimSpeedH * SwimSpeed;
                     double shoefloat = FloatDrag1 / ShoeMass * delta;
-                    vx < -vmax ? vx = min(-vmax, vx + shoefloat) : vx > vmax ? vx = max(vmax, vx - shoefloat) :
-                        left ? vx = max(-vmax, vx - shoefloat) : right ? vx = min(vmax, vx + shoefloat) :
-                        vx > 0 ? vx = max(0., vx - shoefloat) : vx = min(0., vx + shoefloat);
+                    vx = vx < -vmax ? min(-vmax, vx + shoefloat) : vx > vmax ? max(vmax, vx - shoefloat) :
+                        left ? max(-vmax, vx - shoefloat) : right ? min(vmax, vx + shoefloat) :
+                        vx > 0 ? max(0., vx - shoefloat) : min(0., vx + shoefloat);
                     double flys = FlyForce / ShoeMass * delta * vmid;
-                    up ? vy < vmax * 0.3 ? vy = min(vmax * 0.3, vy + flys * 0.5) : vy = max(vmax * 0.3, vy - flys) :
-                        down ? vy < vmax * 1.5 ? vy = min(vmax * 1.5, vy + flys) : vy = max(vmax * 1.5, vy - flys * 0.5) :
-                        vy < vmax ? vy = min(vmax, vy + flys) : vy = max(vmax, vy - flys);
+                    vy = up ? vy < vmax * 0.3 ? min(vmax * 0.3, vy + flys * 0.5) : max(vmax * 0.3, vy - flys) :
+                        down ? vy < vmax * 1.5 ? min(vmax * 1.5, vy + flys) : max(vmax * 1.5, vy - flys * 0.5) :
+                        vy < vmax ? min(vmax, vy + flys) : max(vmax, vy - flys);
                 } else {
                     double shoefloat = FloatDrag2 / ShoeMass * delta;
                     vy > 0 ? vy = max(0., vy - shoefloat) : vy = min(0., vy + shoefloat);
                     vy = min(vy + GravityAcc * delta, FallSpeed);
-                    left ? vx > -FloatDrag2 * Wat1 ? vx = max(-FloatDrag2 * Wat1, vx - 2 * shoefloat) : 0 :
-                        right? vx < FloatDrag2 * Wat1 ? vx = min(FloatDrag2 * Wat1, vx + 2 * shoefloat) : 0 :
-                        vy < FallSpeed ? vx > 0 ? vx = max(0., vx - FloatCoefficient * shoefloat) : vx = min(0., vx + FloatCoefficient * shoefloat) :
-                        vx > 0 ? vx = max(0., vx - shoefloat) : vx = min(0., vx + shoefloat);
+                    vx = left ? vx > -FloatDrag2 * Wat1 ? max(-FloatDrag2 * Wat1, vx - 2 * shoefloat) : vx :
+                        right ? vx < FloatDrag2 * Wat1 ? min(FloatDrag2 * Wat1, vx + 2 * shoefloat) : vx :
+                        vy < FallSpeed ? vx > 0 ? max(0., vx - FloatCoefficient * shoefloat) : min(0., vx + FloatCoefficient * shoefloat) :
+                        vx > 0 ? max(0., vx - shoefloat) : min(0., vx + shoefloat);
                 }
             }
             total -= delta;
