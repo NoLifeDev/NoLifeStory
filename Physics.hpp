@@ -29,6 +29,7 @@ namespace NL {
         Foothold * fh, * djump;
         void * lr;//Todo ladderropes
         bool left, right, up, down;
+        double laststep;
     private:
 
     };

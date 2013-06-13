@@ -43,7 +43,7 @@ namespace NL {
             if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) Pos.up = false;
             if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) Pos.down = false;
             Pos.Update();
-            if (LastTele + 1 > Time::TDelta) return;
+            if (LastTele + 0.5 > Time::TDelta) return;
             for (Portal & p : Portals) {
                 if (p.x < Pos.x - 40 || p.x > Pos.x + 40 || p.y < Pos.y - 40 || p.y > Pos.y + 40) continue;
                 switch (p.pt) {//Handle stuff like bouncies here

@@ -36,7 +36,7 @@ namespace NL {
         void Load(string name, string portal) {
             if (Next) return;
             name.insert(0, 9 - name.size(), '0');
-            if (Name == name) {
+            if (Name == name || name == "999999999") {
                 Player::Respawn(portal);
                 return;
             }
@@ -88,6 +88,15 @@ namespace NL {
                 Shade += Time::Delta * 10;
                 if (Shade > 1) Map::LoadNow();
             } else if (Shade > 0) Shade -= Time::Delta * 10;
+            Sprite::Unbind();
+            double c = sin(Time::TDelta * 10) * 0.5 + 0.5;
+            glColor4d(sin(Time::TDelta * 2 * M_PI) * 0.5 + 0.5, sin(Time::TDelta * 2 * M_PI + M_PI * 2 / 3) * 0.5 + 0.5, sin(Time::TDelta * 2 * M_PI + M_PI * 4 / 3) * 0.5 + 0.5, 1);
+            glBegin(GL_LINES);
+            for (Foothold & f : Footholds) {
+                glVertex2d(f.x1 + View::Width / 2 - View::X, f.y1 + View::Height / 2 - View::Y);
+                glVertex2d(f.x2 + View::Width / 2 - View::X, f.y2 + View::Height / 2 - View::Y);
+            }
+            glEnd();
         }
         void Random() {
             uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
