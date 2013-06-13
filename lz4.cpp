@@ -45,6 +45,8 @@ namespace {
     size_t const runmask = (1 << runbits) - 1;
     size_t const stepsize = sizeof(size_t);
     bool const arch64 = stepsize == 8;
+    size_t const archshift = stepsize == 8 ? 3 : 2;
+    size_t const archadd = stepsize == 8 ? 7 : 3;
     ptrdiff_t const dectable1[] = {0, 3, 2, 3, 0, 0, 0, 0};
     ptrdiff_t const dectable2[] = {0, 0, 0, -1, 0, 1, 2, 3};
 }
@@ -55,33 +57,37 @@ namespace LZ4 {
         uint8_t * op = reinterpret_cast<uint8_t *>(dest);
         uint8_t const * const oend = op + osize;
         for (;;) {
-            size_t length;
-            size_t len;
-            uint8_t * opc;
-            const size_t token = *ip++;
-            length = token >> mlbits;
-            if (length == runmask) do {
-                len = *ip++;
-                length += len;
-            } while (len == 255);
-            opc = op + length;
-            assert(opc <= oend);
-            uint8_t const * const ipc = ip + length;
-            do {
-                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ip);
-                op += stepsize;
-                ip += stepsize;
-            } while (op < opc);
-            op = opc;
-            ip = ipc;
+            size_t const token = *ip++;
+            {
+                size_t length = token >> mlbits;
+                if (length == runmask) {
+                    size_t len;
+                    do {
+                        len = *ip++;
+                        length += len;
+                    } while (len == 255);
+                }
+                uint8_t * const opc = op + length;
+                uint8_t const * const ipc = ip + length;
+                for (size_t i = length + archadd >> archshift; i; --i) {
+                    *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ip);
+                    op += stepsize;
+                    ip += stepsize;
+                }
+                op = opc;
+                ip = ipc;
+            }
             if (op > oend - copylength) return;
             uint8_t const * ref = op - *reinterpret_cast<uint16_t const *>(ip);
             ip += 2;
-            length = token & mlmask;
-            if (length == mlmask) do {
-                len = *ip++;
-                length += len;
-            } while (len == 255);
+            size_t length = token & mlmask;
+            if (length == mlmask) {
+                size_t len;
+                do {
+                    len = *ip++;
+                    length += len;
+                } while (len == 255);
+            }
             if (op - ref < stepsize) {
                 ptrdiff_t const dec2 = arch64 ? dectable2[op - ref] : 0;
                 op[0] = ref[0];
@@ -100,15 +106,15 @@ namespace LZ4 {
                 ref += stepsize;
             }
             length -= stepsize - 4;
-            opc = op + length;
-            assert(opc <= oend);
-            do {
-                *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ref);
-                op += stepsize;
-                ref += stepsize;
-            } while (op < opc);
-            op = opc;
-            assert(op != oend);
+            {
+                uint8_t * const opc = op + length;
+                for (size_t i = length + archadd >> archshift; i; --i) {
+                    *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ref);
+                    op += stepsize;
+                    ref += stepsize;
+                }
+                op = opc;
+            }
         }
     }
 }
