@@ -20,7 +20,7 @@ namespace NL {
     unordered_map<size_t, GLuint> Sprites;
     deque<size_t> LoadedSprites;
     size_t LastBound(0);
-    mutex LoadedMutex, ToLoadMutex;
+    mutex LoadMutex;;
     mutex SpriteMutex;
     set<Bitmap> SpritesToLoad;
     atomic<bool> ThreadContextMade(false);
@@ -32,10 +32,9 @@ namespace NL {
                 for (;;) {
                     Bitmap b;
                     {
-                        lock_guard<mutex> lock(ToLoadMutex);
+                        lock_guard<mutex> lock(LoadMutex);
                         if (SpritesToLoad.empty()) break;
                         b = *SpritesToLoad.begin();
-                        SpritesToLoad.erase(SpritesToLoad.begin());
                     }
                     GLuint t;
                     glGenTextures(1, &t);
@@ -47,7 +46,8 @@ namespace NL {
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
                     glBindTexture(GL_TEXTURE_2D, 0);
                     {
-                        lock_guard<mutex> lock(LoadedMutex);
+                        lock_guard<mutex> lock(LoadMutex);
+                        SpritesToLoad.erase(b);
                         Sprites[b.ID()] = t;
                         LoadedSprites.push_back(b.ID());
                     }
@@ -70,7 +70,7 @@ namespace NL {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     void Sprite::Cleanup() {
-        lock_guard<mutex> lock(LoadedMutex);
+        lock_guard<mutex> lock(LoadMutex);
         while (LoadedSprites.size() > Config::MaxTextures) {
             size_t s = LoadedSprites.front();
             LoadedSprites.pop_front();
@@ -82,7 +82,7 @@ namespace NL {
         if (b.ID() == LastBound) return true;
         GLuint t;
         {
-            lock_guard<mutex> lock(LoadedMutex);
+            lock_guard<mutex> lock(LoadMutex);
             t = Sprites[b.ID()];
         }
         if (t) {
@@ -105,7 +105,7 @@ namespace NL {
             LoadedSprites.push_back(b.ID());
             return true;
         } else {
-            lock_guard<mutex> lock(ToLoadMutex);
+            lock_guard<mutex> lock(LoadMutex);
             SpritesToLoad.insert(b);
         }
         return false;

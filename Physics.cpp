@@ -108,7 +108,7 @@ namespace NL {
                 double horz = ShoeWalkAcc * WalkForce;
                 double drag = max(min(ShoeWalkDrag, MaxFriction), MinFriction) * WalkDrag;
                 double slip = fy / len;
-                if (ShoeWalkSlant < slip) {
+                if (ShoeWalkSlant < abs(slip)) {
                     double slipf = SlipForce * slip;
                     double slips = SlipSpeed * slip;
                     vr += left ? -drag * fs : right ? drag * fs : 0;
@@ -146,15 +146,16 @@ namespace NL {
                 if (lr) {
 
                 } else if (fh) {
+                    double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
                     double nx = x + vx * delta, ny = y + vy * delta;
                     if (nx > View::Right - 20) {
-                        ny = y + (View::Right - 20 - x) * vy / vx;
                         nx = View::Right - 20 - Epsilon;
+                        ny = fh->y1 + (nx - fh->x1) * fy / fx;
                         vx = 0, vy = 0;
                         delta = 0;
                     } else if (nx < View::Left + 20) {
-                        ny = y + (View::Left + 20 - x) * vy / vx;
                         nx = View::Left + 20 + Epsilon;
+                        ny = fh->y1 + (nx - fh->x1) * fy / fx;
                         vx = 0, vy = 0;
                         delta = 0;
                     } else if (nx > fh->x2) {
@@ -166,9 +167,9 @@ namespace NL {
                             fh = fh->next;
                             double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
                             double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
-                            vx = dot * fx, vy = dot * fy;
                             nx = fh->x1, ny = fh->y1;
                             delta *= 1 - (nx - x) / (vx * delta);
+                            vx = dot * fx, vy = dot * fy;
                         } else if (fh->next->y1 > fh->next->y2) {
                             nx = fh->x2 - Epsilon, ny = fh->y2;
                             vx = 0, vy = 0;
@@ -187,9 +188,9 @@ namespace NL {
                             fh = fh->prev;
                             double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
                             double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
-                            vx = dot * fx, vy = dot * fy;
                             nx = fh->x2, ny = fh->y2;
                             delta *= 1 - (nx - x) / (vx * delta);
+                            vx = dot * fx, vy = dot * fy;
                         } else if (fh->prev->y1 < fh->prev->y2) {
                             nx = fh->x1 + Epsilon, ny = fh->y1;
                             vx = 0, vy = 0;
@@ -217,11 +218,12 @@ namespace NL {
                         double denom = dx1 * dy2 - dy1 * dx2;
                         double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
                         double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
-                        if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump && n2 <= distance && (group == f.group || dx2 > 0 || f.group == 0)) {
-                            nnx = x + n2 * dx1, nny = y + n2 * dy1;
-                            distance = n2;
-                            fh = &f;
-                        }
+                        if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump && n2 <= distance)
+                            if (group == f.group || dx2 > 0 || f.group == 0 || f.cantThrough) {
+                                nnx = x + n2 * dx1, nny = y + n2 * dy1;
+                                distance = n2;
+                                fh = &f;
+                            }
                     }
                     x = nnx, y = nny;
                     if (fh) {

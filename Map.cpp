@@ -31,7 +31,9 @@ namespace NL {
                     Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            Load("100000000");
+            //Load("100000000");
+            //Load("910029100");//Conveyors and oddities
+            Load("271030410");
         }
         void Load(string name, string portal) {
             if (Next) return;

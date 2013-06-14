@@ -30,6 +30,7 @@ namespace NL {
         mpg123_handle * handle;
         Node node;
         vector<unsigned char> buf;
+        bool raw;
     };
     extern Music BGM;
 }

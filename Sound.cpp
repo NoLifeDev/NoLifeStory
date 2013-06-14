@@ -26,8 +26,9 @@ namespace NL {
     void Music::LoadNode(Node n) {
         if (!n) return;
         if (n == node) return;
-        node = n;
         stop();
+        node = n;
+        raw = false;
         Audio a = node;
         if (handle) mpg123_close(handle);
         handle = mpg123_new(nullptr, nullptr);
@@ -36,13 +37,21 @@ namespace NL {
         mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.Data()), a.Length());
         long rate(0);
         int channels(0), encoding(0);
-        if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK) throw "Failed to obtain mpg123 handle format";
-        buf.resize(mpg123_outblock(handle));
-        initialize(channels, rate);
+        if (mpg123_getformat(handle, &rate, &channels, &encoding) == MPG123_OK) {
+            buf.resize(mpg123_outblock(handle));
+            initialize(channels, rate);
+        } else {
+            buf.clear();
+            buf.insert(buf.begin(), reinterpret_cast<char const *>(a.Data()) , reinterpret_cast<char const *>(a.Data()) + a.Length());
+            initialize(1, 22050);
+            raw = true;
+        }
+        
     }
     void Music::LoadFile(string s) {
-        node = Node();
         stop();
+        node = Node();
+        raw = false;
         if (handle) mpg123_close(handle);
         handle = mpg123_new(nullptr, nullptr);
         if (!handle) throw "Failed to create mpg123 handle";
@@ -54,14 +63,21 @@ namespace NL {
         initialize(channels, rate);
     }
     bool Music::onGetData(sf::SoundStream::Chunk & data) {
-        size_t done;
-        mpg123_read(handle, buf.data(), buf.size(), &done);
-        data.samples = reinterpret_cast<sf::Int16 const *>(buf.data());
-        data.sampleCount = done / sizeof(sf::Int16);
-        return data.sampleCount > 0;
+        if (raw) {
+            data.samples = reinterpret_cast<sf::Int16 const *>(buf.data());
+            data.sampleCount = buf.size() / sizeof(sf::Int16);
+            return false;
+        } else {
+            size_t done;
+            mpg123_read(handle, buf.data(), buf.size(), &done);
+            data.samples = reinterpret_cast<sf::Int16 const *>(buf.data());
+            data.sampleCount = done / sizeof(sf::Int16);
+            return data.sampleCount > 0;
+        }
     }
     void Music::onSeek(sf::Time t) {
-        if (node) {
+        if (raw) {
+        } else if (node) {
             Audio a = node;
             off_t o;
             mpg123_feedseek(handle, t.asSeconds(), SEEK_SET, &o);
@@ -71,7 +87,8 @@ namespace NL {
     void Music::PlayMusic() {
         if (Config::Rave) {
             if (node || getStatus() == Stopped) {
-                LoadFile("bgm.mp3");
+                LoadNode(NXSound["Skill.img"]["65001001"]["Use"]);
+                //LoadFile("bgm.mp3");
                 setLoop(true);
                 play();
             }
