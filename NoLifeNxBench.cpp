@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "../NoLifeNx/NX.hpp"
 #include <cstdio>
+#include <cmath>
 #include <ctime>
 #include <Windows.h>
 NL::File const file("Data.nx");
@@ -28,6 +29,13 @@ void stringsearch() {
 }
 void fileload() {
     delete new NL::File("Data.nx");
+}
+void recursealternate2(NL::Node n) {
+    NL::Node nn = n.begin();
+    for (auto i =  n.Size(); i; --i, ++nn) recursealternate2(nn);
+}
+void recursealternate() {
+    recursealternate2(file.Base());
 }
 void recurse(NL::Node n) {
     c++;
@@ -41,7 +49,7 @@ void morerecurse() {
     recurse(file.Base());
 }
 extern "C" {
-    extern void asmrecurse( char const *,  char const *);
+    extern void asmrecurse(char const *,  char const *);
 }
 void recurseoptimal() {
     NL::Node n = file.Base();
@@ -85,7 +93,8 @@ void stringtest() {
     stringrecurse(file.Base());
     for (size_t i = 1; i < 0x10000; ++i) {
         auto && r = results[i];
-        if (r.second) printf("%u: %uns\n", i, r.first * 1000000000ULL / (r.second * freq * i * 0x10));
+        double t = r.first * 1000000000. / (r.second * freq * i * 0x10);
+        if (r.second) printf("%u: %fns\n", i, t);
     }
 }
 int main() {
@@ -94,6 +103,7 @@ int main() {
     test("String Searching", stringsearch);
     test("Initial Recursion", initialrecurse);
     test("C++ Recursion", morerecurse);
+    test("Alternate C++ Recursion", recursealternate);
     test("ASM Recursion", recurseoptimal);
     stringtest();
 }
