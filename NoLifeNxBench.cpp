@@ -23,9 +23,9 @@
 NL::File const file("Data.nx");
 NL::Node const node = file.Base()["Map"]["Map"]["Map1"]["105060000.img"]["1"]["tile"];
 size_t c;
-uint64_t freq;
+int64_t freq;
 void stringsearch() {
-    for (NL::Node n : node) if (node[n.NameFast()] != n) throw;
+    for (auto && n : node) if (node[n.NameFast()] != n) throw;
 }
 void fileload() {
     delete new NL::File("Data.nx");
@@ -39,7 +39,7 @@ void recursealternate() {
 }
 void recurse(NL::Node n) {
     c++;
-    for (NL::Node nn : n) recurse(nn);
+    for (auto && nn : n) recurse(nn);
 }
 void initialrecurse() {
     NL::File f("Data.nx");
@@ -57,7 +57,7 @@ void recurseoptimal() {
     char const * d = *reinterpret_cast<char const **>(&n);
     asmrecurse(f, d);
 }
-uint64_t gethpc() {
+int64_t gethpc() {
     LARGE_INTEGER n;
     QueryPerformanceCounter(&n);
     return n.QuadPart;
@@ -69,29 +69,29 @@ void getfreq() {
 }
 template <typename T>
 void test(const char * name, T f) {
-    uint64_t best = -1;
-    uint64_t c0 = gethpc();
+    int64_t best = std::numeric_limits<int64_t>::max();
+    int64_t c0 = gethpc();
     do {
-        uint64_t c1 = gethpc();
+        int64_t c1 = gethpc();
         f();
-        uint64_t c2 = gethpc();
-        uint64_t dif = c2 - c1;
+        int64_t c2 = gethpc();
+        int64_t dif = c2 - c1;
         if (dif < best) best = dif;
     } while (gethpc() - c0 < freq);
-    printf("%s: %uus\n", name, best * 1000000ULL / freq);
+    printf("%s: %lldus\n", name, best * 1000000ULL / freq);
 }
-std::pair<uint64_t, uint64_t> results[0x10000] = {};
+std::pair<int64_t, int64_t> results[0x10000] = {};
 void stringrecurse(NL::Node n) {
-    for (NL::Node nn : n) stringrecurse(nn);
-    uint64_t c0 = gethpc();
-    for (size_t i = 0x10; i; --i) for (NL::Node nn : n) if (n[nn.NameFast()] != nn) throw;
-    uint64_t c1 = gethpc();
+    for (auto && nn : n) stringrecurse(nn);
+    int64_t c0 = gethpc();
+    for (size_t i = 0x10; i; --i) for (auto && nn : n) if (n[nn.NameFast()] != nn) throw;
+    int64_t c1 = gethpc();
     results[n.Size()].first += c1 - c0;
     results[n.Size()].second += 1;
 }
 void stringtest() {
     stringrecurse(file.Base());
-    for (size_t i = 1; i < 0x10000; ++i) {
+    for (uint32_t i = 1; i < 0x10000; ++i) {
         auto && r = results[i];
         double t = r.first * 1000000000. / (r.second * freq * i * 0x10);
         if (r.second) printf("%u: %fns\n", i, t);
