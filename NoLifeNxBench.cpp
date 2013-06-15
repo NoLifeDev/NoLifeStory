@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cmath>
 #include <ctime>
+#include <limits>
 #ifdef NL_WINDOWS
 #  include <Windows.h>
 #endif
@@ -77,7 +78,7 @@ int64_t gethpc() {
     return t.tv_sec * 1000000000LL + t.tv_nsec;
 }
 void getfreq() {
-    freq = 1000000000LL
+    freq = 1000000000LL;
 }
 #endif
 template <typename T>
