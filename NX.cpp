@@ -151,15 +151,13 @@ namespace NL {
         return d != o.d;
     }
     std::string operator+(std::string s, Node n) {
-        s.append(n.GetString());
-        return move(s);
+        return move(s) + n.GetString();
     }
     std::string operator+(char const * s, Node n) {
         return s + n.GetString();
     }
     std::string Node::operator+(std::string s) const {
-        s.insert(0, GetString());
-        return move(s);
+        return GetString() + move(s);
     }
     std::string Node::operator+(char const * s) const {
         return GetString() + s;
@@ -172,6 +170,9 @@ namespace NL {
     }
     Node Node::operator[](Node o) const {
         return operator[](o.GetString());
+    }
+    Node Node::operator[](std::pair<char const *, uint16_t> o) const {
+        return GetChild(o.first, o.second);
     }
     Node::operator int64_t() const {
         return static_cast<int64_t>(GetInt());
@@ -272,6 +273,11 @@ namespace NL {
     std::string Node::Name() const {
         if (d) return f->GetString(d->name);
         return std::string();
+    }
+    std::pair<char const *, uint16_t> Node::NameFast() const {
+        if (!d) return std::make_pair(nullptr, 0);
+        char const * s = reinterpret_cast<char const *>(f->base) + f->stable[d->name];
+        return std::make_pair(s + 2, *reinterpret_cast<uint16_t const *>(s));
     }
     size_t Node::Size() const {
         if (d) return d->num;

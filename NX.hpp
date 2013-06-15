@@ -95,14 +95,15 @@ namespace NL {
         Node operator[](std::string const &) const;
         Node operator[](char const *) const;
         Node operator[](Node) const;
-        operator int64_t () const;
+        Node operator[](std::pair<char const *, uint16_t>) const;
+        operator int64_t() const;
         operator uint64_t() const;
-        operator int32_t () const;
+        operator int32_t() const;
         operator uint32_t() const;
-        operator int16_t () const;
+        operator int16_t() const;
         operator uint16_t() const;
-        operator int8_t  () const;
-        operator uint8_t () const;
+        operator int8_t() const;
+        operator uint8_t() const;
         operator double() const;
         operator float() const;
         operator std::string() const;
@@ -120,6 +121,7 @@ namespace NL {
         int32_t X() const;
         int32_t Y() const;
         std::string Name() const;
+        std::pair<char const *, uint16_t> NameFast() const;
         size_t Size() const;
         Type T() const;
     private:
