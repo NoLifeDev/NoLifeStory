@@ -114,7 +114,7 @@ namespace NL {
         int64_t GetInt(int64_t = 0) const;
         double GetFloat(double = 0) const;
         std::string GetString(std::string = std::string()) const;
-        std::pair<int32_t, int32_t> GetVector(std::pair<int32_t, int32_t> = std::pair<int32_t, int32_t>(0, 0)) const;
+        std::pair<int32_t, int32_t> GetVector(std::pair<int32_t, int32_t> = std::make_pair(0, 0)) const;
         Bitmap GetBitmap(Bitmap = Bitmap()) const;
         Audio GetAudio(Audio = Audio()) const;
         bool GetBool(bool = false) const;
