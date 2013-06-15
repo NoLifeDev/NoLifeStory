@@ -43,7 +43,7 @@ namespace {
     size_t const mlmask = (1 << mlbits) - 1;
     size_t const runbits = 4;
     size_t const runmask = (1 << runbits) - 1;
-    size_t const stepsize = sizeof(size_t);
+    ptrdiff_t const stepsize = sizeof(size_t);
     bool const arch64 = stepsize == 8;
     size_t const archshift = stepsize == 8 ? 3 : 2;
     size_t const archadd = stepsize == 8 ? 7 : 3;
@@ -69,7 +69,7 @@ namespace LZ4 {
                 }
                 uint8_t * const opc = op + length;
                 uint8_t const * const ipc = ip + length;
-                for (size_t i = length + archadd >> archshift; i; --i) {
+                for (size_t i = (length + archadd) >> archshift; i; --i) {
                     *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ip);
                     op += stepsize;
                     ip += stepsize;
@@ -108,7 +108,7 @@ namespace LZ4 {
             length -= stepsize - 4;
             {
                 uint8_t * const opc = op + length;
-                for (size_t i = length + archadd >> archshift; i; --i) {
+                for (size_t i = (length + archadd) >> archshift; i; --i) {
                     *reinterpret_cast<size_t *>(op) = *reinterpret_cast<size_t const *>(ref);
                     op += stepsize;
                     ref += stepsize;

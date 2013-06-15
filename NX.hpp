@@ -33,8 +33,8 @@ namespace NL {
     class File;
     class Bitmap {
     public:
-        Bitmap() : w(0), h(0), d(nullptr) {}
-        Bitmap(Bitmap const & o) : w(o.w), h(o.h), d(o.d) {}
+        Bitmap() : d(nullptr), w(0), h(0) {}
+        Bitmap(Bitmap const & o) : d(o.d), w(o.w), h(o.h) {}
         Bitmap & operator=(Bitmap const &);
         bool operator<(Bitmap) const;
         void const * Data() const;
@@ -43,16 +43,16 @@ namespace NL {
         uint32_t Length() const;
         size_t ID() const;
     private:
-        Bitmap(uint16_t w, uint16_t h, void const * d) : w(w), h(h), d(d) {}
+        Bitmap(uint16_t w, uint16_t h, void const * d) : d(d), w(w), h(h) {}
         void const * d;
         uint16_t w, h;
         friend Node;
     };
     class Audio {
     public:
-        Audio() : l(0), d(nullptr) {}
-        Audio(uint32_t l, void const * d) : l(l), d(d) {}
-        Audio(Audio const & o) : l(o.l), d(o.d) {}
+        Audio() : d(nullptr), l(0) {}
+        Audio(uint32_t l, void const * d) : d(d), l(l) {}
+        Audio(Audio const & o) : d(o.d), l(o.l) {}
         Audio & operator=(Audio const &);
         bool operator==(Audio) const;
         operator bool() const;
@@ -95,7 +95,7 @@ namespace NL {
         Node operator[](std::string const &) const;
         Node operator[](char const *) const;
         Node operator[](Node) const;
-        Node operator[](std::pair<char const *, uint16_t>) const;
+        Node operator[](std::pair<char const *, size_t>) const;
         operator int64_t() const;
         operator uint64_t() const;
         operator int32_t() const;
@@ -111,17 +111,17 @@ namespace NL {
         operator Bitmap() const;
         operator Audio() const;
         operator bool() const;
-        int64_t GetInt() const;
-        double GetFloat() const;
-        std::string GetString() const;
-        std::pair<int32_t, int32_t> GetVector() const;
-        Bitmap GetBitmap() const;
-        Audio GetAudio() const;
-        bool GetBool(bool def = false) const;
-        int32_t X() const;
-        int32_t Y() const;
+        int64_t GetInt(int64_t = 0) const;
+        double GetFloat(double = 0) const;
+        std::string GetString(std::string = std::string()) const;
+        std::pair<int32_t, int32_t> GetVector(std::pair<int32_t, int32_t> = std::pair<int32_t, int32_t>(0, 0)) const;
+        Bitmap GetBitmap(Bitmap = Bitmap()) const;
+        Audio GetAudio(Audio = Audio()) const;
+        bool GetBool(bool = false) const;
+        int32_t X(int32_t = 0) const;
+        int32_t Y(int32_t = 0) const;
         std::string Name() const;
-        std::pair<char const *, uint16_t> NameFast() const;
+        std::pair<char const *, size_t> NameFast() const;
         size_t Size() const;
         Type T() const;
     private:

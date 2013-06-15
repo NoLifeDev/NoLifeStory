@@ -30,7 +30,6 @@
 #endif
 
 namespace NL {
-#pragma region Structs
 #pragma pack(push, 1)
     struct File::Header {
         uint32_t const magic;
@@ -65,8 +64,6 @@ namespace NL {
         };
     };
 #pragma pack(pop)
-#pragma endregion
-#pragma region Bitmap
     Bitmap & Bitmap::operator=(Bitmap const & o) {
         d = o.d;
         w = o.w;
@@ -91,13 +88,11 @@ namespace NL {
         return h;
     }
     uint32_t Bitmap::Length() const {
-        return w * h * 4;
+        return 4u * w * h;
     }
     size_t Bitmap::ID() const {
         return reinterpret_cast<size_t>(d);
     }
-#pragma endregion
-#pragma region Audio
     Audio & Audio::operator=(Audio const & o) {
         d = o.d;
         l = o.l;
@@ -115,8 +110,6 @@ namespace NL {
     bool Audio::operator==(Audio o) const {
         return d == o.d;
     }
-#pragma endregion
-#pragma region Node
     Node::Node() : d(nullptr), f(nullptr) {}
     Node::Node(Node const & o) : d(o.d), f(o.f) {}
     Node::Node(Node && o) : d(o.d), f(o.f) {}
@@ -171,7 +164,7 @@ namespace NL {
     Node Node::operator[](Node o) const {
         return operator[](o.GetString());
     }
-    Node Node::operator[](std::pair<char const *, uint16_t> o) const {
+    Node Node::operator[](std::pair<char const *, size_t> o) const {
         return GetChild(o.first, o.second);
     }
     Node::operator int64_t() const {
@@ -219,62 +212,74 @@ namespace NL {
     Node::operator bool() const {
         return d ? true : false;
     }
-    int64_t Node::GetInt() const {
+    int64_t Node::GetInt(int64_t def) const {
         if (d) switch (d->type) {
+        case none: return def;
         case ireal: return ToInt();
         case dreal: return static_cast<int64_t>(ToFloat());
         case string: return std::stoll(ToString());
+        case vector: return def;
+        case bitmap: return def;
+        case audio: return def;
+        default: return def;
         }
-        return 0;
+        return def;
     }
-    double Node::GetFloat() const {
+    double Node::GetFloat(double def) const {
         if (d) switch (d->type) {
-        case dreal: return ToFloat();
+        case none: return def;
         case ireal: return static_cast<double>(ToInt());
+        case dreal: return ToFloat();
         case string: return std::stod(ToString());
+        case vector: return def;
+        case bitmap: return def;
+        case audio: return def;
+        default: return def;
         }
-        return 0;
+        return def;
     }
-    std::string Node::GetString() const {
+    std::string Node::GetString(std::string def) const {
         if (d) switch (d->type) {
-        case string: return ToString();
+        case none: return def;
         case ireal: return std::to_string(ToInt());
         case dreal: return std::to_string(ToFloat());
-        case vector: return "Vector";
+        case string: return ToString();
+        case vector: return "(" + std::to_string(d->vector[0]) + ", " + std::to_string(d->vector[1]) + ")";
         case bitmap: return "Bitmap";
         case audio: return "Audio";
+        default: return def;
         }
-        return std::string();
+        return def;
     }
-    std::pair<int32_t, int32_t> Node::GetVector() const {
+    std::pair<int32_t, int32_t> Node::GetVector(std::pair<int32_t, int32_t> def) const {
         if (d) if (d->type == vector) return ToVector();
-        return std::make_pair(0, 0);
+        return def;
     }
-    Bitmap Node::GetBitmap() const {
+    Bitmap Node::GetBitmap(Bitmap def) const {
         if (d) if (d->type == bitmap) return ToBitmap();
-        return Bitmap();
+        return def;
     }
-    Audio Node::GetAudio() const {
+    Audio Node::GetAudio(Audio def) const {
         if (d) if (d->type == audio) return ToAudio();
-        return Audio();
+        return def;
     }
     bool Node::GetBool(bool def) const {
         if (d) if (d->type == ireal) return ToInt() ? true : false;
         return def; 
     }
-    int32_t Node::X() const {
+    int32_t Node::X(int32_t def) const {
         if (d) if (d->type == vector) return d->vector[0];
-        return 0;
+        return def;
     }
-    int32_t Node::Y() const {
+    int32_t Node::Y(int32_t def) const {
         if (d) if (d->type == vector) return d->vector[1];
-        return 0;
+        return def;
     }
     std::string Node::Name() const {
         if (d) return f->GetString(d->name);
         return std::string();
     }
-    std::pair<char const *, uint16_t> Node::NameFast() const {
+    std::pair<char const *, size_t> Node::NameFast() const {
         if (!d) return std::make_pair(nullptr, 0);
         char const * s = reinterpret_cast<char const *>(f->base) + f->stable[d->name];
         return std::make_pair(s + 2, *reinterpret_cast<uint16_t const *>(s));
@@ -334,8 +339,6 @@ greater:
     Audio Node::ToAudio() const {
         return Audio(d->audio.length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio.index]);
     }
-#pragma endregion
-#pragma region File
     File::File(char const * name) {
 #ifdef NL_WINDOWS
         file = CreateFileA(name, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, 0);
@@ -351,7 +354,7 @@ greater:
         if (fstat(file, &finfo) == -1) throw "Failed to create file mapping for " + std::string(name);
         size = finfo.st_size;
         base = mmap(nullptr, size, PROT_READ, MAP_SHARED, file, 0);
-        if (reinterpret_cast<size_t>(base) == -1) throw "Failed to map view of file " + std::string(name);
+        if (reinterpret_cast<intptr_t>(base) == -1) throw "Failed to map view of file " + std::string(name);
 #endif
         head = reinterpret_cast<Header const *>(base);
         if (head->magic != 0x34474B50) throw std::string(name) + " is not a PKG4 NX file";
@@ -389,5 +392,4 @@ greater:
         char const * const s = reinterpret_cast<char const *>(base) + stable[i];
         return std::string(s + 2, *reinterpret_cast<uint16_t const *>(s));
     }
-#pragma endregion
 }
