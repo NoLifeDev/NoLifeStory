@@ -19,7 +19,9 @@
 #include <cstdio>
 #include <cmath>
 #include <ctime>
-#include <Windows.h>
+#ifdef NL_WINDOWS
+#  include <Windows.h>
+#endif
 NL::File const file("Data.nx");
 NL::Node const node = file.Base()["Map"]["Map"]["Map1"]["105060000.img"]["1"]["tile"];
 size_t c;
@@ -57,6 +59,7 @@ void recurseoptimal() {
     char const * d = *reinterpret_cast<char const **>(&n);
     asmrecurse(f, d);
 }
+#ifdef NL_WINDOWS
 int64_t gethpc() {
     LARGE_INTEGER n;
     QueryPerformanceCounter(&n);
@@ -67,6 +70,16 @@ void getfreq() {
     QueryPerformanceFrequency(&n);
     freq = n.QuadPart;
 }
+#else
+int64_t gethpc() {
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &t);
+    return t.tv_sec * 1000000000LL + t.tv_nsec;
+}
+void getfreq() {
+    freq = 1000000000LL
+}
+#endif
 template <typename T>
 void test(const char * name, T f) {
     int64_t best = std::numeric_limits<int64_t>::max();
@@ -78,7 +91,7 @@ void test(const char * name, T f) {
         int64_t dif = c2 - c1;
         if (dif < best) best = dif;
     } while (gethpc() - c0 < freq);
-    printf("%s: %lldus\n", name, best * 1000000ULL / freq);
+    printf("%s: %lldus\n", name, best * 1000000LL / freq);
 }
 std::pair<int64_t, int64_t> results[0x10000] = {};
 void stringrecurse(NL::Node n) {
