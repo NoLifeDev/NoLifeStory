@@ -32,7 +32,7 @@ void fileload() {
 }
 void recursealternate2(NL::Node n) {
     NL::Node nn = n.begin();
-    for (auto i =  n.Size(); i; --i, ++nn) recursealternate2(nn);
+    for (auto i = n.Size(); i; --i, ++nn) recursealternate2(nn);
 }
 void recursealternate() {
     recursealternate2(file.Base());
