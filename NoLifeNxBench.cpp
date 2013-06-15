@@ -69,14 +69,14 @@ void test(const char * name, T f) {
         uint64_t c2 = gethpc();
         uint64_t dif = c2 - c1;
         if (dif < best) best = dif;
-    } while (gethpc() - c0 < freq >> 0);
+    } while (gethpc() - c0 < freq);
     printf("%s: %uus\n", name, best * 1000000ULL / freq);
 }
 std::pair<uint64_t, uint64_t> results[0x10000] = {};
 void stringrecurse(NL::Node n) {
     for (NL::Node nn : n) stringrecurse(nn);
     uint64_t c0 = gethpc();
-    for (NL::Node nn : n) if (n[nn.NameFast()] != nn) throw;
+    for (size_t i = 0x10; i; --i) for (NL::Node nn : n) if (n[nn.NameFast()] != nn) throw;
     uint64_t c1 = gethpc();
     results[n.Size()].first += c1 - c0;
     results[n.Size()].second += 1;
@@ -85,7 +85,7 @@ void stringtest() {
     stringrecurse(file.Base());
     for (size_t i = 1; i < 0x10000; ++i) {
         auto && r = results[i];
-        if (r.second) printf("%u: %uns\n", i, r.first * 1000000000ULL / (r.second * freq * i));
+        if (r.second) printf("%u: %uns\n", i, r.first * 1000000000ULL / (r.second * freq * i * 0x10));
     }
 }
 int main() {
