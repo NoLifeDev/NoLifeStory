@@ -374,10 +374,10 @@ greater:
         file = open(name, O_RDONLY);
         if (file == -1) throw "Failed to open file " + std::string(name);
         struct stat finfo;
-        if (fstat(file, &finfo) == -1) throw "Failed to create file mapping for " + std::string(name);
+        if (fstat(file, &finfo) == -1) throw "Failed to obtain file information for " + std::string(name);
         size = finfo.st_size;
         base = mmap(nullptr, size, PROT_READ, MAP_SHARED, file, 0);
-        if (reinterpret_cast<intptr_t>(base) == -1) throw "Failed to map view of file " + std::string(name);
+        if (reinterpret_cast<intptr_t>(base) == -1) throw "Failed to create memory mapping for " + std::string(name);
 #endif
         head = reinterpret_cast<Header const *>(base);
         if (head->magic != 0x34474B50) throw std::string(name) + " is not a PKG4 NX file";
