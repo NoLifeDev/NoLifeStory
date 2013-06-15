@@ -111,9 +111,14 @@ namespace NL {
         return d == o.d;
     }
     Node::Node() : d(nullptr), f(nullptr) {}
-    Node::Node(Node const & o) : d(o.d), f(o.f) {}
     Node::Node(Node && o) : d(o.d), f(o.f) {}
+    Node::Node(Node const & o) : d(o.d), f(o.f) {}
     Node::Node(Data const * d, File const * f) : d(d), f(f) {}
+    Node & Node::operator=(Node && o) {
+        d = o.d;
+        f = o.f;
+        return *this;
+    }
     Node & Node::operator=(Node const & o) {
         d = o.d;
         f = o.f;
@@ -137,23 +142,35 @@ namespace NL {
     Node Node::operator++(int) {
         return Node(d++, f);
     }
-    bool Node::operator==(Node o) const {
+    bool Node::operator==(Node && o) const {
         return d == o.d;
     }
-    bool Node::operator!=(Node o) const {
+    bool Node::operator==(Node const & o) const {
+        return d == o.d;
+    }
+    bool Node::operator!=(Node && o) const {
         return d != o.d;
     }
-    std::string operator+(std::string s, Node n) {
+    bool Node::operator!=(Node const & o) const {
+        return d != o.d;
+    }
+    std::string operator+(std::string s, Node const & n) {
         return move(s) + n.GetString();
     }
-    std::string operator+(char const * s, Node n) {
+    std::string operator+(char const * s, Node const & n) {
         return s + n.GetString();
     }
-    std::string Node::operator+(std::string s) const {
+    std::string Node::operator+(std::string && s) const {
         return GetString() + move(s);
+    }
+    std::string Node::operator+(std::string const & s) const {
+        return GetString() + s;
     }
     std::string Node::operator+(char const * s) const {
         return GetString() + s;
+    }
+    Node Node::operator[](std::string && o) const {
+        return GetChild(o.c_str(), o.length());
     }
     Node Node::operator[](std::string const & o) const {
         return GetChild(o.c_str(), o.length());
@@ -161,10 +178,16 @@ namespace NL {
     Node Node::operator[](char const * o) const {
         return GetChild(o, strlen(o));
     }
-    Node Node::operator[](Node o) const {
+    Node Node::operator[](Node && o) const {
         return operator[](o.GetString());
     }
-    Node Node::operator[](std::pair<char const *, size_t> o) const {
+    Node Node::operator[](Node const & o) const {
+        return operator[](o.GetString());
+    }
+    Node Node::operator[](std::pair<char const *, size_t> && o) const {
+        return GetChild(o.first, o.second);
+    }
+    Node Node::operator[](std::pair<char const *, size_t> const & o) const {
         return GetChild(o.first, o.second);
     }
     Node::operator int64_t() const {
@@ -240,16 +263,16 @@ namespace NL {
     }
     std::string Node::GetString(std::string def) const {
         if (d) switch (d->type) {
-        case none: return def;
+        case none: return move(def);
         case ireal: return std::to_string(ToInt());
         case dreal: return std::to_string(ToFloat());
         case string: return ToString();
         case vector: return "(" + std::to_string(d->vector[0]) + ", " + std::to_string(d->vector[1]) + ")";
         case bitmap: return "Bitmap";
         case audio: return "Audio";
-        default: return def;
+        default: return move(def);
         }
-        return def;
+        return move(def);
     }
     std::pair<int32_t, int32_t> Node::GetVector(std::pair<int32_t, int32_t> def) const {
         if (d) if (d->type == vector) return ToVector();
@@ -292,7 +315,7 @@ namespace NL {
         if (d) return d->type;
         return Type::none;
     }
-    Node Node::GetChild(char const * o, size_t l) const {
+    Node Node::GetChild(char const * const o, size_t const l) const {
         if (!d) return Node();
         Data const * p = f->ntable + d->children;
         size_t n = d->num;

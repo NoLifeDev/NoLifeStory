@@ -76,26 +76,33 @@ namespace NL {
             audio = 6,
         };
         Node();
-        Node(Node const & o);
         Node(Node &&);
+        Node(Node const & o);
+        Node & operator=(Node &&);
         Node & operator=(Node const &);
         Node begin() const;
         Node end() const;
         Node operator*() const;
         Node & operator++();
         Node operator++(int);
-        bool operator==(Node) const;
-        bool operator!=(Node) const;
-        std::string operator+(std::string) const;
+        bool operator==(Node &&) const;
+        bool operator==(Node const &) const;
+        bool operator!=(Node &&) const;
+        bool operator!=(Node const &) const;
+        std::string operator+(std::string &&) const;
+        std::string operator+(std::string const &) const;
         std::string operator+(char const *) const;
         template <typename T>
         typename std::enable_if<std::is_integral<T>::value, Node>::type operator[](T n) const {
             return operator[](std::to_string(n));
         }
+        Node operator[](std::string &&) const;
         Node operator[](std::string const &) const;
         Node operator[](char const *) const;
-        Node operator[](Node) const;
-        Node operator[](std::pair<char const *, size_t>) const;
+        Node operator[](Node &&) const;
+        Node operator[](Node const &) const;
+        Node operator[](std::pair<char const *, size_t> &&) const;
+        Node operator[](std::pair<char const *, size_t> const &) const;
         operator int64_t() const;
         operator uint64_t() const;
         operator int32_t() const;
@@ -137,8 +144,8 @@ namespace NL {
         File const * f;
         friend File;
     };
-    std::string operator+(std::string, Node);
-    std::string operator+(char const *, Node);
+    std::string operator+(std::string, Node const &);
+    std::string operator+(char const *, Node const &);
     class File {
     public:
         File(char const *);
