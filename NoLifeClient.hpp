@@ -60,7 +60,7 @@ using boost::smatch;
 using boost::regex_match;
 using boost::regex;
 #endif
-#ifdef __X__
+#ifdef NL_X11
 #  include <X11/Xlib.h>
 #endif
 //NoLifeClient
