@@ -64,7 +64,11 @@ namespace NL {
         };
     };
 #pragma pack(pop)
-    Bitmap & Bitmap::operator=(Bitmap const & o) {
+    Bitmap::Bitmap() : d(nullptr), w(0), h(0) {}
+    Bitmap::Bitmap(Bitmap && o) : d(o.d), w(o.w), h(o.h) {}
+    Bitmap::Bitmap(Bitmap const & o) : d(o.d), w(o.w), h(o.h) {}
+    Bitmap::Bitmap(uint16_t w, uint16_t h, void const * d) : d(d), w(w), h(h) {}
+    Bitmap & Bitmap::operator=(Bitmap o) {
         d = o.d;
         w = o.w;
         h = o.h;
@@ -73,11 +77,17 @@ namespace NL {
     bool Bitmap::operator<(Bitmap o) const {
         return d < o.d;
     }
+    bool Bitmap::operator==(Bitmap o) const {
+        return d == o.d;
+    }
+    Bitmap::operator bool() const {
+        return d ? true : false;
+    }
     std::vector<uint8_t> buf;
     void const * Bitmap::Data() const {
         if (!d) return nullptr;
-        size_t const l = Length() + 0x10;
-        if (l > buf.size()) buf.resize(Length() + 0x10);
+        size_t const l = Length() + 0x20;
+        if (l > buf.size()) buf.resize(Length() + 0x20);
         LZ4::Uncompress(reinterpret_cast<uint8_t const *>(d) + 4, buf.data(), Length());
         return buf.data();
     }
@@ -93,10 +103,23 @@ namespace NL {
     size_t Bitmap::ID() const {
         return reinterpret_cast<size_t>(d);
     }
-    Audio & Audio::operator=(Audio const & o) {
+    Audio::Audio() : d(nullptr), l(0) {}
+    Audio::Audio(Audio && o) : d(o.d), l(o.l) {}
+    Audio::Audio(Audio const & o) : d(o.d), l(o.l) {}
+    Audio::Audio(uint32_t l, void const * d) : d(d), l(l) {}
+    Audio & Audio::operator=(Audio o) {
         d = o.d;
         l = o.l;
         return *this;
+    }
+    bool Audio::operator<(Audio o) const {
+        return d < o.d;
+    }
+    bool Audio::operator==(Audio o) const {
+        return d == o.d;
+    }
+    Audio::operator bool() const {
+        return d ? true : false;
     }
     void const * Audio::Data() const {
         return d;
@@ -104,22 +127,14 @@ namespace NL {
     uint32_t Audio::Length() const {
         return l;
     }
-    Audio::operator bool() const {
-        return d ? true : false;
-    }
-    bool Audio::operator==(Audio o) const {
-        return d == o.d;
+    size_t Audio::ID() const {
+        return reinterpret_cast<size_t>(d);
     }
     Node::Node() : d(nullptr), f(nullptr) {}
     Node::Node(Node && o) : d(o.d), f(o.f) {}
     Node::Node(Node const & o) : d(o.d), f(o.f) {}
     Node::Node(Data const * d, File const * f) : d(d), f(f) {}
-    Node & Node::operator=(Node && o) {
-        d = o.d;
-        f = o.f;
-        return *this;
-    }
-    Node & Node::operator=(Node const & o) {
+    Node & Node::operator=(Node o) {
         d = o.d;
         f = o.f;
         return *this;
@@ -142,26 +157,17 @@ namespace NL {
     Node Node::operator++(int) {
         return Node(d++, f);
     }
-    bool Node::operator==(Node && o) const {
+    bool Node::operator==(Node o) const {
         return d == o.d;
     }
-    bool Node::operator==(Node const & o) const {
-        return d == o.d;
-    }
-    bool Node::operator!=(Node && o) const {
+    bool Node::operator!=(Node o) const {
         return d != o.d;
     }
-    bool Node::operator!=(Node const & o) const {
-        return d != o.d;
-    }
-    std::string operator+(std::string s, Node const & n) {
+    std::string operator+(std::string s, Node n) {
         return move(s) + n.GetString();
     }
-    std::string operator+(char const * s, Node const & n) {
+    std::string operator+(char const * s, Node n) {
         return s + n.GetString();
-    }
-    std::string Node::operator+(std::string && s) const {
-        return GetString() + move(s);
     }
     std::string Node::operator+(std::string const & s) const {
         return GetString() + s;
@@ -169,25 +175,16 @@ namespace NL {
     std::string Node::operator+(char const * s) const {
         return GetString() + s;
     }
-    Node Node::operator[](std::string && o) const {
-        return GetChild(o.c_str(), o.length());
-    }
     Node Node::operator[](std::string const & o) const {
         return GetChild(o.c_str(), o.length());
     }
     Node Node::operator[](char const * o) const {
         return GetChild(o, strlen(o));
     }
-    Node Node::operator[](Node && o) const {
+    Node Node::operator[](Node o) const {
         return operator[](o.GetString());
     }
-    Node Node::operator[](Node const & o) const {
-        return operator[](o.GetString());
-    }
-    Node Node::operator[](std::pair<char const *, size_t> && o) const {
-        return GetChild(o.first, o.second);
-    }
-    Node Node::operator[](std::pair<char const *, size_t> const & o) const {
+    Node Node::operator[](std::pair<char const *, size_t> o) const {
         return GetChild(o.first, o.second);
     }
     Node::operator int64_t() const {
@@ -235,68 +232,78 @@ namespace NL {
     Node::operator bool() const {
         return d ? true : false;
     }
+    int64_t Node::GetInt() const {
+        return GetInt(0);
+    }
     int64_t Node::GetInt(int64_t def) const {
         if (d) switch (d->type) {
-        case none: return def;
-        case ireal: return ToInt();
-        case dreal: return static_cast<int64_t>(ToFloat());
-        case string: return std::stoll(ToString());
-        case vector: return def;
-        case bitmap: return def;
-        case audio: return def;
-        default: return def;
+        case Type::None: return def;
+        case Type::Integer: return ToInt();
+        case Type::Double: return static_cast<int64_t>(ToFloat());
+        case Type::String: return std::stoll(ToString());
+        case Type::Vector: return def;
+        case Type::Bitmap: return def;
+        case Type::Audio: return def;
+        default: throw "Unknown Node type";
         }
         return def;
+    }
+    double Node::GetFloat() const {
+        return GetFloat(0);
     }
     double Node::GetFloat(double def) const {
         if (d) switch (d->type) {
-        case none: return def;
-        case ireal: return static_cast<double>(ToInt());
-        case dreal: return ToFloat();
-        case string: return std::stod(ToString());
-        case vector: return def;
-        case bitmap: return def;
-        case audio: return def;
-        default: return def;
+        case Type::None: return def;
+        case Type::Integer: return static_cast<double>(ToInt());
+        case Type::Double: return ToFloat();
+        case Type::String: return std::stod(ToString());
+        case Type::Vector: return def;
+        case Type::Bitmap: return def;
+        case Type::Audio: return def;
+        default: throw "Unknown Node type";
         }
         return def;
     }
-    std::string Node::GetString(std::string def) const {
+    std::string Node::GetString() const {
         if (d) switch (d->type) {
-        case none: return move(def);
-        case ireal: return std::to_string(ToInt());
-        case dreal: return std::to_string(ToFloat());
-        case string: return ToString();
-        case vector: return "(" + std::to_string(d->vector[0]) + ", " + std::to_string(d->vector[1]) + ")";
-        case bitmap: return "Bitmap";
-        case audio: return "Audio";
-        default: return move(def);
+        case Type::None: return std::string();
+        case Type::Integer: return std::to_string(ToInt());
+        case Type::Double: return std::to_string(ToFloat());
+        case Type::String: return ToString();
+        case Type::Vector: return "(" + std::to_string(d->vector[0]) + ", " + std::to_string(d->vector[1]) + ")";
+        case Type::Bitmap: return "Bitmap";
+        case Type::Audio: return "Audio";
+        default: return std::string();
         }
-        return move(def);
+        return std::string();
     }
-    std::pair<int32_t, int32_t> Node::GetVector(std::pair<int32_t, int32_t> def) const {
-        if (d) if (d->type == vector) return ToVector();
-        return def;
+    std::pair<int32_t, int32_t> Node::GetVector() const {
+        if (d) if (d->type == Type::Vector) return ToVector();
+        return std::make_pair(0, 0);
     }
-    Bitmap Node::GetBitmap(Bitmap def) const {
-        if (d) if (d->type == bitmap) return ToBitmap();
-        return def;
+    Bitmap Node::GetBitmap() const {
+        if (d) if (d->type == Type::Bitmap) return ToBitmap();
+        return Bitmap();
     }
-    Audio Node::GetAudio(Audio def) const {
-        if (d) if (d->type == audio) return ToAudio();
-        return def;
+    Audio Node::GetAudio() const {
+        if (d) if (d->type == Type::Audio) return ToAudio();
+        return Audio();
+    }
+    bool Node::GetBool() const {
+        if (d) if (d->type == Type::Integer) return ToInt() ? true : false;
+        return false;
     }
     bool Node::GetBool(bool def) const {
-        if (d) if (d->type == ireal) return ToInt() ? true : false;
-        return def; 
-    }
-    int32_t Node::X(int32_t def) const {
-        if (d) if (d->type == vector) return d->vector[0];
+        if (d) if (d->type == Type::Integer) return ToInt() ? true : false;
         return def;
     }
-    int32_t Node::Y(int32_t def) const {
-        if (d) if (d->type == vector) return d->vector[1];
-        return def;
+    int32_t Node::X() const {
+        if (d) if (d->type == Type::Vector) return d->vector[0];
+        return 0;
+    }
+    int32_t Node::Y() const {
+        if (d) if (d->type == Type::Vector) return d->vector[1];
+        return 0;
     }
     std::string Node::Name() const {
         if (d) return f->GetString(d->name);
@@ -313,7 +320,7 @@ namespace NL {
     }
     Node::Type Node::T() const {
         if (d) return d->type;
-        return Type::none;
+        return Type::None;
     }
     Node Node::GetChild(char const * const o, size_t const l) const {
         if (!d) return Node();
@@ -397,6 +404,9 @@ greater:
 #endif
     }
     Node File::Base() const {
+        return Node(ntable, this);
+    }
+    File::operator Node() const {
         return Node(ntable, this);
     }
     uint32_t File::StringCount() const {
