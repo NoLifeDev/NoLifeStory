@@ -28,34 +28,33 @@ NL::Node const node = file.Base()["Map"]["Map"]["Map1"]["105060000.img"]["1"]["t
 size_t c;
 int64_t freq;
 void stringsearch() {
-    for (auto && n : node) if (node[n.NameFast()] != n) throw;
+    for (NL::Node n : node) if (node[n.NameFast()] != n) throw;
 }
 void fileload() {
     delete new NL::File("Data.nx");
 }
 void recursealternate2(NL::Node n) {
     NL::Node nn = n.begin();
-    for (auto i = n.Size(); i; --i, ++nn) recursealternate2(nn);
+    for (size_t i = n.Size(); i; --i, ++nn) recursealternate2(nn);
 }
 void recursealternate() {
     recursealternate2(file.Base());
 }
 void recurse(NL::Node n) {
-    c++;
-    for (auto && nn : n) recurse(nn);
+    for (NL::Node nn : n) recurse(nn);
 }
 void initialrecurse() {
     NL::File f("Data.nx");
-    recurse(f.Base());
+    recurse(f);
 }
 void morerecurse() {
-    recurse(file.Base());
+    recurse(file);
 }
 extern "C" {
     extern void asmrecurse(char const *,  char const *);
 }
 void recurseoptimal() {
-    NL::Node n = file.Base();
+    NL::Node n = file;
     char const * f = *(reinterpret_cast<char const **>(&n) + 1);
     char const * d = *reinterpret_cast<char const **>(&n);
     asmrecurse(f, d);
@@ -96,9 +95,9 @@ void test(const char * name, T f) {
 }
 std::pair<int64_t, int64_t> results[0x10000] = {};
 void stringrecurse(NL::Node n) {
-    for (auto && nn : n) stringrecurse(nn);
+    for (NL::Node nn : n) stringrecurse(nn);
     int64_t c0 = gethpc();
-    for (size_t i = 0x10; i; --i) for (auto && nn : n) if (n[nn.NameFast()] != nn) throw;
+    for (size_t i = 0x10; i; --i) for (NL::Node nn : n) if (n[nn.NameFast()] != nn) throw;
     int64_t c1 = gethpc();
     results[n.Size()].first += c1 - c0;
     results[n.Size()].second += 1;
@@ -106,7 +105,7 @@ void stringrecurse(NL::Node n) {
 void stringtest() {
     stringrecurse(file.Base());
     for (uint32_t i = 1; i < 0x10000; ++i) {
-        auto && r = results[i];
+        std::pair<int64_t, int64_t> r = results[i];
         double t = r.first * 1000000000. / (r.second * freq * i * 0x10);
         if (r.second) printf("%u: %fns\n", i, t);
     }
