@@ -16,28 +16,50 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
-#ifdef _WIN32
-#  define NL_WINDOWS
-#  ifndef NOMINMAX
-#    define NOMINMAX
-#  endif
-#  define WIN32_LEAN_AND_MEAN
+#include "NX.hpp"
+namespace NL {
+    class File {
+    public:
+        File(char const *);
+        ~File();
+        Node Base() const;
+        operator Node() const;
+        uint32_t StringCount() const;
+        uint32_t BitmapCount() const;
+        uint32_t AudioCount() const;
+        uint32_t NodeCount() const;
+    private:
+#pragma pack(push, 1)
+        struct Header {
+            uint32_t const magic;
+            uint32_t const ncount;
+            uint64_t const noffset;
+            uint32_t const scount;
+            uint64_t const soffset;
+            uint32_t const bcount;
+            uint64_t const boffset;
+            uint32_t const acount;
+            uint64_t const aoffset;
+        };
+#pragma pack(pop)
+        std::string GetString(uint32_t) const;
+        File(const File &);
+        File & operator=(const File &);
+        void const * base;
+        Node::Data const * ntable;
+        uint64_t const * stable;
+        uint64_t const * btable;
+        uint64_t const * atable;
+        Header const * head;
+#ifdef NL_WINDOWS
+        void * file;
+        void * map;
 #else
-#  define NL_POSIX
+        int file;
+        size_t size;
 #endif
-#include <string>
-#include <cstdint>
-namespace NL {
-    class Audio;
-    class Bitmap;
-    class Node;
-    class File;
-}
-#include "Audio.hpp"
-#include "Bitmap.hpp"
-#include "Node.hpp"
-#include "File.hpp"
-namespace NL {
-    extern Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
-    void LoadAllNX();
+        friend Node;
+        friend Bitmap;
+        friend Audio;
+    };
 }

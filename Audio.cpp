@@ -15,29 +15,33 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
-#ifdef _WIN32
-#  define NL_WINDOWS
-#  ifndef NOMINMAX
-#    define NOMINMAX
-#  endif
-#  define WIN32_LEAN_AND_MEAN
-#else
-#  define NL_POSIX
-#endif
-#include <string>
-#include <cstdint>
+#include "NX.hpp"
 namespace NL {
-    class Audio;
-    class Bitmap;
-    class Node;
-    class File;
-}
-#include "Audio.hpp"
-#include "Bitmap.hpp"
-#include "Node.hpp"
-#include "File.hpp"
-namespace NL {
-    extern Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
-    void LoadAllNX();
+    Audio::Audio() : d(nullptr), l(0) {}
+    Audio::Audio(Audio && o) : d(o.d), l(o.l) {}
+    Audio::Audio(Audio const & o) : d(o.d), l(o.l) {}
+    Audio::Audio(uint32_t l, void const * d) : d(d), l(l) {}
+    Audio & Audio::operator=(Audio o) {
+        d = o.d;
+        l = o.l;
+        return *this;
+    }
+    bool Audio::operator<(Audio o) const {
+        return d < o.d;
+    }
+    bool Audio::operator==(Audio o) const {
+        return d == o.d;
+    }
+    Audio::operator bool() const {
+        return d ? true : false;
+    }
+    void const * Audio::Data() const {
+        return d;
+    }
+    uint32_t Audio::Length() const {
+        return l;
+    }
+    size_t Audio::ID() const {
+        return reinterpret_cast<size_t>(d);
+    }
 }

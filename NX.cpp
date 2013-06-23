@@ -16,413 +16,57 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "NX.hpp"
-#include "lz4.hpp"
-#include <cstring>
+#include <fstream>
 #include <vector>
-#ifdef NL_WINDOWS
-#  include <Windows.h>
-#elif defined NL_POSIX
-#  include <sys/types.h>
-#  include <sys/stat.h>
-#  include <sys/fcntl.h>
-#  include <sys/mman.h>
-#  include <unistd.h>
-#endif
-
+#include <memory>
 namespace NL {
-#pragma pack(push, 1)
-    struct File::Header {
-        uint32_t const magic;
-        uint32_t const ncount;
-        uint64_t const noffset;
-        uint32_t const scount;
-        uint64_t const soffset;
-        uint32_t const bcount;
-        uint64_t const boffset;
-        uint32_t const acount;
-        uint64_t const aoffset;
-    };
-    struct Node::Data {
-        uint32_t const name;
-        uint32_t const children;
-        uint16_t const num;
-        Type const type;
-        union {
-            int64_t const ireal;
-            double const dreal;
-            uint32_t const string;
-            int32_t const vector[2];
-            struct {
-                uint32_t index;
-                uint16_t width;
-                uint16_t height;
-            } const bitmap;
-            struct {
-                uint32_t index;
-                uint32_t length;
-            } const audio;
-        };
-    };
-#pragma pack(pop)
-    Bitmap::Bitmap() : d(nullptr), w(0), h(0) {}
-    Bitmap::Bitmap(Bitmap && o) : d(o.d), w(o.w), h(o.h) {}
-    Bitmap::Bitmap(Bitmap const & o) : d(o.d), w(o.w), h(o.h) {}
-    Bitmap::Bitmap(uint16_t w, uint16_t h, void const * d) : d(d), w(w), h(h) {}
-    Bitmap & Bitmap::operator=(Bitmap o) {
-        d = o.d;
-        w = o.w;
-        h = o.h;
-        return *this;
+    Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
+    std::vector<std::unique_ptr<File>> Files;
+    bool Exists(std::string name) {
+        return std::ifstream(name).is_open();
     }
-    bool Bitmap::operator<(Bitmap o) const {
-        return d < o.d;
+    Node AddFile(std::string name) {
+        if (!Exists(name)) return Node();
+        Files.emplace_back(new File(name.c_str()));
+        return Files.back()->Base();
     }
-    bool Bitmap::operator==(Bitmap o) const {
-        return d == o.d;
-    }
-    Bitmap::operator bool() const {
-        return d ? true : false;
-    }
-    std::vector<uint8_t> buf;
-    void const * Bitmap::Data() const {
-        if (!d) return nullptr;
-        size_t const l = Length() + 0x20;
-        if (l > buf.size()) buf.resize(Length() + 0x20);
-        LZ4::Uncompress(reinterpret_cast<uint8_t const *>(d) + 4, buf.data(), Length());
-        return buf.data();
-    }
-    uint16_t Bitmap::Width() const {
-        return w;
-    }
-    uint16_t Bitmap::Height() const {
-        return h;
-    }
-    uint32_t Bitmap::Length() const {
-        return 4u * w * h;
-    }
-    size_t Bitmap::ID() const {
-        return reinterpret_cast<size_t>(d);
-    }
-    Audio::Audio() : d(nullptr), l(0) {}
-    Audio::Audio(Audio && o) : d(o.d), l(o.l) {}
-    Audio::Audio(Audio const & o) : d(o.d), l(o.l) {}
-    Audio::Audio(uint32_t l, void const * d) : d(d), l(l) {}
-    Audio & Audio::operator=(Audio o) {
-        d = o.d;
-        l = o.l;
-        return *this;
-    }
-    bool Audio::operator<(Audio o) const {
-        return d < o.d;
-    }
-    bool Audio::operator==(Audio o) const {
-        return d == o.d;
-    }
-    Audio::operator bool() const {
-        return d ? true : false;
-    }
-    void const * Audio::Data() const {
-        return d;
-    }
-    uint32_t Audio::Length() const {
-        return l;
-    }
-    size_t Audio::ID() const {
-        return reinterpret_cast<size_t>(d);
-    }
-    Node::Node() : d(nullptr), f(nullptr) {}
-    Node::Node(Node && o) : d(o.d), f(o.f) {}
-    Node::Node(Node const & o) : d(o.d), f(o.f) {}
-    Node::Node(Data const * d, File const * f) : d(d), f(f) {}
-    Node & Node::operator=(Node o) {
-        d = o.d;
-        f = o.f;
-        return *this;
-    }
-    Node Node::begin() const {
-        if (d) return Node(f->ntable + d->children, f);
-        return Node();
-    }
-    Node Node::end() const {
-        if (d) return Node(f->ntable + d->children + d->num, f);
-        return Node();
-    }
-    Node Node::operator*() const {
-        return *this;
-    }
-    Node & Node::operator++() {
-        ++d;
-        return *this;
-    }
-    Node Node::operator++(int) {
-        return Node(d++, f);
-    }
-    bool Node::operator==(Node o) const {
-        return d == o.d;
-    }
-    bool Node::operator!=(Node o) const {
-        return d != o.d;
-    }
-    std::string operator+(std::string s, Node n) {
-        return move(s) + n.GetString();
-    }
-    std::string operator+(char const * s, Node n) {
-        return s + n.GetString();
-    }
-    std::string Node::operator+(std::string const & s) const {
-        return GetString() + s;
-    }
-    std::string Node::operator+(char const * s) const {
-        return GetString() + s;
-    }
-    Node Node::operator[](std::string const & o) const {
-        return GetChild(o.c_str(), o.length());
-    }
-    Node Node::operator[](char const * o) const {
-        return GetChild(o, strlen(o));
-    }
-    Node Node::operator[](Node o) const {
-        return operator[](o.GetString());
-    }
-    Node Node::operator[](std::pair<char const *, size_t> o) const {
-        return GetChild(o.first, o.second);
-    }
-    Node::operator int64_t() const {
-        return static_cast<int64_t>(GetInt());
-    }
-    Node::operator uint64_t() const {
-        return static_cast<uint64_t>(GetInt());
-    }
-    Node::operator int32_t() const {
-        return static_cast<int32_t >(GetInt());
-    }
-    Node::operator uint32_t() const {
-        return static_cast<uint32_t>(GetInt());
-    }
-    Node::operator int16_t() const {
-        return static_cast<int16_t>(GetInt());
-    }
-    Node::operator uint16_t() const {
-        return static_cast<uint16_t>(GetInt());
-    }
-    Node::operator int8_t () const {
-        return static_cast<int8_t>(GetInt());
-    }
-    Node::operator uint8_t() const {
-        return static_cast<uint8_t>(GetInt());
-    }
-    Node::operator double() const {
-        return static_cast<double>(GetFloat());
-    }
-    Node::operator float() const {
-        return static_cast<float>(GetFloat());
-    }
-    Node::operator std::string() const {
-        return GetString();
-    }
-    Node::operator std::pair<int32_t, int32_t>() const {
-        return GetVector();
-    }
-    Node::operator Bitmap() const {
-        return GetBitmap();
-    }
-    Node::operator Audio() const {
-        return GetAudio();
-    }
-    Node::operator bool() const {
-        return d ? true : false;
-    }
-    int64_t Node::GetInt() const {
-        return GetInt(0);
-    }
-    int64_t Node::GetInt(int64_t def) const {
-        if (d) switch (d->type) {
-        case Type::None: return def;
-        case Type::Integer: return ToInt();
-        case Type::Double: return static_cast<int64_t>(ToFloat());
-        case Type::String: return std::stoll(ToString());
-        case Type::Vector: return def;
-        case Type::Bitmap: return def;
-        case Type::Audio: return def;
-        default: throw "Unknown Node type";
+    void LoadAllNX() {
+        if (Exists("Base.nx")) {
+            NXBase = AddFile("Base.nx");
+            NXCharacter = AddFile("Character.nx");
+            NXEffect = AddFile("Effect.nx");
+            NXEtc = AddFile("Etc.nx");
+            NXItem = AddFile("Item.nx");
+            NXMap = AddFile("Map.nx");
+            NXMob = AddFile("Mob.nx");
+            NXMorph = AddFile("Morph.nx");
+            NXNpc = AddFile("Npc.nx");
+            NXQuest = AddFile("Quest.nx");
+            NXReactor = AddFile("Reactor.nx");
+            NXSkill = AddFile("Skill.nx");
+            NXSound = AddFile("Sound.nx");
+            NXString = AddFile("String.nx");
+            NXTamingMob = AddFile("TamingMob.nx");
+            NXUI = AddFile("UI.nx");
+        } else if (Exists("Data.nx")) {
+            NXBase = AddFile("Data.nx");
+            NXCharacter = NXBase["Character"];
+            NXEffect = NXBase["Effect"];
+            NXEtc = NXBase["Etc"];
+            NXItem = NXBase["Item"];
+            NXMap = NXBase["Map"];
+            NXMob = NXBase["Mob"];
+            NXMorph = NXBase["Morph"];
+            NXNpc = NXBase["Npc"];
+            NXQuest = NXBase["Quest"];
+            NXReactor = NXBase["Reactor"];
+            NXSkill = NXBase["Skill"];
+            NXSound = NXBase["Sound"];
+            NXString = NXBase["String"];
+            NXTamingMob = NXBase["TamingMob"];
+            NXUI = NXBase["UI"];
+        } else {
+            throw "Failed to load data files.";
         }
-        return def;
-    }
-    double Node::GetFloat() const {
-        return GetFloat(0);
-    }
-    double Node::GetFloat(double def) const {
-        if (d) switch (d->type) {
-        case Type::None: return def;
-        case Type::Integer: return static_cast<double>(ToInt());
-        case Type::Double: return ToFloat();
-        case Type::String: return std::stod(ToString());
-        case Type::Vector: return def;
-        case Type::Bitmap: return def;
-        case Type::Audio: return def;
-        default: throw "Unknown Node type";
-        }
-        return def;
-    }
-    std::string Node::GetString() const {
-        if (d) switch (d->type) {
-        case Type::None: return std::string();
-        case Type::Integer: return std::to_string(ToInt());
-        case Type::Double: return std::to_string(ToFloat());
-        case Type::String: return ToString();
-        case Type::Vector: return "(" + std::to_string(d->vector[0]) + ", " + std::to_string(d->vector[1]) + ")";
-        case Type::Bitmap: return "Bitmap";
-        case Type::Audio: return "Audio";
-        default: return std::string();
-        }
-        return std::string();
-    }
-    std::pair<int32_t, int32_t> Node::GetVector() const {
-        if (d) if (d->type == Type::Vector) return ToVector();
-        return std::make_pair(0, 0);
-    }
-    Bitmap Node::GetBitmap() const {
-        if (d) if (d->type == Type::Bitmap) return ToBitmap();
-        return Bitmap();
-    }
-    Audio Node::GetAudio() const {
-        if (d) if (d->type == Type::Audio) return ToAudio();
-        return Audio();
-    }
-    bool Node::GetBool() const {
-        if (d) if (d->type == Type::Integer) return ToInt() ? true : false;
-        return false;
-    }
-    bool Node::GetBool(bool def) const {
-        if (d) if (d->type == Type::Integer) return ToInt() ? true : false;
-        return def;
-    }
-    int32_t Node::X() const {
-        if (d) if (d->type == Type::Vector) return d->vector[0];
-        return 0;
-    }
-    int32_t Node::Y() const {
-        if (d) if (d->type == Type::Vector) return d->vector[1];
-        return 0;
-    }
-    std::string Node::Name() const {
-        if (d) return f->GetString(d->name);
-        return std::string();
-    }
-    std::pair<char const *, size_t> Node::NameFast() const {
-        if (!d) return std::make_pair(nullptr, 0);
-        char const * s = reinterpret_cast<char const *>(f->base) + f->stable[d->name];
-        return std::make_pair(s + 2, *reinterpret_cast<uint16_t const *>(s));
-    }
-    size_t Node::Size() const {
-        if (d) return d->num;
-        return 0;
-    }
-    Node::Type Node::T() const {
-        if (d) return d->type;
-        return Type::None;
-    }
-    Node Node::GetChild(char const * const o, size_t const l) const {
-        if (!d) return Node();
-        Data const * p = f->ntable + d->children;
-        size_t n = d->num;
-        char const * const b = reinterpret_cast<const char *>(f->base);
-        uint64_t const * const t = f->stable;
-bloop:
-        if (!n) return Node();
-        size_t const n2 = n >> 1;
-        Data const * const p2 = p + n2;
-        char const * const sl = b + t[p2->name];
-        size_t const l1 = *reinterpret_cast<uint16_t const *>(sl);
-        uint8_t const * s = reinterpret_cast<uint8_t const *>(sl + 2);
-        uint8_t const * os = reinterpret_cast<uint8_t const *>(o);
-        for (size_t i = l1 < l ? l1 : l; i; --i, ++s, ++os) {
-            if (*s > *os) goto greater;
-            if (*s < *os) goto lesser;
-        }
-        if (l1 < l) goto lesser;
-        if (l1 > l) goto greater;
-        return Node(p2, f);
-lesser:
-        p = p2 + 1;
-        n -= n2 + 1;
-        goto bloop;
-greater:
-        n = n2;
-        goto bloop;
-    }
-    int64_t Node::ToInt() const {
-        return d->ireal;
-    }
-    double Node::ToFloat() const {
-        return d->dreal;
-    }
-    std::string Node::ToString() const {
-        return f->GetString(d->string);
-    }
-    std::pair<int32_t, int32_t> Node::ToVector() const {
-        return std::make_pair(d->vector[0], d->vector[1]);
-    }
-    Bitmap Node::ToBitmap() const {
-        return Bitmap(d->bitmap.width, d->bitmap.height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap.index]);
-    }
-    Audio Node::ToAudio() const {
-        return Audio(d->audio.length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio.index]);
-    }
-    File::File(char const * name) {
-#ifdef NL_WINDOWS
-        file = CreateFileA(name, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, 0);
-        if (file == INVALID_HANDLE_VALUE) throw "Failed to open file " + std::string(name);
-        map = CreateFileMappingA(file, 0, PAGE_READONLY, 0, 0, 0);
-        if (!map) throw "Failed to create file mapping for " + std::string(name);
-        base = MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0);
-        if (!base) throw "Failed to map view of file " + std::string(name);
-#else
-        file = open(name, O_RDONLY);
-        if (file == -1) throw "Failed to open file " + std::string(name);
-        struct stat finfo;
-        if (fstat(file, &finfo) == -1) throw "Failed to obtain file information for " + std::string(name);
-        size = finfo.st_size;
-        base = mmap(nullptr, size, PROT_READ, MAP_SHARED, file, 0);
-        if (reinterpret_cast<intptr_t>(base) == -1) throw "Failed to create memory mapping for " + std::string(name);
-#endif
-        head = reinterpret_cast<Header const *>(base);
-        if (head->magic != 0x34474B50) throw std::string(name) + " is not a PKG4 NX file";
-        ntable = reinterpret_cast<Node::Data const *>(reinterpret_cast<char const *>(base) + head->noffset);
-        stable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->soffset);
-        btable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->boffset);
-        atable = reinterpret_cast<uint64_t const *>(reinterpret_cast<char const *>(base) + head->aoffset);
-    }
-    File::~File() {
-#ifdef NL_WINDOWS
-        UnmapViewOfFile(base);
-        CloseHandle(map);
-        CloseHandle(file);
-#else
-        munmap(const_cast<void *>(base), size);
-        close(file);
-#endif
-    }
-    Node File::Base() const {
-        return Node(ntable, this);
-    }
-    File::operator Node() const {
-        return Node(ntable, this);
-    }
-    uint32_t File::StringCount() const {
-        return head->scount;
-    }
-    uint32_t File::BitmapCount() const {
-        return head->bcount;
-    }
-    uint32_t File::AudioCount() const {
-        return head->acount;
-    }
-    uint32_t File::NodeCount() const {
-        return head->ncount;
-    }
-    std::string File::GetString(uint32_t i) const {
-        char const * const s = reinterpret_cast<char const *>(base) + stable[i];
-        return std::string(s + 2, *reinterpret_cast<uint16_t const *>(s));
     }
 }

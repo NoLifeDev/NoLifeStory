@@ -16,28 +16,24 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
-#ifdef _WIN32
-#  define NL_WINDOWS
-#  ifndef NOMINMAX
-#    define NOMINMAX
-#  endif
-#  define WIN32_LEAN_AND_MEAN
-#else
-#  define NL_POSIX
-#endif
-#include <string>
-#include <cstdint>
+#include "NX.hpp"
 namespace NL {
-    class Audio;
-    class Bitmap;
-    class Node;
-    class File;
-}
-#include "Audio.hpp"
-#include "Bitmap.hpp"
-#include "Node.hpp"
-#include "File.hpp"
-namespace NL {
-    extern Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
-    void LoadAllNX();
+    class Audio {
+    public:
+        Audio();
+        Audio(Audio &&);
+        Audio(Audio const &);
+        Audio & operator=(Audio);
+        bool operator==(Audio) const;
+        bool operator<(Audio) const;
+        operator bool() const;
+        void const * Data() const;
+        uint32_t Length() const;
+        size_t ID() const;
+    private:
+        Audio(uint32_t, void const *);
+        void const * d;
+        uint32_t l;
+        friend Node;
+    };
 }

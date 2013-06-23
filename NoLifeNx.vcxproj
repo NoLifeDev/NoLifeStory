@@ -19,11 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="Bitmap.cpp" />
+    <ClCompile Include="File.cpp" />
     <ClCompile Include="lz4.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="NX.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Audio.hpp" />
+    <ClInclude Include="Bitmap.hpp" />
+    <ClInclude Include="File.hpp" />
     <ClInclude Include="lz4.hpp" />
+    <ClInclude Include="Node.hpp" />
     <ClInclude Include="NX.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -55,7 +63,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
-      <DisableSpecificWarnings>4350;4510;4512;4514;4610;4668;4710;4711;4820</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4350;4510;4512;4514;4610;4625;4626;4668;4710;4711;4820</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
