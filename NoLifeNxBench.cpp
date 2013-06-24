@@ -90,8 +90,9 @@ void Test(const char * name, T f) {
         results.emplace_back(c2 - c1);
     } while (GetHPC() - c0 < Freq << 3);
     std::sort(results.begin(), results.end());
-    printf("{%s, %lld, %lld, %lld, %lld, %lld, %lld, %lld}\n", name, static_cast<int64_t>(results.size()),
+    printf("{%s, %lld, %lld, %lld, %lld, %lld, %lld, %lld, %lld}\n", name, static_cast<int64_t>(results.size()),
         Adjust(std::accumulate(results.cbegin(), results.cend(), 0) / static_cast<int64_t>(results.size())),
+        Adjust(std::accumulate(results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4, results.cend() - static_cast<ptrdiff_t>(results.size()) / 4, 0) / static_cast<int64_t>(results.size() - results.size() / 4 * 2)),
         Adjust(results[(results.size() - 1) * 0 / 4]),
         Adjust(results[(results.size() - 1) * 1 / 4]),
         Adjust(results[(results.size() - 1) * 2 / 4]),
@@ -100,7 +101,7 @@ void Test(const char * name, T f) {
 }
 int main() {
     GetFreq();
-    printf("{Name, Count, Mean, 0%%, 25%%, 50%%, 75%%, 100%%}\n");
+    printf("{Name, Count, Mean, 50%%Mean, 0%%, 25%%, 50%%, 75%%, 100%%}\n");
     Test("Load", Load);
     Test("LoadRecurse", LoadRecurse);
     Test("Recurse", Recurse);
