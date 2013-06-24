@@ -39,8 +39,7 @@ void Recurse() {
     SubRecurse(File);
 }
 void SubRecurseSearch(NL::Node n) {
-    for (NL::Node nn : n) if (n[nn.NameFast()] != nn) throw;
-    for (NL::Node nn : n) SubRecurseSearch(nn);
+    for (NL::Node nn : n) n[nn.NameFast()] == nn ? SubRecurseSearch(nn) : throw;
 }
 void RecurseSearch() {
     SubRecurseSearch(File);
