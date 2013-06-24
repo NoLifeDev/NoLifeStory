@@ -17,6 +17,9 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "../NoLifeNx/NX.hpp"
 #include <cstdio>
+#include <vector>
+#include <algorithm>
+#include <numeric>
 #ifdef NL_WINDOWS
 #  include <Windows.h>
 #else
@@ -75,23 +78,27 @@ int64_t Adjust(int64_t v) {
     return v * 1000000LL / Freq;
 }
 template <typename T>
-void Test(const char * name, T f) {
-    printf("%s\n", name);
-    int64_t c = 0;
+void Test(const char * name, T f, size_t maxruns) {
+    std::vector<int64_t> results;
     int64_t c0 = GetHPC();
     do {
         int64_t c1 = GetHPC();
         f();
         int64_t c2 = GetHPC();
-        printf("%lld,", Adjust(c2 - c1));
-    } while (c++ < 0x100 && (GetHPC() - c0 < Freq << 3 || c < 5));
-    printf("\n");
+        results.emplace_back(c2 - c1);
+    } while (--maxruns && GetHPC() - c0 < Freq << 4);
+    std::sort(results.begin(), results.end());
+    auto n0 = results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4;
+    auto n1 = results.cbegin() + static_cast<ptrdiff_t>(results.size()) * 3 / 4;
+    auto n2 = n0 == n1 ? n1 + 1 : n1;
+    std::printf("%s\t%lld\t%lld\t%lld\n", name, Adjust(*n1), Adjust(std::accumulate(n0, n2, 0) / (n2 - n0)), Adjust(results.front()));
 }
 int main() {
     GetFreq();
-    Test("Load", Load);
-    Test("LoadRecurse", LoadRecurse);
-    Test("Recurse", Recurse);
-    Test("RecurseSearch", RecurseSearch);
-    Test("Decompress", Decompress);
+    std::printf("Name\t75%%t\tM50%%\tBest\n");
+    Test("Ld", Load, 0x1000);
+    Test("Re", Recurse, 0x100);
+    Test("LR", LoadRecurse, 0x100);
+    Test("SA", RecurseSearch, 0x100);
+    Test("De", Decompress, 0x100);
 }
