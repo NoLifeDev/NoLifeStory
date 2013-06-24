@@ -23,100 +23,66 @@
 #ifdef NL_WINDOWS
 #  include <Windows.h>
 #endif
-NL::File const file("Data.nx");
-NL::Node const node = file.Base()["Map"]["Map"]["Map1"]["105060000.img"]["1"]["tile"];
-size_t c;
-int64_t freq;
-void stringsearch() {
-    for (NL::Node n : node) if (node[n.NameFast()] != n) throw;
+char const Name[] = "Data.nx";
+NL::File const File(Name);
+int64_t Freq;
+void Load() {
+    NL::File f(Name);
 }
-void fileload() {
-    delete new NL::File("Data.nx");
+void SubRecurse(NL::Node n) {
+    for (NL::Node nn : n) SubRecurse(nn);
 }
-void recursealternate2(NL::Node n) {
-    NL::Node nn = n.begin();
-    for (size_t i = n.Size(); i; --i, ++nn) recursealternate2(nn);
+void LoadRecurse() {
+    SubRecurse(NL::File(Name));
 }
-void recursealternate() {
-    recursealternate2(file.Base());
+void Recurse() {
+    SubRecurse(File);
 }
-void recurse(NL::Node n) {
-    for (NL::Node nn : n) recurse(nn);
+void SubRecurseSearch(NL::Node n) {
+    for (NL::Node nn : n) if (n[nn.NameFast()] != nn) throw;
+    for (NL::Node nn : n) SubRecurseSearch(nn);
 }
-void initialrecurse() {
-    NL::File f("Data.nx");
-    recurse(f);
-}
-void morerecurse() {
-    recurse(file);
-}
-extern "C" {
-    extern void asmrecurse(char const *,  char const *);
-}
-void recurseoptimal() {
-    NL::Node n = file;
-    char const * f = *(reinterpret_cast<char const **>(&n) + 1);
-    char const * d = *reinterpret_cast<char const **>(&n);
-    asmrecurse(f, d);
+void RecurseSearch() {
+    SubRecurseSearch(File);
 }
 #ifdef NL_WINDOWS
-int64_t gethpc() {
+int64_t GetHPC() {
     LARGE_INTEGER n;
     QueryPerformanceCounter(&n);
     return n.QuadPart;
 }
-void getfreq() {
+void GetFreq() {
     LARGE_INTEGER n;
     QueryPerformanceFrequency(&n);
-    freq = n.QuadPart;
+    Freq = n.QuadPart;
 }
 #else
-int64_t gethpc() {
+int64_t GetHPC() {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC_RAW, &t);
     return t.tv_sec * 1000000000LL + t.tv_nsec;
 }
-void getfreq() {
-    freq = 1000000000LL;
+void GetFreq() {
+    Freq = 1000000000LL;
 }
 #endif
 template <typename T>
-void test(const char * name, T f) {
+void Test(const char * name, T f) {
     int64_t best = std::numeric_limits<int64_t>::max();
-    int64_t c0 = gethpc();
+    int64_t c0 = GetHPC();
     do {
-        int64_t c1 = gethpc();
+        int64_t c1 = GetHPC();
         f();
-        int64_t c2 = gethpc();
+        int64_t c2 = GetHPC();
         int64_t dif = c2 - c1;
         if (dif < best) best = dif;
-    } while (gethpc() - c0 < freq);
-    printf("%s: %lldus\n", name, best * 1000000LL / freq);
-}
-std::pair<int64_t, int64_t> results[0x10000] = {};
-void stringrecurse(NL::Node n) {
-    for (NL::Node nn : n) stringrecurse(nn);
-    int64_t c0 = gethpc();
-    for (size_t i = 0x10; i; --i) for (NL::Node nn : n) if (n[nn.NameFast()] != nn) throw;
-    int64_t c1 = gethpc();
-    results[n.Size()].first += c1 - c0;
-    results[n.Size()].second += 1;
-}
-void stringtest() {
-    stringrecurse(file.Base());
-    for (uint32_t i = 1; i < 0x10000; ++i) {
-        std::pair<int64_t, int64_t> r = results[i];
-        double t = r.first * 1000000000. / (r.second * freq * i * 0x10);
-        if (r.second) printf("%u: %fns\n", i, t);
-    }
+    } while (GetHPC() - c0 < Freq << 2);
+    printf("%s: %lldus\n", name, best * 1000000LL / Freq);
 }
 int main() {
-    getfreq();
-    test("File Loading", fileload);
-    test("String Searching", stringsearch);
-    test("Initial Recursion", initialrecurse);
-    test("C++ Recursion", morerecurse);
-    test("Alternate C++ Recursion", recursealternate);
-    test("ASM Recursion", recurseoptimal);
-    stringtest();
+    GetFreq();
+    Test("Load", Load);
+    Test("Load + Recurse", LoadRecurse);
+    Test("Recurse", Recurse);
+    Test("Recurse + Search", RecurseSearch);
 }

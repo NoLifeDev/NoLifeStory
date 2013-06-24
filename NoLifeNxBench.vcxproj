@@ -58,7 +58,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>EnableAllWarnings</WarningLevel>
-      <DisableSpecificWarnings>4350;4510;4512;4514;4610;4668;4710;4711;4820</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4350;4510;4512;4514;4610;4625;4626;4668;4710;4711;4820</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
