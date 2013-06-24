@@ -44,6 +44,13 @@ void SubRecurseSearch(NL::Node n) {
 void RecurseSearch() {
     SubRecurseSearch(File);
 }
+void SubDecompress(NL::Node n) {
+    n.GetBitmap().Data();
+    for (NL::Node nn : n) SubDecompress(nn);
+}
+void Decompress() {
+    SubDecompress(File);
+}
 #ifdef NL_WINDOWS
 int64_t GetHPC() {
     LARGE_INTEGER n;
@@ -75,7 +82,7 @@ void Test(const char * name, T f) {
         int64_t c2 = GetHPC();
         int64_t dif = c2 - c1;
         if (dif < best) best = dif;
-    } while (GetHPC() - c0 < Freq << 2);
+    } while (GetHPC() - c0 < Freq << 3);
     printf("%s: %lldus\n", name, best * 1000000LL / Freq);
 }
 int main() {
@@ -84,4 +91,5 @@ int main() {
     Test("Load + Recurse", LoadRecurse);
     Test("Recurse", Recurse);
     Test("Recurse + Search", RecurseSearch);
+    Test("Decompress", Decompress);
 }
