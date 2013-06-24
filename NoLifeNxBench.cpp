@@ -16,12 +16,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "../NoLifeNx/NX.hpp"
-#include <cstdio>
-#include <cmath>
-#include <ctime>
+#include <iostream>
+#include <iomanip>
 #include <limits>
+#include <vector>
+#include <algorithm>
+#include <numeric>
 #ifdef NL_WINDOWS
 #  include <Windows.h>
+#else
+#  include <ctime>
 #endif
 char const Name[] = "Data.nx";
 NL::File const File(Name);
@@ -72,24 +76,34 @@ void GetFreq() {
     Freq = 1000000000LL;
 }
 #endif
+int64_t Adjust(int64_t v) {
+    return v * 1000000LL / Freq;
+}
 template <typename T>
 void Test(const char * name, T f) {
-    int64_t best = std::numeric_limits<int64_t>::max();
+    std::vector<int64_t> results;
     int64_t c0 = GetHPC();
     do {
         int64_t c1 = GetHPC();
         f();
         int64_t c2 = GetHPC();
-        int64_t dif = c2 - c1;
-        if (dif < best) best = dif;
+        results.emplace_back(c2 - c1);
     } while (GetHPC() - c0 < Freq << 3);
-    printf("%s: %lldus\n", name, best * 1000000LL / Freq);
+    std::sort(results.begin(), results.end());
+    printf("{%s, %lld, %lld, %lld, %lld, %lld, %lld, %lld}\n", name, static_cast<int64_t>(results.size()),
+        Adjust(std::accumulate(results.cbegin(), results.cend(), 0) / static_cast<int64_t>(results.size())),
+        Adjust(results[(results.size() - 1) * 0 / 4]),
+        Adjust(results[(results.size() - 1) * 1 / 4]),
+        Adjust(results[(results.size() - 1) * 2 / 4]),
+        Adjust(results[(results.size() - 1) * 3 / 4]),
+        Adjust(results[(results.size() - 1) * 4 / 4]));
 }
 int main() {
     GetFreq();
+    printf("{Name, Count, Mean, 0%%, 25%%, 50%%, 75%%, 100%%}\n");
     Test("Load", Load);
-    Test("Load + Recurse", LoadRecurse);
+    Test("LoadRecurse", LoadRecurse);
     Test("Recurse", Recurse);
-    Test("Recurse + Search", RecurseSearch);
+    Test("RecurseSearch", RecurseSearch);
     Test("Decompress", Decompress);
 }
