@@ -16,12 +16,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "../NoLifeNx/NX.hpp"
-#include <iostream>
-#include <iomanip>
-#include <limits>
-#include <vector>
-#include <algorithm>
-#include <numeric>
+#include <cstdio>
 #ifdef NL_WINDOWS
 #  include <Windows.h>
 #else
@@ -81,27 +76,19 @@ int64_t Adjust(int64_t v) {
 }
 template <typename T>
 void Test(const char * name, T f) {
-    std::vector<int64_t> results;
+    printf("%s\n", name);
+    int64_t c = 0;
     int64_t c0 = GetHPC();
     do {
         int64_t c1 = GetHPC();
         f();
         int64_t c2 = GetHPC();
-        results.emplace_back(c2 - c1);
-    } while (GetHPC() - c0 < Freq << 3);
-    std::sort(results.begin(), results.end());
-    printf("{%s, %lld, %lld, %lld, %lld, %lld, %lld, %lld, %lld}\n", name, static_cast<int64_t>(results.size()),
-        Adjust(std::accumulate(results.cbegin(), results.cend(), 0) / static_cast<int64_t>(results.size())),
-        Adjust(std::accumulate(results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4, results.cend() - static_cast<ptrdiff_t>(results.size()) / 4, 0) / static_cast<int64_t>(results.size() - results.size() / 4 * 2)),
-        Adjust(results[(results.size() - 1) * 0 / 4]),
-        Adjust(results[(results.size() - 1) * 1 / 4]),
-        Adjust(results[(results.size() - 1) * 2 / 4]),
-        Adjust(results[(results.size() - 1) * 3 / 4]),
-        Adjust(results[(results.size() - 1) * 4 / 4]));
+        printf("%lld,", Adjust(c2 - c1));
+    } while (c++ < 0x100 && (GetHPC() - c0 < Freq << 3 || c < 5));
+    printf("\n");
 }
 int main() {
     GetFreq();
-    printf("{Name, Count, Mean, 50%%Mean, 0%%, 25%%, 50%%, 75%%, 100%%}\n");
     Test("Load", Load);
     Test("LoadRecurse", LoadRecurse);
     Test("Recurse", Recurse);
