@@ -20,6 +20,7 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <cstddef>
 #ifdef NL_WINDOWS
 #  include <Windows.h>
 #else
@@ -27,7 +28,6 @@
 #endif
 char const Name[] = "Data.nx";
 NL::File const File(Name);
-int64_t Freq;
 void Load() {
     NL::File f(Name);
 }
@@ -54,47 +54,43 @@ void Decompress() {
     SubDecompress(File);
 }
 #ifdef NL_WINDOWS
-int64_t GetHPC() {
+double Freq;
+double GetHPC() {
     LARGE_INTEGER n;
     QueryPerformanceCounter(&n);
-    return n.QuadPart;
+    return n.QuadPart * Freq;
 }
-void GetFreq() {
+void SetupTimers() {
     LARGE_INTEGER n;
     QueryPerformanceFrequency(&n);
-    Freq = n.QuadPart;
+    Freq = 1000000. / n.QuadPart;
 }
 #else
 int64_t GetHPC() {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC_RAW, &t);
-    return t.tv_sec * 1000000000LL + t.tv_nsec;
+    return 1000000. * t.tv_sec + 0.001 * t.tv_nsec;
 }
-void GetFreq() {
-    Freq = 1000000000LL;
-}
+void SetupTimers() {}
 #endif
-int64_t Adjust(int64_t v) {
-    return v * 1000000LL / Freq;
-}
 template <typename T>
 void Test(const char * name, T f, size_t maxruns) {
-    std::vector<int64_t> results;
-    int64_t c0 = GetHPC();
+    std::vector<double> results;
+    double c0 = GetHPC();
     do {
-        int64_t c1 = GetHPC();
+        double c1 = GetHPC();
         f();
-        int64_t c2 = GetHPC();
+        double c2 = GetHPC();
         results.emplace_back(c2 - c1);
-    } while (--maxruns && GetHPC() - c0 < Freq << 4);
+    } while (--maxruns && GetHPC() - c0 < 10000000);
     std::sort(results.begin(), results.end());
     auto n0 = results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4;
     auto n1 = results.cbegin() + static_cast<ptrdiff_t>(results.size()) * 3 / 4;
     auto n2 = n0 == n1 ? n1 + 1 : n1;
-    std::printf("%s\t%lld\t%lld\t%lld\n", name, Adjust(*n1), Adjust(std::accumulate(n0, n2, 0) / (n2 - n0)), Adjust(results.front()));
+    std::printf("%s\t%llu\t%llu\t%llu\n", name, static_cast<size_t>(*n1), static_cast<size_t>(std::accumulate(n0, n2, 0.) / (n2 - n0)), static_cast<size_t>(results.front()));
 }
 int main() {
-    GetFreq();
+    SetupTimers();
     std::printf("Name\t75%%t\tM50%%\tBest\n");
     Test("Ld", Load, 0x1000);
     Test("Re", Recurse, 0x100);
