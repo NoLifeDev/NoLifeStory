@@ -1,8 +1,8 @@
 
 *
 !*/
-!*.md
-!*.sln
+!README.md
+!NoLifeStory.sln
 !.gitignore
 !.gitmodules
 !CMakeLists.txt
