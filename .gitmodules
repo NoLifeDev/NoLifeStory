@@ -23,6 +23,11 @@
 	url = https://github.com/NoLifeDev/NoLifeNx.git
 	update = merge
 	ignore = dirty
+[submodule "NoLifeNxBench"]
+	path = NoLifeNxBench
+	url = https://github.com/NoLifeDev/NoLifeNxBench.git
+	update = merge
+	ignore = dirty
 [submodule "NoLifeTrade"]
 	path = NoLifeTrade
 	url = https://github.com/NoLifeDev/NoLifeTrade.git
