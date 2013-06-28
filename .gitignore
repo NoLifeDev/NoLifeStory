@@ -1,12 +1,8 @@
 
 *
-!*/
-!*.md
+!README.md
 !.gitignore
 !CMakeLists.txt
-!*.hpp
-!*.cpp
-!*.vcxproj
-!*.vcxproj.filters
-!*.cmake
-!*.asm
+!NoLifeNxBench.cpp
+!NoLifeNxBench.vcxproj
+!NoLifeNxBench.vcxproj.filters

@@ -15,12 +15,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <MASM Include="Recurse64.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-    <MASM Include="Recurse32.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
-  </ItemGroup>
 </Project>

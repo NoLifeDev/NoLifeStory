@@ -78,14 +78,13 @@ void SetupTimers() {}
 template <typename T>
 void Test(const char * name, T f, size_t maxruns) {
     f();
-    std::vector<double> results {};/*
-    double c0 {GetHPC()};*/
+    std::vector<double> results {};
     do {
         double const c1 {GetHPC()};
         f();
         double const c2 {GetHPC()};
         results.emplace_back(c2 - c1);
-    } while (--maxruns/* && GetHPC() - c0 < 2000000*/);
+    } while (--maxruns);
     std::sort(results.begin(), results.end());
     std::vector<double>::const_iterator n0 {results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4};
     std::vector<double>::const_iterator n1 {results.cbegin() + static_cast<ptrdiff_t>(results.size()) * 3 / 4};
