@@ -31,8 +31,10 @@ NL::File const File {Name};
 void Load() {
     NL::File f {Name};
 }
+size_t c;
 void SubRecurse(NL::Node n) {
-    if (true) for (NL::Node nn : n) SubRecurse(nn); else throw;
+    ++c;
+    for (NL::Node nn : n) SubRecurse(nn);
 }
 void LoadRecurse() {
     SubRecurse(NL::File(Name));
@@ -66,7 +68,7 @@ void SetupTimers() {
     Freq = 1000000. / n.QuadPart;
 }
 #else
-int64_t GetHPC() {
+double GetHPC() {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC_RAW, &t);
     return 1000000. * t.tv_sec + 0.001 * t.tv_nsec;
@@ -88,7 +90,7 @@ void Test(const char * name, T f, size_t maxruns) {
     std::vector<double>::const_iterator n0 {results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4};
     std::vector<double>::const_iterator n1 {results.cbegin() + static_cast<ptrdiff_t>(results.size()) * 3 / 4};
     std::vector<double>::const_iterator n2 {n0 == n1 ? n1 + 1 : n1};
-    std::printf("%s\t%llu\t%llu\t%llu\n", name, static_cast<size_t>(*n1), static_cast<size_t>(std::accumulate(n0, n2, 0.) / (n2 - n0)), static_cast<size_t>(results.front()));
+    std::printf("%s\t%u\t%u\t%u\n", name, static_cast<uint32_t>(*n1), static_cast<uint32_t>(std::accumulate(n0, n2, 0.) / (n2 - n0)), static_cast<uint32_t>(results.front()));
 }
 int main() {
     SetupTimers();
