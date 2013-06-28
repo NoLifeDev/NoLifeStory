@@ -87,9 +87,6 @@ namespace NL {
     Node Node::operator[](std::pair<char const *, size_t> o) const {
         return GetChild(o.first, o.second);
     }
-    Node::operator char() const {
-        return static_cast<char>(GetInt());
-    }
     Node::operator unsigned char() const {
         return static_cast<unsigned char>(GetInt());
     }

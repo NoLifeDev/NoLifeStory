@@ -80,7 +80,6 @@ namespace NL {
         Node operator[](char const *) const;
         Node operator[](Node) const;
         Node operator[](std::pair<char const *, size_t>) const;
-        operator char() const;
         operator unsigned char() const;
         operator signed char() const;
         operator unsigned short() const;
