@@ -17,15 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NX.hpp"
 namespace NL {
-    Audio::Audio() : d(nullptr), l(0) {}
-    Audio::Audio(Audio && o) : d(o.d), l(o.l) {}
-    Audio::Audio(Audio const & o) : d(o.d), l(o.l) {}
-    Audio::Audio(uint32_t l, void const * d) : d(d), l(l) {}
-    Audio & Audio::operator=(Audio o) {
-        d = o.d;
-        l = o.l;
-        return *this;
-    }
     bool Audio::operator < (Audio o) const {
         return d < o.d;
     }

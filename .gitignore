@@ -1,10 +1,9 @@
 
 *
-!*/
-!*.md
+!README.md
 !.gitignore
 !CMakeLists.txt
 !*.hpp
 !*.cpp
-!*.vcxproj
-!*.vcxproj.filters
+!NoLifeNx.vcxproj
+!NoLifeNx.vcxproj.filters

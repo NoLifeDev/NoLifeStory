@@ -20,10 +20,6 @@
 namespace NL {
     class Bitmap {
     public:
-        Bitmap();
-        Bitmap(Bitmap && );
-        Bitmap(Bitmap const &);
-        Bitmap & operator=(Bitmap);
         bool operator==(Bitmap) const;
         bool operator < (Bitmap) const;
         operator bool() const;
@@ -32,10 +28,9 @@ namespace NL {
         uint16_t Height() const;
         uint32_t Length() const;
         size_t ID() const;
-    private:
-        Bitmap(uint16_t, uint16_t, void const *);
         void const * d;
         uint16_t w, h;
+    private:
         friend Node;
     };
 }

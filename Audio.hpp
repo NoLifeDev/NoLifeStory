@@ -20,20 +20,15 @@
 namespace NL {
     class Audio {
     public:
-        Audio();
-        Audio(Audio && );
-        Audio(Audio const &);
-        Audio & operator=(Audio);
         bool operator==(Audio) const;
         bool operator < (Audio) const;
         operator bool() const;
         void const * Data() const;
         uint32_t Length() const;
         size_t ID() const;
-    private:
-        Audio(uint32_t, void const *);
         void const * d;
         uint32_t l;
+    private:
         friend Node;
     };
 }

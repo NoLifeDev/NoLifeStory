@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "NX.hpp"
+//Because msvc and clang are better with manual constructors
 #if defined(_MSC_VER) || defined(__clang__)
 #  define NL_NODE_CONSTRUCTORS
 #endif
@@ -59,7 +60,8 @@ namespace NL {
     public:
 #ifdef NL_NODE_CONSTRUCTORS
         Node();
-        Node(Node const & o);
+        Node(Node && );
+        Node(Node const &);
         Node(Data const *, File const *);
         Node & operator=(Node const &);
 #endif
@@ -72,22 +74,26 @@ namespace NL {
         bool operator!=(Node) const;
         std::string operator+(std::string const &) const;
         std::string operator+(char const *)const;
-        template <typename T>
-        typename std::enable_if<std::is_integral<T>::value, Node>::type operator[](T) const;
+        template <typename Z>
+        typename std::enable_if<std::is_integral<Z>::value, Node>::type operator[](Z) const;
         Node operator[](std::string const &) const;
         Node operator[](char const *) const;
         Node operator[](Node) const;
         Node operator[](std::pair<char const *, size_t>) const;
-        operator int64_t() const;
-        operator uint64_t() const;
-        operator int32_t() const;
-        operator uint32_t() const;
-        operator int16_t() const;
-        operator uint16_t() const;
-        operator int8_t() const;
-        operator uint8_t() const;
-        operator double() const;
+        operator char() const;
+        operator unsigned char() const;
+        operator signed char() const;
+        operator unsigned short() const;
+        operator signed short() const;
+        operator unsigned int() const;
+        operator signed int() const;
+        operator unsigned long() const;
+        operator signed long() const;
+        operator unsigned long long() const;
+        operator signed long long() const;
         operator float() const;
+        operator double() const;
+        operator long double() const;
         operator std::string() const;
         operator std::pair<int32_t, int32_t>() const;
         operator Bitmap() const;

@@ -19,16 +19,6 @@
 #include "lz4.hpp"
 #include <vector>
 namespace NL {
-    Bitmap::Bitmap() : d(nullptr), w(0), h(0) {}
-    Bitmap::Bitmap(Bitmap && o) : d(o.d), w(o.w), h(o.h) {}
-    Bitmap::Bitmap(Bitmap const & o) : d(o.d), w(o.w), h(o.h) {}
-    Bitmap::Bitmap(uint16_t w, uint16_t h, void const * d) : d(d), w(w), h(h) {}
-    Bitmap & Bitmap::operator=(Bitmap o) {
-        d = o.d;
-        w = o.w;
-        h = o.h;
-        return *this;
-    }
     bool Bitmap::operator < (Bitmap o) const {
         return d < o.d;
     }
@@ -41,7 +31,7 @@ namespace NL {
     std::vector<uint8_t> buf;
     void const * Bitmap::Data() const {
         if (!d) return nullptr;
-        size_t const l = Length() + 0x20;
+        size_t const l {Length() + 0x20};
         if (l > buf.size()) buf.resize(Length() + 0x20);
         LZ4::Uncompress(reinterpret_cast<uint8_t const *>(d) + 4, buf.data(), Length());
         return buf.data();

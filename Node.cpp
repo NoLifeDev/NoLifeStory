@@ -20,6 +20,7 @@
 namespace NL {
 #ifdef NL_NODE_CONSTRUCTORS
     Node::Node() : d {nullptr}, f {nullptr} {}
+    Node::Node(Node && o) : d {std::move(o.d)}, f {std::move(o.f)} {}
     Node::Node(Node const & o) : d {o.d}, f {o.f} {}
     Node::Node(Data const * d, File const * f) : d {d}, f {f} {}
     Node & Node::operator=(Node const & o) {
@@ -63,6 +64,17 @@ namespace NL {
     typename std::enable_if<std::is_integral<Z>::value, Node>::type Node::operator[](Z n) const {
         return operator[](std::to_string(n));
     }
+    template Node Node::operator[]<char>(char)const;
+    template Node Node::operator[]<unsigned char>(unsigned char)const;
+    template Node Node::operator[]<signed char>(signed char)const;
+    template Node Node::operator[]<unsigned short>(unsigned short)const;
+    template Node Node::operator[]<signed short>(signed short)const;
+    template Node Node::operator[]<unsigned int>(unsigned int)const;
+    template Node Node::operator[]<signed int>(signed int)const;
+    template Node Node::operator[]<unsigned long>(unsigned long)const;
+    template Node Node::operator[]<signed long>(signed long)const;
+    template Node Node::operator[]<unsigned long long>(unsigned long long)const;
+    template Node Node::operator[]<signed long long>(signed long long)const;
     Node Node::operator[](std::string const & o) const {
         return GetChild(o.c_str(), o.length());
     }
@@ -75,35 +87,47 @@ namespace NL {
     Node Node::operator[](std::pair<char const *, size_t> o) const {
         return GetChild(o.first, o.second);
     }
-    Node::operator int64_t() const {
-        return static_cast<int64_t>(GetInt());
+    Node::operator char() const {
+        return static_cast<char>(GetInt());
     }
-    Node::operator uint64_t() const {
-        return static_cast<uint64_t>(GetInt());
+    Node::operator unsigned char() const {
+        return static_cast<unsigned char>(GetInt());
     }
-    Node::operator int32_t() const {
-        return static_cast<int32_t>(GetInt());
+    Node::operator signed char() const {
+        return static_cast<signed char>(GetInt());
     }
-    Node::operator uint32_t() const {
-        return static_cast<uint32_t>(GetInt());
+    Node::operator unsigned short() const {
+        return static_cast<unsigned short>(GetInt());
     }
-    Node::operator int16_t() const {
-        return static_cast<int16_t>(GetInt());
+    Node::operator signed short() const {
+        return static_cast<signed short>(GetInt());
     }
-    Node::operator uint16_t() const {
-        return static_cast<uint16_t>(GetInt());
+    Node::operator unsigned int() const {
+        return static_cast<unsigned int>(GetInt());
     }
-    Node::operator int8_t() const {
-        return static_cast<int8_t>(GetInt());
+    Node::operator signed int() const {
+        return static_cast<signed int>(GetInt());
     }
-    Node::operator uint8_t() const {
-        return static_cast<uint8_t>(GetInt());
+    Node::operator unsigned long() const {
+        return static_cast<unsigned long>(GetInt());
+    }
+    Node::operator signed long() const {
+        return static_cast<signed long>(GetInt());
+    }
+    Node::operator unsigned long long() const {
+        return static_cast<unsigned long long>(GetInt());
+    }
+    Node::operator signed long long() const {
+        return static_cast<signed long long>(GetInt());
+    }
+    Node::operator float() const {
+        return static_cast<float>(GetFloat());
     }
     Node::operator double() const {
         return static_cast<double>(GetFloat());
     }
-    Node::operator float() const {
-        return static_cast<float>(GetFloat());
+    Node::operator long double() const {
+        return static_cast<long double>(GetFloat());
     }
     Node::operator std::string() const {
         return GetString();
@@ -169,10 +193,10 @@ namespace NL {
         return d && d->type == Type::Vector ? ToVector() : std::pair<int32_t, int32_t> {0, 0};
     }
     Bitmap Node::GetBitmap() const {
-        return d && d->type == Type::Bitmap ? ToBitmap() : Bitmap {};
+        return d && d->type == Type::Bitmap ? ToBitmap() : Bitmap {nullptr, 0, 0};
     }
     Audio Node::GetAudio() const {
-        return d && d->type == Type::Audio ? ToAudio() : Audio {};
+        return d && d->type == Type::Audio ? ToAudio() : Audio {nullptr, 0};
     }
     bool Node::GetBool() const {
         return d && d->type == Type::Int && ToInt() ? true : false;
@@ -246,9 +270,9 @@ namespace NL {
         return {d->vector[0], d->vector[1]};
     }
     Bitmap Node::ToBitmap() const {
-        return {d->bitmap.width, d->bitmap.height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap.index]};
+        return {reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap.index], d->bitmap.width, d->bitmap.height};
     }
     Audio Node::ToAudio() const {
-        return {d->audio.length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio.index]};
+        return {reinterpret_cast<char const *>(f->base) + f->atable[d->audio.index], d->audio.length};
     }
 }
