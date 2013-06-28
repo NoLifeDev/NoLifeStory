@@ -62,10 +62,10 @@ namespace NL {
 #endif
     }
     Node File::Base() const {
-        return Node(ntable, this);
+        return {ntable, this};
     }
     File::operator Node() const {
-        return Node(ntable, this);
+        return {ntable, this};
     }
     uint32_t File::StringCount() const {
         return head->scount;
@@ -80,7 +80,7 @@ namespace NL {
         return head->ncount;
     }
     std::string File::GetString(uint32_t i) const {
-        char const * const s = reinterpret_cast<char const *>(base) + stable[i];
-        return std::string(s + 2, *reinterpret_cast<uint16_t const *>(s));
+        char const * const s {reinterpret_cast<char const *>(base) + stable[i]};
+        return {s + 2, *reinterpret_cast<uint16_t const *>(s)};
     }
 }

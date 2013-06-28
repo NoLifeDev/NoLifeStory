@@ -21,11 +21,11 @@ namespace NL {
     class Bitmap {
     public:
         Bitmap();
-        Bitmap(Bitmap &&);
+        Bitmap(Bitmap && );
         Bitmap(Bitmap const &);
         Bitmap & operator=(Bitmap);
         bool operator==(Bitmap) const;
-        bool operator<(Bitmap) const;
+        bool operator < (Bitmap) const;
         operator bool() const;
         void const * Data() const;
         uint16_t Width() const;

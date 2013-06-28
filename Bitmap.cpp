@@ -29,7 +29,7 @@ namespace NL {
         h = o.h;
         return *this;
     }
-    bool Bitmap::operator<(Bitmap o) const {
+    bool Bitmap::operator < (Bitmap o) const {
         return d < o.d;
     }
     bool Bitmap::operator==(Bitmap o) const {

@@ -26,7 +26,7 @@ namespace NL {
         l = o.l;
         return *this;
     }
-    bool Audio::operator<(Audio o) const {
+    bool Audio::operator < (Audio o) const {
         return d < o.d;
     }
     bool Audio::operator==(Audio o) const {

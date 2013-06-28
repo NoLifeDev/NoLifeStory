@@ -16,33 +16,30 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #include "NX.hpp"
+#include <cstring>
 namespace NL {
-    Node::Node() : d(nullptr), f(nullptr) {}
-    Node::Node(Node && o) : d(o.d), f(o.f) {}
-    Node::Node(Node const & o) : d(o.d), f(o.f) {}
-    Node::Node(Data const * d, File const * f) : d(d), f(f) {}
-    Node & Node::operator=(Node o) {
-        d = o.d;
-        f = o.f;
-        return *this;
+#ifdef NL_NODE_CONSTRUCTORS
+    Node::Node() : d {nullptr}, f {nullptr} {}
+    Node::Node(Node const & o) : d {o.d}, f {o.f} {}
+    Node::Node(Data const * d, File const * f) : d {d}, f {f} {}
+    Node & Node::operator=(Node const & o) {
+        return d = o.d, f = o.f, *this;
     }
+#endif
     Node Node::begin() const {
-        if (d) return Node(f->ntable + d->children, f);
-        return Node();
+        return {d ? f->ntable + d->children : nullptr, f};
     }
     Node Node::end() const {
-        if (d) return Node(f->ntable + d->children + d->num, f);
-        return Node();
+        return {d ? f->ntable + d->children + d->num : nullptr, f};
     }
     Node Node::operator*() const {
         return *this;
     }
     Node & Node::operator++() {
-        ++d;
-        return *this;
+        return ++d, *this;
     }
     Node Node::operator++(int) {
-        return Node(d++, f);
+        return {d++, f};
     }
     bool Node::operator==(Node o) const {
         return d == o.d;
@@ -51,7 +48,7 @@ namespace NL {
         return d != o.d;
     }
     std::string operator+(std::string s, Node n) {
-        return move(s) + n.GetString();
+        return std::move(s) + n.GetString();
     }
     std::string operator+(char const * s, Node n) {
         return s + n.GetString();
@@ -62,11 +59,15 @@ namespace NL {
     std::string Node::operator+(char const * s) const {
         return GetString() + s;
     }
+    template <typename Z>
+    typename std::enable_if<std::is_integral<Z>::value, Node>::type Node::operator[](Z n) const {
+        return operator[](std::to_string(n));
+    }
     Node Node::operator[](std::string const & o) const {
         return GetChild(o.c_str(), o.length());
     }
     Node Node::operator[](char const * o) const {
-        return GetChild(o, strlen(o));
+        return GetChild(o, std::strlen(o));
     }
     Node Node::operator[](Node o) const {
         return operator[](o.GetString());
@@ -81,7 +82,7 @@ namespace NL {
         return static_cast<uint64_t>(GetInt());
     }
     Node::operator int32_t() const {
-        return static_cast<int32_t >(GetInt());
+        return static_cast<int32_t>(GetInt());
     }
     Node::operator uint32_t() const {
         return static_cast<uint32_t>(GetInt());
@@ -92,7 +93,7 @@ namespace NL {
     Node::operator uint16_t() const {
         return static_cast<uint16_t>(GetInt());
     }
-    Node::operator int8_t () const {
+    Node::operator int8_t() const {
         return static_cast<int8_t>(GetInt());
     }
     Node::operator uint8_t() const {
@@ -125,8 +126,8 @@ namespace NL {
     int64_t Node::GetInt(int64_t def) const {
         if (d) switch (d->type) {
         case Type::None: return def;
-        case Type::Integer: return ToInt();
-        case Type::Double: return static_cast<int64_t>(ToFloat());
+        case Type::Int: return ToInt();
+        case Type::Float: return static_cast<int64_t>(ToFloat());
         case Type::String: return std::stoll(ToString());
         case Type::Vector: return def;
         case Type::Bitmap: return def;
@@ -141,8 +142,8 @@ namespace NL {
     double Node::GetFloat(double def) const {
         if (d) switch (d->type) {
         case Type::None: return def;
-        case Type::Integer: return static_cast<double>(ToInt());
-        case Type::Double: return ToFloat();
+        case Type::Int: return static_cast<double>(ToInt());
+        case Type::Float: return ToFloat();
         case Type::String: return std::stod(ToString());
         case Type::Vector: return def;
         case Type::Bitmap: return def;
@@ -153,80 +154,68 @@ namespace NL {
     }
     std::string Node::GetString() const {
         if (d) switch (d->type) {
-        case Type::None: return std::string();
-        case Type::Integer: return std::to_string(ToInt());
-        case Type::Double: return std::to_string(ToFloat());
+        case Type::None: return std::string {};
+        case Type::Int: return std::to_string(ToInt());
+        case Type::Float: return std::to_string(ToFloat());
         case Type::String: return ToString();
         case Type::Vector: return "(" + std::to_string(d->vector[0]) + ", " + std::to_string(d->vector[1]) + ")";
         case Type::Bitmap: return "Bitmap";
         case Type::Audio: return "Audio";
-        default: return std::string();
+        default: throw "Unknown Node type";
         }
         return std::string();
     }
     std::pair<int32_t, int32_t> Node::GetVector() const {
-        if (d) if (d->type == Type::Vector) return ToVector();
-        return std::make_pair(0, 0);
+        return d && d->type == Type::Vector ? ToVector() : std::pair<int32_t, int32_t> {0, 0};
     }
     Bitmap Node::GetBitmap() const {
-        if (d) if (d->type == Type::Bitmap) return ToBitmap();
-        return Bitmap();
+        return d && d->type == Type::Bitmap ? ToBitmap() : Bitmap {};
     }
     Audio Node::GetAudio() const {
-        if (d) if (d->type == Type::Audio) return ToAudio();
-        return Audio();
+        return d && d->type == Type::Audio ? ToAudio() : Audio {};
     }
     bool Node::GetBool() const {
-        if (d) if (d->type == Type::Integer) return ToInt() ? true : false;
-        return false;
+        return d && d->type == Type::Int && ToInt() ? true : false;
     }
     bool Node::GetBool(bool def) const {
-        if (d) if (d->type == Type::Integer) return ToInt() ? true : false;
-        return def;
+        return d && d->type == Type::Int ? ToInt() ? true : false : def;
     }
     int32_t Node::X() const {
-        if (d) if (d->type == Type::Vector) return d->vector[0];
-        return 0;
+        return d && d->type == Type::Vector ? d->vector[0] : 0;
     }
     int32_t Node::Y() const {
-        if (d) if (d->type == Type::Vector) return d->vector[1];
-        return 0;
+        return d && d->type == Type::Vector ? d->vector[1] : 0;
     }
     std::string Node::Name() const {
-        if (d) return f->GetString(d->name);
-        return std::string();
+        return d ? f->GetString(d->name) : std::string {};
     }
     std::pair<char const *, size_t> Node::NameFast() const {
-        if (!d) return std::make_pair(nullptr, 0);
-        char const * s = reinterpret_cast<char const *>(f->base) + f->stable[d->name];
-        return std::make_pair(s + 2, *reinterpret_cast<uint16_t const *>(s));
+        if (!d) return {nullptr, 0};
+        char const * s {reinterpret_cast<char const *>(f->base) + f->stable[d->name]};
+        return {s + 2, *reinterpret_cast<uint16_t const *>(s)};
     }
     size_t Node::Size() const {
-        if (d) return d->num;
-        return 0;
+        return d ? d->num : 0U;
     }
     Node::Type Node::T() const {
-        if (d) return d->type;
-        return Type::None;
+        return d ? d->type : Type::None;
     }
     Node Node::GetChild(char const * const o, size_t const l) const {
-        if (!d) return Node();
-        Data const * p = f->ntable + d->children;
-        size_t n = d->num;
-        char const * const b = reinterpret_cast<const char *>(f->base);
-        uint64_t const * const t = f->stable;
+        if (!d) return {nullptr, f};
+        Data const * p {f->ntable + d->children};
+        size_t n {d->num};
+        char const * const b {reinterpret_cast<const char *>(f->base)};
+        uint64_t const * const t {f->stable};
         for (;;) {
-            if (!n) return Node();
-            size_t const n2 = n >> 1;
-            Data const * const p2 = p + n2;
-            char const * const sl = b + t[p2->name];
-            size_t const l1 = *reinterpret_cast<uint16_t const *>(sl);
-            uint8_t const * s = reinterpret_cast<uint8_t const *>(sl + 2);
-            uint8_t const * os = reinterpret_cast<uint8_t const *>(o);
-            size_t const al = l1 < l ? l1 : l;
-            size_t i = al;
-            bool z = false;
-            for (; i; --i, ++s, ++os) {
+            if (!n) return {nullptr, f};
+            size_t const n2 {n >> 1};
+            Data const * const p2 {p + n2};
+            char const * const sl {b + t[p2->name]};
+            size_t const l1 {*reinterpret_cast<uint16_t const *>(sl)};
+            uint8_t const * s {reinterpret_cast<uint8_t const *>(sl + 2)};
+            uint8_t const * os {reinterpret_cast<uint8_t const *>(o)};
+            bool z {false};
+            for (size_t i {l1 < l ? l1 : l}; i; --i, ++s, ++os) {
                 if (*s > *os) {
                     n = n2;
                     z = true;
@@ -241,7 +230,7 @@ namespace NL {
             if (z) continue;
             else if (l1 < l) p = p2 + 1, n -= n2 + 1;
             else if (l1 > l) n = n2;
-            else return Node(p2, f);
+            else return {p2, f};
         }
     }
     int64_t Node::ToInt() const {
@@ -254,12 +243,12 @@ namespace NL {
         return f->GetString(d->string);
     }
     std::pair<int32_t, int32_t> Node::ToVector() const {
-        return std::make_pair(d->vector[0], d->vector[1]);
+        return {d->vector[0], d->vector[1]};
     }
     Bitmap Node::ToBitmap() const {
-        return Bitmap(d->bitmap.width, d->bitmap.height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap.index]);
+        return {d->bitmap.width, d->bitmap.height, reinterpret_cast<char const *>(f->base) + f->btable[d->bitmap.index]};
     }
     Audio Node::ToAudio() const {
-        return Audio(d->audio.length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio.index]);
+        return {d->audio.length, reinterpret_cast<char const *>(f->base) + f->atable[d->audio.index]};
     }
 }
