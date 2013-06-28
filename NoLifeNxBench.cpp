@@ -27,12 +27,12 @@
 #  include <ctime>
 #endif
 char const Name[] = "Data.nx";
-NL::File const File(Name);
+NL::File const File {Name};
 void Load() {
-    NL::File f(Name);
+    NL::File f {Name};
 }
 void SubRecurse(NL::Node n) {
-    for (NL::Node nn : n) SubRecurse(nn);
+    if (true) for (NL::Node nn : n) SubRecurse(nn); else throw;
 }
 void LoadRecurse() {
     SubRecurse(NL::File(Name));
@@ -75,18 +75,19 @@ void SetupTimers() {}
 #endif
 template <typename T>
 void Test(const char * name, T f, size_t maxruns) {
-    std::vector<double> results;
-    double c0 = GetHPC();
+    f();
+    std::vector<double> results {};/*
+    double c0 {GetHPC()};*/
     do {
-        double c1 = GetHPC();
+        double const c1 {GetHPC()};
         f();
-        double c2 = GetHPC();
+        double const c2 {GetHPC()};
         results.emplace_back(c2 - c1);
-    } while (--maxruns && GetHPC() - c0 < 10000000);
+    } while (--maxruns/* && GetHPC() - c0 < 2000000*/);
     std::sort(results.begin(), results.end());
-    auto n0 = results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4;
-    auto n1 = results.cbegin() + static_cast<ptrdiff_t>(results.size()) * 3 / 4;
-    auto n2 = n0 == n1 ? n1 + 1 : n1;
+    std::vector<double>::const_iterator n0 {results.cbegin() + static_cast<ptrdiff_t>(results.size()) / 4};
+    std::vector<double>::const_iterator n1 {results.cbegin() + static_cast<ptrdiff_t>(results.size()) * 3 / 4};
+    std::vector<double>::const_iterator n2 {n0 == n1 ? n1 + 1 : n1};
     std::printf("%s\t%llu\t%llu\t%llu\n", name, static_cast<size_t>(*n1), static_cast<size_t>(std::accumulate(n0, n2, 0.) / (n2 - n0)), static_cast<size_t>(results.front()));
 }
 int main() {
@@ -96,5 +97,5 @@ int main() {
     Test("Re", Recurse, 0x100);
     Test("LR", LoadRecurse, 0x100);
     Test("SA", RecurseSearch, 0x100);
-    Test("De", Decompress, 0x100);
+    Test("De", Decompress, 0x10);
 }
