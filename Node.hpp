@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "NX.hpp"
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__clang__)
 #  define NL_NODE_CONSTRUCTORS
 #endif
 namespace NL {
