@@ -63,7 +63,6 @@ namespace NL {
                 std::cout << "Not Ready" << std::endl;
                 break;
             }
-            }
         }
     }
 }
