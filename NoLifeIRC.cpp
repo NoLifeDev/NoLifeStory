@@ -3,17 +3,17 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
-#include <filesystem>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
+#include <functional>
+#include <chrono>
+#include <thread>
 using namespace std;
 using namespace std::chrono;
 using namespace std::this_thread;
-using namespace std::tr2::sys;
 #include "../NoLifeNx/NX.hpp"
 
 namespace NL {
@@ -25,8 +25,6 @@ namespace NL {
     string Source;
     map<string, function<void(void)>> IRCCommands;
     map<string, function<void(string)>> LookupCommands;
-    vector<shared_ptr<File>> Files;
-    Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
     void Send(string s) {
         if (s.size() > 510) s.resize(510);
         s += "\r\n";
@@ -88,7 +86,7 @@ namespace NL {
         bool pinged = false;
         Clock::time_point last = Clock::now();
         for (;;) {
-            sleep_for(milliseconds(100));
+            sleep_for(milliseconds {100});
             Clock::time_point now = Clock::now();
             size_t r;
             Socket.receive(cbuf, 0x10000, r);
@@ -100,7 +98,7 @@ namespace NL {
                     try {
                         Stream = istringstream(buf.substr(0, p));
                         Handle();
-                    } catch (...) {
+                    } catch (std::exception e) {
                         cout << "Something did not go right" << endl;
                     }
                     buf.erase(0, p + 2);
@@ -138,6 +136,8 @@ namespace NL {
                 string type = ToLower(GetNext());
                 function<void(string)> f = LookupCommands[type];
                 if (f) f(GetRest());
+            } else if (com == "say") {
+
             }
         }
     }
@@ -161,51 +161,6 @@ namespace NL {
         if (found) Message("End of results");
         else Message("No results found");
     }
-    Node AddFile(char const * s) {
-        if (!exists(path(s))) return Node();
-        Files.emplace_back(make_shared<File>(s));
-        return Files.back()->Base();
-    }
-    void SetupFiles() {
-        if (exists(path("Data.nx"))) {
-            NXBase = AddFile("Data.nx");
-            NXCharacter = NXBase["Character"];
-            NXEffect = NXBase["Effect"];
-            NXEtc = NXBase["Etc"];
-            NXItem = NXBase["Item"];
-            NXMap = NXBase["Map"];
-            NXMob = NXBase["Mob"];
-            NXMorph = NXBase["Morph"];
-            NXNpc = NXBase["Npc"];
-            NXQuest = NXBase["Quest"];
-            NXReactor = NXBase["Reactor"];
-            NXSkill = NXBase["Skill"];
-            NXSound = NXBase["Sound"];
-            NXString = NXBase["String"];
-            NXTamingMob = NXBase["TamingMob"];
-            NXUI = NXBase["UI"];
-        } else if (exists(path("Base.nx"))) {
-            NXBase = AddFile("Base.nx");
-            NXCharacter = AddFile("Character.nx");
-            NXEffect = AddFile("Effect.nx");
-            NXEtc = AddFile("Etc.nx");
-            NXItem = AddFile("Item.nx");
-            NXMap = AddFile("Map.nx");
-            NXMob = AddFile("Mob.nx");
-            NXMorph = AddFile("Morph.nx");
-            NXNpc = AddFile("Npc.nx");
-            NXQuest = AddFile("Quest.nx");
-            NXReactor = AddFile("Reactor.nx");
-            NXSkill = AddFile("Skill.nx");
-            NXSound = AddFile("Sound.nx");
-            NXString = AddFile("String.nx");
-            NXTamingMob = AddFile("TamingMob.nx");
-            NXUI = AddFile("UI.nx");
-        } else {
-            cout << "OH GOD THE HORROR I CAN'T FIND ANY NX FILES" << endl;
-            throw;
-        }
-    }
     void SetupCommands() {
         IRCCommands["KICK"] = HandleKick;
         IRCCommands["PING"] = HandlePing;
@@ -213,7 +168,7 @@ namespace NL {
         LookupCommands["map"] = LookupMap;
     }
     void IRCBot() {
-        SetupFiles();
+        LoadAllNX();
         SetupCommands();
         Connect();
         Loop();
