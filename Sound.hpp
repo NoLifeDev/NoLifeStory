@@ -27,7 +27,7 @@ namespace NL {
         bool onGetData(sf::SoundStream::Chunk &);
         void onSeek(sf::Time);
     private:
-        mpg123_handle * handle;
+        void * handle;
         Node node;
         vector<unsigned char> buf;
         bool raw;

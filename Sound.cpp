@@ -15,7 +15,10 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #include "NoLifeClient.hpp"
+#include <mpg123.h>
+
 namespace NL {
     Music BGM;
     Music::Music() {
@@ -30,15 +33,15 @@ namespace NL {
         node = n;
         raw = false;
         Audio a = node;
-        if (handle) mpg123_close(handle);
+        if (handle) mpg123_close(reinterpret_cast<mpg123_handle *>(handle));
         handle = mpg123_new(nullptr, nullptr);
         if (!handle) throw "Failed to create mpg123 handle";
-        mpg123_open_feed(handle);
-        mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.Data()), a.Length());
+        mpg123_open_feed(reinterpret_cast<mpg123_handle *>(handle));
+        mpg123_feed(reinterpret_cast<mpg123_handle *>(handle), reinterpret_cast<unsigned char const *>(a.Data()), a.Length());
         long rate(0);
         int channels(0), encoding(0);
-        if (mpg123_getformat(handle, &rate, &channels, &encoding) == MPG123_OK) {
-            buf.resize(mpg123_outblock(handle));
+        if (mpg123_getformat(reinterpret_cast<mpg123_handle *>(handle), &rate, &channels, &encoding) == MPG123_OK) {
+            buf.resize(mpg123_outblock(reinterpret_cast<mpg123_handle *>(handle)));
             initialize(channels, rate);
         } else {
             buf.clear();
@@ -52,14 +55,14 @@ namespace NL {
         stop();
         node = Node();
         raw = false;
-        if (handle) mpg123_close(handle);
+        if (handle) mpg123_close(reinterpret_cast<mpg123_handle *>(handle));
         handle = mpg123_new(nullptr, nullptr);
         if (!handle) throw "Failed to create mpg123 handle";
-        mpg123_open(handle, s.c_str());
+        mpg123_open(reinterpret_cast<mpg123_handle *>(handle), s.c_str());
         long rate(0);
         int channels(0), encoding(0);
-        if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK) throw "Failed to obtain mpg123 handle format";
-        buf.resize(mpg123_outblock(handle));
+        if (mpg123_getformat(reinterpret_cast<mpg123_handle *>(handle), &rate, &channels, &encoding) != MPG123_OK) throw "Failed to obtain mpg123 handle format";
+        buf.resize(mpg123_outblock(reinterpret_cast<mpg123_handle *>(handle)));
         initialize(channels, rate);
     }
     bool Music::onGetData(sf::SoundStream::Chunk & data) {
@@ -69,7 +72,7 @@ namespace NL {
             return false;
         } else {
             size_t done;
-            mpg123_read(handle, buf.data(), buf.size(), &done);
+            mpg123_read(reinterpret_cast<mpg123_handle *>(handle), buf.data(), buf.size(), &done);
             data.samples = reinterpret_cast<sf::Int16 const *>(buf.data());
             data.sampleCount = done / sizeof(sf::Int16);
             return data.sampleCount > 0;
@@ -80,9 +83,9 @@ namespace NL {
         } else if (node) {
             Audio a = node;
             off_t o;
-            mpg123_feedseek(handle, t.asSeconds(), SEEK_SET, &o);
-            mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.Data()) + o, a.Length() - o);
-        } else mpg123_seek(handle, t.asSeconds(), SEEK_SET);
+            mpg123_feedseek(reinterpret_cast<mpg123_handle *>(handle), t.asSeconds(), SEEK_SET, &o);
+            mpg123_feed(reinterpret_cast<mpg123_handle *>(handle), reinterpret_cast<unsigned char const *>(a.Data()) + o, a.Length() - o);
+        } else mpg123_seek(reinterpret_cast<mpg123_handle *>(handle), t.asSeconds(), SEEK_SET);
     }
     void Music::PlayMusic() {
         if (Config::Rave) {

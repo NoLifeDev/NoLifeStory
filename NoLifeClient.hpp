@@ -23,8 +23,6 @@
 #include <SFML/Window.hpp>
 #include <SFML/Network.hpp>
 #include <SFML/Audio.hpp>
-//Libmpg123
-#include <mpg123.h>
 //C Standard Library
 #include <cstdint>
 //C++ Standard Library

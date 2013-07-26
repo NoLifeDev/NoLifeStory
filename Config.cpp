@@ -17,7 +17,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "NoLifeClient.hpp"
-#include <regex>
+#ifdef _MSC_VER
+#  include <regex>
+#else
+#  include <boost/filesystem.hpp>
+#  include <boost/regex.hpp>
+using boost::smatch;
+using boost::regex_match;
+using boost::regex;
+#endif
 #ifdef NL_WINDOWS
 #  include <Windows.h>
 #endif
