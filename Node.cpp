@@ -208,7 +208,7 @@ namespace NL {
         return d && d->type == Type::Vector ? d->vector[1] : 0;
     }
     std::string Node::Name() const {
-        return d ? f->GetString(d->name) : std::string {};
+        return !d ? std::string {} : f->GetString(d->name);
     }
     std::pair<char const *, size_t> Node::NameFast() const {
         if (!d) return {nullptr, 0};
