@@ -73,7 +73,7 @@ namespace NL {
         void Update() {
             double tx(Player::Pos.x), ty(Player::Pos.y);
             Restrict(tx, ty);
-            double sx((tx - FX) * Time::Delta * 10), sy((ty - FY) * Time::Delta * 10);
+            double sx((tx - FX) * Time::Delta * 5), sy((ty - FY) * Time::Delta * 5);
             if (abs(sx) > abs(tx - FX)) sx = tx - FX;
             if (abs(sy) > abs(ty - FY)) sy = ty - FY;
             FX += sx, FY += sy;

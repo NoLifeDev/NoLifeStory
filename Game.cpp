@@ -17,7 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
-    Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
     namespace Dumper {
         map<pair<string, string>, size_t> values;
         string pad(string s, size_t n) {
@@ -49,57 +48,12 @@ namespace NL {
     }
     namespace Game {
         bool Over = false;
-        vector<shared_ptr<File>> Files;
-        Node AddFile(char const * c) {
-            if (!exists(path(c))) return Node();
-            Files.emplace_back(make_shared<File>(c));
-            return Files.back()->Base();
-        }
-        void SetupFiles() {
-            if (exists(path("Base.nx"))) {
-                NXBase = AddFile("Base.nx");
-                NXCharacter = AddFile("Character.nx");
-                NXEffect = AddFile("Effect.nx");
-                NXEtc = AddFile("Etc.nx");
-                NXItem = AddFile("Item.nx");
-                NXMap = AddFile("Map.nx");
-                NXMob = AddFile("Mob.nx");
-                NXMorph = AddFile("Morph.nx");
-                NXNpc = AddFile("Npc.nx");
-                NXQuest = AddFile("Quest.nx");
-                NXReactor = AddFile("Reactor.nx");
-                NXSkill = AddFile("Skill.nx");
-                NXSound = AddFile("Sound.nx");
-                NXString = AddFile("String.nx");
-                NXTamingMob = AddFile("TamingMob.nx");
-                NXUI = AddFile("UI.nx");
-            } else if (exists(path("Data.nx"))) {
-                NXBase = AddFile("Data.nx");
-                NXCharacter = NXBase["Character"];
-                NXEffect = NXBase["Effect"];
-                NXEtc = NXBase["Etc"];
-                NXItem = NXBase["Item"];
-                NXMap = NXBase["Map"];
-                NXMob = NXBase["Mob"];
-                NXMorph = NXBase["Morph"];
-                NXNpc = NXBase["Npc"];
-                NXQuest = NXBase["Quest"];
-                NXReactor = NXBase["Reactor"];
-                NXSkill = NXBase["Skill"];
-                NXSound = NXBase["Sound"];
-                NXString = NXBase["String"];
-                NXTamingMob = NXBase["TamingMob"];
-                NXUI = NXBase["UI"];
-            } else {
-                throw "Failed to load data files.";
-            }
-        }
         void Play() {
 #ifdef NL_X11
             XInitThreads();
 #endif
+            LoadAllNX();
             Config::Load();
-            SetupFiles();
             Time::Init();
             Graphics::Init();
             Sprite::Init();
