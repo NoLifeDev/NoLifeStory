@@ -112,7 +112,7 @@ namespace NL {
     }
     Sprite::Sprite() : frame(0), delay(0), data(), last(), next() {}
     Sprite::Sprite(Node const &o) : frame(0), delay(0), data(o), last(), next() {
-        last = next = data.T() == Node::bitmap ? data : data["0"];
+        last = next = data.T() == Node::Type::Bitmap ? data : data["0"];
         movetype = next["moveType"];
         movew = next["moveW"];
         moveh = next["moveH"];
@@ -142,8 +142,8 @@ namespace NL {
             }
         }
         Bitmap b;
-        if (next.T() == Node::bitmap && BindTexture(b = next)) last = next;
-        else if (last.T() == Node::bitmap && BindTexture(b = last));
+        if (next.T() == Node::Type::Bitmap && BindTexture(b = next)) last = next;
+        else if (last.T() == Node::Type::Bitmap && BindTexture(b = last));
         else return;
         Node o(last["origin"]);
         uint16_t w(b.Width()), h(b.Height());

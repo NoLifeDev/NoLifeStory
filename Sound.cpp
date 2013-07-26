@@ -87,8 +87,7 @@ namespace NL {
     void Music::PlayMusic() {
         if (Config::Rave) {
             if (node || getStatus() == Stopped) {
-                LoadNode(NXSound["Skill.img"]["65001001"]["Use"]);
-                //LoadFile("bgm.mp3");
+                LoadFile("bgm.mp3");
                 setLoop(true);
                 play();
             }
