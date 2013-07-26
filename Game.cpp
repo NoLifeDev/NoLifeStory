@@ -95,7 +95,7 @@ namespace NL {
             }
         }
         void Play() {
-#ifdef __X__
+#ifdef NL_X11
             XInitThreads();
 #endif
             Config::Load();

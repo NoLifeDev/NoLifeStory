@@ -17,17 +17,20 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "NoLifeClient.hpp"
 namespace NL {
+    double const DownJumpMultiplier = 0.35355339;
     double const Epsilon = 0.00001;
     double const FallSpeed = 670;
     double const FloatCoefficient = 0.01;
     double const FloatDrag1 = 100000;
     double const FloatDrag2 = 10000;
+    double const FloatMultiplier = 0.0008928571428571428;
     double const FlyForce = 120000;
     double const FlyJumpDec = 0.35;
     double const FlySpeed = 200;
     double const GravityAcc = 2000;
     double const JumpSpeed = 555;
     double const MaxFriction = 2;
+    double const MaxLandSpeed = 162.5;
     double const MinFriction = 0.05;
     double const ShoeFlyAcc = 0;
     double const ShoeFlySpeed = 0;
@@ -43,15 +46,12 @@ namespace NL {
     double const SlipForce = 60000;
     double const SlipSpeed = 120;
     double const SwimForce = 120000;
+    double const SwimJump = 700;
     double const SwimSpeed = 140;
     double const SwimSpeedDec = 0.9;
     double const WalkDrag = 80000;
     double const WalkForce = 140000;
     double const WalkSpeed = 125;
-    double const Wat1 = 0.0008928571428571428;
-    double const Wat2 = 0.35355339;
-    double const Wat3 = 700;
-    double const Wat4 = 162.5;
     Physics::Physics() {
         Reset(0, 0);
         left = false, right = false, up = false, down = false;
@@ -70,7 +70,7 @@ namespace NL {
                 return f.id != fh->id && f.x1 < x && f.x2 > x && f.y1 > y && f.y2 > y;
             })) {
                 djump = fh;
-                vx = 0, vy = -JumpSpeed * Wat2;
+                vx = 0, vy = -JumpSpeed * DownJumpMultiplier;
             } else {
                 vy = ShoeWalkJump * JumpSpeed * (flying ? -0.7 : -1);
                 double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1, fmax = WalkSpeed * ShoeWalkSpeed;
@@ -80,7 +80,7 @@ namespace NL {
             fh = nullptr;
         } else {
             if (flying) {
-                vy = -ShoeSwimSpeedV * Wat3;
+                vy = -ShoeSwimSpeedV * SwimJump;
             }
         }
     }
@@ -136,8 +136,8 @@ namespace NL {
                     double shoefloat = FloatDrag2 / ShoeMass * delta;
                     vy > 0 ? vy = max(0., vy - shoefloat) : vy = min(0., vy + shoefloat);
                     vy = min(vy + GravityAcc * delta, FallSpeed);
-                    vx = left ? vx > -FloatDrag2 * Wat1 ? max(-FloatDrag2 * Wat1, vx - 2 * shoefloat) : vx :
-                        right ? vx < FloatDrag2 * Wat1 ? min(FloatDrag2 * Wat1, vx + 2 * shoefloat) : vx :
+                    vx = left ? vx > -FloatDrag2 * FloatMultiplier ? max(-FloatDrag2 * FloatMultiplier, vx - 2 * shoefloat) : vx :
+                        right ? vx < FloatDrag2 * FloatMultiplier ? min(FloatDrag2 * FloatMultiplier, vx + 2 * shoefloat) : vx :
                         vy < FallSpeed ? vx > 0 ? max(0., vx - FloatCoefficient * shoefloat) : min(0., vx + FloatCoefficient * shoefloat) :
                         vx > 0 ? max(0., vx - shoefloat) : min(0., vx + shoefloat);
                 }
@@ -238,7 +238,7 @@ namespace NL {
                             fh = nullptr;
                         } else {
                             group = fh->group, layer = fh->layer;
-                            if (vy > Wat4) vy = Wat4;
+                            if (vy > MaxLandSpeed) vy = MaxLandSpeed;
                         }
                         double dot = (vx * fx + vy * fy) / (fx * fx + fy * fy);
                         vx = dot * fx, vy = dot * fy;
