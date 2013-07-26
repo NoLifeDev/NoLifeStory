@@ -61,7 +61,7 @@ namespace NL {
     }
     void Sprite::Init() {
         if (!Config::Threaded) return;
-        thread([]{Log::Wrap(SpriteThread);}).detach();
+        thread([] {SpriteThread(); }).detach();
         while (!ThreadContextMade) sleep_for(milliseconds(1));
         SpriteMutex.lock();
     }

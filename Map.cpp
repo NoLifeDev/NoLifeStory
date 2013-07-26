@@ -24,6 +24,20 @@ namespace NL {
         string NextPortal;
         float Shade = 0;
         vector<string> Maps;
+        void LoadNow() {
+            Shade = 2;
+            Current = Next;
+            Name = Current.Name().erase(Current.Name().size() - 4);
+            Next = Node();
+            BGM.PlayMusic();
+            Foothold::Load();
+            Layer::LoadAll();
+            Background::Load();
+            Portal::Load();
+            Sprite::Cleanup();
+            Player::Respawn(NextPortal);
+            View::Reset();
+        }
         void Init() {
             for (int i = 0; i <= 9; ++i) {
                 for (Node n2 : NXMap["Map"]["Map" + to_string(i)]) {
@@ -31,9 +45,8 @@ namespace NL {
                     Maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            //Load("100000000");
-            //Load("910029100");//Conveyors and oddities
-            Load("271030410");
+            Load("100000000");
+            LoadNow();
         }
         void Load(string name, string portal) {
             if (Next) return;
@@ -54,20 +67,6 @@ namespace NL {
             Next = m;
             NextPortal = portal;
         }
-        void LoadNow() {
-            Shade = 2;
-            Current = Next;
-            Name = Current.Name().erase(Current.Name().size() - 4);
-            Next = Node();
-            BGM.PlayMusic();
-            Foothold::Load();
-            Layer::LoadAll();
-            Background::Load();
-            Portal::Load();
-            Sprite::Cleanup();
-            Player::Respawn(NextPortal);
-            View::Reset();
-        }
         void Render() {
             if (Config::Rave) {
                 float d = floor(Time::TDelta * 2.088 - 0.1) * 1.95;
@@ -86,10 +85,14 @@ namespace NL {
                 glColor4f(0, 0, 0, pow(Shade, 2));
                 Graphics::DrawRect(0, 0, View::Width, View::Height, false);
             }
+            if (Shade < 0) Shade = 0;
             if (Next) {
                 Shade += Time::Delta * 10;
-                if (Shade > 1) Map::LoadNow();
-            } else if (Shade > 0) Shade -= Time::Delta * 10;
+                if (Shade > 1) {
+                    Map::LoadNow();
+                    Shade = 1.5;
+                }
+            } else if (Shade > 0) Shade -= Time::Delta * 5;
             Sprite::Unbind();
             double c = sin(Time::TDelta * 10) * 0.5 + 0.5;
             glColor4d(sin(Time::TDelta * 2 * M_PI) * 0.5 + 0.5, sin(Time::TDelta * 2 * M_PI + M_PI * 2 / 3) * 0.5 + 0.5, sin(Time::TDelta * 2 * M_PI + M_PI * 4 / 3) * 0.5 + 0.5, 1);

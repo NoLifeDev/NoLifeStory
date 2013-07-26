@@ -15,7 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #include "NoLifeClient.hpp"
+#include <regex>
+#ifdef NL_WINDOWS
+#  include <Windows.h>
+#endif
+
 namespace NL {
     namespace Config {
         //Various config variables

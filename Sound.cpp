@@ -98,6 +98,7 @@ namespace NL {
             size_t p(bgm.find('/'));
             Node sn(NXSound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)]);
             if (!sn) Log::Write("Failed to find bgm " + bgm + " for map " + Map::Current.Name());
+            if (sn == node) return;
             LoadNode(sn);
             setLoop(true);
             play();

@@ -19,6 +19,5 @@
 namespace NL {
     namespace Log {
         void Write(string);
-        void Wrap(function<void(void)>);
     }
 }

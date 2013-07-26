@@ -52,8 +52,8 @@ namespace NL {
 #ifdef NL_X11
             XInitThreads();
 #endif
-            LoadAllNX();
             Config::Load();
+            LoadAllNX();
             Time::Init();
             Graphics::Init();
             Sprite::Init();

@@ -47,19 +47,6 @@ using namespace std::this_thread;
 //NoLifeNx (along with platform detection)
 #include "../NoLifeNx/NX.hpp"
 //Platform Specifics
-#ifdef NL_WINDOWS
-#  include <filesystem>
-#  include <regex>
-#  include <Windows.h>
-using namespace std::tr2::sys;
-#else
-#  include <boost/filesystem.hpp>
-#  include <boost/regex.hpp>
-using namespace boost::filesystem;
-using boost::smatch;
-using boost::regex_match;
-using boost::regex;
-#endif
 #ifdef NL_X11
 #  include <X11/Xlib.h>
 #endif
