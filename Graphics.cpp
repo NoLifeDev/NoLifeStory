@@ -66,9 +66,9 @@ namespace NL {
         void Update() {
             if (!Config::Fullscreen) {
                 //Meant to slow down title updates because apparently this causes horrible performance on X
-                static monotonic_clock::time_point lasttitle = monotonic_clock::now();
-                if (monotonic_clock::now() - lasttitle > milliseconds {250}) {
-                    lasttitle = monotonic_clock::now();
+                static steady_clock::time_point lasttitle = steady_clock::now();
+                if (steady_clock::now() - lasttitle > milliseconds {250}) {
+                    lasttitle = steady_clock::now();
                     Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
                 }
             }
