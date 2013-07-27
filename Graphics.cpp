@@ -54,8 +54,7 @@ namespace NL {
             default:
                 throw "ERROR: Unknown GLEW error code " + to_string(err);
             }
-            if (!GLEW_ARB_texture_non_power_of_two ||
-                !GLEW_VERSION_1_5) {
+            if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5) {
                 throw "Your OpenGL is out of date. Please update your drivers and/or buy a new GPU";
             }
             float a[] = {0, 0, 1, 0, 1, 1, 0, 1};
@@ -65,7 +64,14 @@ namespace NL {
             Create(Config::Fullscreen);
         }
         void Update() {
-            Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
+            if (!Config::Fullscreen) {
+                //Meant to slow down title updates because apparently this causes horrible performance on X
+                static monotonic_clock::time_point lasttitle = monotonic_clock::now();
+                if (monotonic_clock::now() - lasttitle > milliseconds {250}) {
+                    lasttitle = monotonic_clock::now();
+                    Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
+                }
+            }
             Window->display();
             GLenum err = glGetError();
             switch (err) {

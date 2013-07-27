@@ -20,6 +20,7 @@
 #ifdef _MSC_VER
 #  include <regex>
 #else
+//Needed because regex support is horrible anywhere exception msvc
 #  include <boost/filesystem.hpp>
 #  include <boost/regex.hpp>
 using boost::smatch;
