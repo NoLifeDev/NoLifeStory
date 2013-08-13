@@ -3,6 +3,6 @@
 !README.md
 !.gitignore
 !CMakeLists.txt
-!NoLifeNxBench.cpp
+!nxbench.cpp
 !NoLifeNxBench.vcxproj
 !NoLifeNxBench.vcxproj.filters
