@@ -56,21 +56,21 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
-    <ClCompile Include="Audio.cpp" />
-    <ClCompile Include="Bitmap.cpp" />
-    <ClCompile Include="File.cpp">
+    <ClCompile Include="audio.cpp" />
+    <ClCompile Include="bitmap.cpp" />
+    <ClCompile Include="file.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <ClCompile Include="lz4.cpp" />
-    <ClCompile Include="Node.cpp" />
-    <ClCompile Include="NX.cpp" />
+    <ClCompile Include="node.cpp" />
+    <ClCompile Include="nx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Audio.hpp" />
-    <ClInclude Include="Bitmap.hpp" />
-    <ClInclude Include="File.hpp" />
+    <ClInclude Include="audio.hpp" />
+    <ClInclude Include="bitmap.hpp" />
+    <ClInclude Include="file.hpp" />
     <ClInclude Include="lz4.hpp" />
-    <ClInclude Include="Node.hpp" />
-    <ClInclude Include="NX.hpp" />
+    <ClInclude Include="node.hpp" />
+    <ClInclude Include="nx.hpp" />
   </ItemGroup>
 </Project>

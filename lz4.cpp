@@ -50,8 +50,8 @@ namespace {
     ptrdiff_t const dectable1[] {0, 3, 2, 3, 0, 0, 0, 0};
     ptrdiff_t const dectable2[] {0, 0, 0, -1, 0, 1, 2, 3};
 }
-namespace LZ4 {
-    void Uncompress(void const * source, void * dest, size_t osize) {
+namespace lz4 {
+    void uncompress(void const * source, void * dest, size_t osize) {
         uint8_t const * ip {reinterpret_cast<uint8_t const *>(source)};
         uint8_t * op {reinterpret_cast<uint8_t *>(dest)};
         uint8_t const * const oend {op + osize};

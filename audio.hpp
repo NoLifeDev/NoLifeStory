@@ -16,28 +16,28 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
-#ifdef _WIN32
-#  define NL_WINDOWS
-#  ifndef NOMINMAX
-#    define NOMINMAX
-#  endif
-#  define WIN32_LEAN_AND_MEAN
-#else
-#  define NL_POSIX
-#endif
-#include <string>
 #include <cstdint>
-namespace NL {
-    class Audio;
-    class Bitmap;
-    class Node;
-    class File;
-}
-#include "Audio.hpp"
-#include "Bitmap.hpp"
-#include "Node.hpp"
-#include "File.hpp"
-namespace NL {
-    extern Node NXBase, NXCharacter, NXEffect, NXEtc, NXItem, NXMap, NXMob, NXMorph, NXNpc, NXQuest, NXReactor, NXSkill, NXSound, NXString, NXTamingMob, NXUI;
-    void LoadAllNX();
+
+namespace nl {
+    class audio {
+    public:
+        //Comparison operators, useful for containers
+        bool operator==(audio const &) const;
+        bool operator<(audio const &)const;
+        //Returns whether the audio is valid or merely null
+        explicit operator bool() const;
+        //Does not do any sort of decompression
+        //Do not free the pointer returned by this method
+        //The pointer remains valid until the file this audio is part of is destroyed
+        void const * data() const;
+        uint32_t length() const;
+        //Returns a unique id, useful for keeping track of what audio you loaded
+        size_t id() const;
+        //Internal variables
+        //They are only public so that the class may be Plain Old Data
+        void const * m_data;
+        uint32_t m_length;
+    private:
+        friend class node;
+    };
 }

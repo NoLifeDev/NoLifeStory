@@ -15,37 +15,32 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NX.hpp"
-#include "lz4.hpp"
-#include <vector>
-namespace NL {
-    bool Bitmap::operator < (Bitmap o) const {
-        return d < o.d;
-    }
-    bool Bitmap::operator==(Bitmap o) const {
-        return d == o.d;
-    }
-    Bitmap::operator bool() const {
-        return d ? true : false;
-    }
-    std::vector<uint8_t> buf;
-    void const * Bitmap::Data() const {
-        if (!d) return nullptr;
-        size_t const l {Length() + 0x20};
-        if (l > buf.size()) buf.resize(Length() + 0x20);
-        LZ4::Uncompress(reinterpret_cast<uint8_t const *>(d) + 4, buf.data(), Length());
-        return buf.data();
-    }
-    uint16_t Bitmap::Width() const {
-        return w;
-    }
-    uint16_t Bitmap::Height() const {
-        return h;
-    }
-    uint32_t Bitmap::Length() const {
-        return 4u * w * h;
-    }
-    size_t Bitmap::ID() const {
-        return reinterpret_cast<size_t>(d);
-    }
+#pragma once
+#include <cstdint>
+
+namespace nl {
+    class bitmap {
+    public:
+        //Comparison operators, useful for containers
+        bool operator==(bitmap const &) const;
+        bool operator<(bitmap const &) const;
+        //Returns whether the bitmap is valid or merely null
+        explicit operator bool() const;
+        //This function decompresses the data on the fly
+        //Do not free the pointer returned by this method
+        //Every time this function is called
+        //any previous pointers returned by this method become invalid
+        void const * data() const;
+        uint16_t width() const;
+        uint16_t height() const;
+        uint32_t length() const;
+        //Returns a unique id, useful for keeping track of what bitmaps you loaded
+        size_t id() const;
+        //Internal variables
+        //They are only public so that the class may be Plain Old Data
+        void const * m_data;
+        uint16_t m_width, m_height;
+    private:
+        friend class node;
+    };
 }

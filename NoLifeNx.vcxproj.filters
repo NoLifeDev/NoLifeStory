@@ -11,42 +11,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="NX.cpp">
+    <ClCompile Include="nx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lz4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bitmap.cpp">
+    <ClCompile Include="bitmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Audio.cpp">
+    <ClCompile Include="audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Node.cpp">
+    <ClCompile Include="node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="File.cpp">
+    <ClCompile Include="file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="NX.hpp">
+    <ClInclude Include="nx.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lz4.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Bitmap.hpp">
+    <ClInclude Include="bitmap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Audio.hpp">
+    <ClInclude Include="audio.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Node.hpp">
+    <ClInclude Include="node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="File.hpp">
+    <ClInclude Include="file.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

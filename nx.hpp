@@ -16,21 +16,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "NX.hpp"
-namespace NL {
-    class Bitmap {
-    public:
-        bool operator==(Bitmap) const;
-        bool operator < (Bitmap) const;
-        operator bool() const;
-        void const * Data() const;
-        uint16_t Width() const;
-        uint16_t Height() const;
-        uint32_t Length() const;
-        size_t ID() const;
-        void const * d;
-        uint16_t w, h;
-    private:
-        friend Node;
-    };
+
+namespace nl {
+    class node;
+    namespace nx {
+        //Pre-defined nodes to access standard MapleStory style data
+        //Make sure you called load_all first
+        extern node base, character, effect, etc, item, map, mob, morph, npc, quest, reactor, skill, sound, string, tamingmob, ui;
+        //Loads the pre-defined nodes from a standard setup of nx files for MapleStory
+        //Only call this function once
+        void load_all();
+    }
 }

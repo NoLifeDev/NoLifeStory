@@ -15,20 +15,37 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
-#include "NX.hpp"
-namespace NL {
-    class Audio {
-    public:
-        bool operator==(Audio) const;
-        bool operator < (Audio) const;
-        operator bool() const;
-        void const * Data() const;
-        uint32_t Length() const;
-        size_t ID() const;
-        void const * d;
-        uint32_t l;
-    private:
-        friend Node;
-    };
+#include "bitmap.hpp"
+#include "lz4.hpp"
+#include <vector>
+namespace nl {
+    bool bitmap::operator<(bitmap const & o) const {
+        return m_data < o.m_data;
+    }
+    bool bitmap::operator==(bitmap const & o) const {
+        return m_data == o.m_data;
+    }
+    bitmap::operator bool() const {
+        return m_data ? true : false;
+    }
+    std::vector<uint8_t> buf;
+    void const * bitmap::data() const {
+        if (!m_data) return nullptr;
+        size_t const l {length()};
+        if (l + 0x20 > buf.size()) buf.resize(l + 0x20);
+        lz4::uncompress(reinterpret_cast<uint8_t const *>(m_data) + 4, buf.data(), l);
+        return buf.data();
+    }
+    uint16_t bitmap::width() const {
+        return m_width;
+    }
+    uint16_t bitmap::height() const {
+        return m_height;
+    }
+    uint32_t bitmap::length() const {
+        return 4u * m_width * m_height;
+    }
+    size_t bitmap::id() const {
+        return reinterpret_cast<size_t>(m_data);
+    }
 }

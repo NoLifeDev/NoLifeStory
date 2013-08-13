@@ -32,6 +32,6 @@ You can contact the author at :
 - LZ4 source repository : http://code.google.com/p/lz4/
 */
 // Modified by Peter Atashian
-namespace LZ4 {
-    void Uncompress(void const * source, void * dest, size_t osize);
+namespace lz4 {
+    void uncompress(void const * source, void * dest, size_t osize);
 }
