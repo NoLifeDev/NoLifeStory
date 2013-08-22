@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #include "file.hpp"
 #include "node.hpp"
 #ifdef _WIN32
@@ -27,6 +28,7 @@
 #  include <unistd.h>
 #endif
 #include <stdexcept>
+
 namespace nl {
     file::file(std::string name) {
 #ifdef _WIN32

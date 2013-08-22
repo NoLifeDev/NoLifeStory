@@ -15,9 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #include "bitmap.hpp"
 #include "lz4.hpp"
 #include <vector>
+
 namespace nl {
     bool bitmap::operator<(bitmap const & o) const {
         return m_data < o.m_data;

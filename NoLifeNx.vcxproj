@@ -37,7 +37,6 @@
     <ClCompile>
       <PrecompiledHeader />
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
-      <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
