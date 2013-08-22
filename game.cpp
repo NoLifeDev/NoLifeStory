@@ -15,7 +15,33 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-int main(int argc, char ** argv) {
-    NL::Game::Play();
+
+#include "game.hpp"
+
+namespace nl {
+    namespace game {
+        bool over {false};
+        void play() {
+            //Config::Load();
+            //LoadAllNX();
+            //Time::Init();
+            //Graphics::Init();
+            //Sprite::Init();
+            //ClassicUI::Init();
+            //Map::Init();
+            while (!over) {
+                //Player::Update();
+                //View::Update();
+                //Map::Render();
+                //ClassicUI::Render();
+                //Time::Update();
+                //Graphics::Update();
+            }
+            //BGM.stop();
+            //Graphics::Unload();
+            //Config::Save();
+            //if (Config::Threaded) SpriteMutex.unlock();
+            //sleep_for(seconds(1));//To let threads finish safely
+        }
+    }
 }

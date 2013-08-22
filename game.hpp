@@ -15,10 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    namespace Game {
-        extern bool Over;
-        void Play();
+
+namespace nl {
+    namespace game {
+        extern bool over;
+        void play();
     }
 }

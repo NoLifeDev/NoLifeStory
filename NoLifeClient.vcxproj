@@ -83,12 +83,11 @@
     <ClInclude Include="Background.hpp" />
     <ClInclude Include="Config.hpp" />
     <ClInclude Include="Foothold.hpp" />
-    <ClInclude Include="Game.hpp" />
+    <ClInclude Include="game.hpp" />
     <ClInclude Include="Graphics.hpp" />
     <ClInclude Include="Layer.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="Map.hpp" />
-    <ClInclude Include="NoLifeClient.hpp" />
     <ClInclude Include="Obj.hpp" />
     <ClInclude Include="Physics.hpp" />
     <ClInclude Include="Player.hpp" />
@@ -106,12 +105,12 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <ClCompile Include="Foothold.cpp" />
-    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="game.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Map.cpp" />
-    <ClCompile Include="NoLifeClient.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Obj.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Player.cpp" />

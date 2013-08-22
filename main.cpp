@@ -15,55 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#pragma once
-#define _USE_MATH_DEFINES
-//GLEW
-#include <GL/glew.h>
-//SFML
-#include <SFML/Window.hpp>
-#include <SFML/Network.hpp>
-#include <SFML/Audio.hpp>
-//C Standard Library
-#include <cstdint>
-//C++ Standard Library
-#include <array>
-#include <atomic>
-#include <chrono>
-#include <cmath>
-#include <deque>
-#include <fstream>
-#include <functional>
-#include <mutex>
-#include <random>
-#include <set>
-#include <string>
-#include <thread>
-#include <unordered_map>
-using namespace std;
-using namespace std::chrono;
-using namespace std::this_thread;
-//NoLifeNx (along with platform detection)
-#include "../NoLifeNx/NX.hpp"
-//Platform Specifics
-#ifdef NL_X11
-#  include <X11/Xlib.h>
-#endif
-//NoLifeClient
-#include "Log.hpp"
-#include "Config.hpp"
-#include "Sound.hpp"
-#include "Sprite.hpp"
-#include "View.hpp"
-#include "Foothold.hpp"
-#include "Game.hpp"
-#include "Map.hpp"
-#include "Graphics.hpp"
-#include "Time.hpp"
-#include "Obj.hpp"
-#include "Tile.hpp"
-#include "Background.hpp"
-#include "Layer.hpp"
-#include "Physics.hpp"
-#include "Player.hpp"
-#include "Portal.hpp"
-#include "ClassicUI.hpp"
+
+#include "game.hpp"
+
+int main(int argc, char ** argv) {
+    nl::game::play();
+}
