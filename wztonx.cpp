@@ -26,12 +26,16 @@
 #include <fstream>
 #include <codecvt>
 #include <vector>
-#include <queue>
+#include <deque>
 #include <map>
 #include <cstdint>
 #include <unordered_map>
+#include <algorithm>
 
 namespace nl {
+    typedef int32_t dirsize_t;
+    typedef uint16_t strsize_t;
+
     //Utility
     template <typename T> struct identity {
         T operator()(T const & v) const {
@@ -106,6 +110,14 @@ namespace nl {
         void skip(ptrdiff_t n) {
             offset += n;
         }
+        template <typename T> void write(T const & v) {
+            *reinterpret_cast<T *>(offset) = v;
+            offset += sizeof(T);
+        }
+        void write(void * buf, uint64_t size) {
+            memcpy(offset, buf, size);
+            offset += size;
+        }
     }
 
     //Memory allocation
@@ -127,16 +139,17 @@ namespace nl {
         }
     }
     //Node stuff
+#pragma pack(push, 1)
     struct node {
         enum class type : uint16_t {
             none = 0,
-            integer = 1,
-            real = 2,
-            string = 3,
-            vector = 4,
-            bitmap = 5,
-            audio = 6,
-            uol = 7
+                integer = 1,
+                real = 2,
+                string = 3,
+                vector = 4,
+                bitmap = 5,
+                audio = 6,
+                uol = 7
         };
         node() : name {0}, children {0}, num {0}, data_type {type::none} {}
         uint32_t name;
@@ -159,9 +172,9 @@ namespace nl {
             };
         };
     };
-    node * root_node {nullptr};
+#pragma pack(pop)
     std::vector<node> nodes {1};
-
+    std::vector<std::pair<uint32_t, int32_t>> nodes_to_sort;
     //String stuff
     struct string {
         char * data;
@@ -188,10 +201,10 @@ namespace nl {
         auto & id = string_map[hash];
         if (id != 0) return id;
         id = static_cast<uint32_t>(strings.size());
-        strings.push_back( {alloc::small(size), size});
+        strings.push_back({alloc::small(size), size});
         memcpy(strings.back().data, data, size);
         //For debugging purposes
-        //std::cout.write(data, size).put('\n');
+        //std::cerr.write(data, size).put('\n');
         return id;
     }
     uint32_t read_enc_string() {
@@ -241,7 +254,7 @@ namespace nl {
                 uint32_t s {read_enc_string()};
                 in::seek(p);
                 return s;
-            }
+                 }
         default:
             throw std::runtime_error {"Unknown property string type: " + std::to_string(a)};
         }
@@ -266,16 +279,29 @@ namespace nl {
         in::skip(len);
     }
 
-    std::queue<uint32_t> directories;
-    std::queue<std::pair<uint32_t, uint32_t>> imgs;
+    std::deque<uint32_t> directories;
+    std::deque<std::pair<uint32_t, dirsize_t>> imgs;
     ptrdiff_t file_start;
 
+    void sort_nodes(uint32_t first, int32_t count) {
+        std::sort(nodes.begin() + first, nodes.begin() + first + count, [](node const & n1, node const & n2) {
+            string const & s1 {strings[n1.name]};
+            string const & s2 {strings[n2.name]};
+            int n {strncmp(s1.data, s2.data, std::min(s1.size, s2.size))};
+            if (n < 0) return true;
+            if (n > 0) return false;
+            if (s1.size < s2.size) return true;
+            if (s1.size > s2.size) return false;
+            throw std::runtime_error {"Identical strings. This is baaaaaaaaaaaaaad"};
+        });
+    }
     void directory(uint32_t dir_node) {
         node & n {nodes[dir_node]};
-        uint16_t count {static_cast<uint16_t>(in::read_cint())};
+        int32_t count {in::read_cint()};
+        uint32_t ni {static_cast<uint32_t>(nodes.size())};
         n.num = count;
-        n.children = static_cast<uint32_t>(nodes.size());
-        for (uint16_t i = 0; i < count; ++i) {
+        n.children = ni;
+        for (uint32_t i = 0; i < count; ++i) {
             nodes.emplace_back();
             node & nn {nodes.back()};
             uint8_t type {in::read<uint8_t>()};
@@ -291,7 +317,7 @@ namespace nl {
                     nn.name = read_enc_string();
                     in::seek(p);
                     break;
-                }
+                  }
             case 3:
             case 4:
                 nn.name = read_enc_string();
@@ -299,105 +325,111 @@ namespace nl {
             default:
                 throw std::runtime_error {"Unknown directory type"};
             }
-            uint32_t size {static_cast<uint32_t>(in::read_cint())};
+            dirsize_t size {in::read_cint()};
+            if (size <= 0) throw std::runtime_error {"Directory/img has invalid size!"};
             in::read_cint();//Checksum that nobody cares about
             in::skip(4);
-            if (type == 3) directories.push(static_cast<uint32_t>(nodes.size() - 1));
-            else if (type == 4) imgs.push(std::pair<uint32_t, uint32_t>(static_cast<uint32_t>(nodes.size() - 1), size));
+            if (type == 3) directories.push_back(ni + i);
+            else if (type == 4) imgs.emplace_back(ni + i, size);
             else throw std::runtime_error {"Unknown type 2 directory"};
         }
+        nodes_to_sort.emplace_back(ni, count);
     }
-    /*
-    void SubProperty(uint32_t node, uint64_t offset);
-    void ExtendedProperty(uint32_t node, uint64_t offset) {
-        Node & n = Nodes[node];
-        uint32_t s = ReadPropString(offset);
-        String st = Strings[s];
+    void sub_property(uint32_t, ptrdiff_t);
+    void extended_property(uint32_t prop_node, uint64_t offset) {
+        node & n {nodes[prop_node]};
+        uint32_t s {read_prop_string(offset)};
+        string const & st {strings[s]};
         if (!strncmp(st.data, "Property", st.size)) {
-            InSkip(2);
-            SubProperty(node, offset);
+            in::skip(2);
+            sub_property(prop_node, offset);
         } else if (!strncmp(st.data, "Canvas", st.size)) {
-            InSkip(1);
-            if (Read<uint8_t>() == 1) {
-                InSkip(2);
-                SubProperty(node, offset);
+            in::skip(1);
+            if (in::read<uint8_t>() == 1) {
+                in::skip(2);
+                sub_property(prop_node, offset);
             }
-            //Canvas stuff
+            //Canvas stuff todo later
         } else if (!strncmp(st.data, "Shape2D#Vector2D", st.size)) {
-            n.type = Type::vector;
-            n.vector[0] = ReadCInt();
-            n.vector[1] = ReadCInt();
+            n.data_type = node::type::vector;
+            n.vector[0] = in::read_cint();
+            n.vector[1] = in::read_cint();
         } else if (!strncmp(st.data, "Shape2D#Convex2D", st.size)) {
-            int32_t ec = ReadCInt();
-            uint32_t ni = NumNodes;
-            NumNodes += ec;
-            for (int i = 0; i < ec; ++i, ++ni) {
-                Node & nn = Nodes[ni];
-                string es = to_string(i);
-                nn.name = AddString(es.c_str(), static_cast<uint16_t>(es.size()));
-                ExtendedProperty(ni, offset);
+            int32_t count {in::read_cint()};
+            uint32_t ni {static_cast<uint32_t>(nodes.size())};
+            nodes.resize(nodes.size() + count);
+            for (uint32_t i = 0; i < count; ++i) {
+                node & nn {nodes[ni + i]};
+                std::string es {std::to_string(i)};
+                nn.name = add_string(es.c_str(), static_cast<uint16_t>(es.size()));
+                extended_property(ni, offset);
             }
+            nodes_to_sort.emplace_back(ni, count);
         } else if (!strncmp(st.data, "Sound_DX8", st.size)) {
             //Audio stuff
         } else if (!strncmp(st.data, "UOL", st.size)) {
-            n.type = Type::uol;
-            n.string = ReadPropString(offset);
-        } else die("Unknown ExtendedProperty type");
+            n.data_type = node::type::uol;
+            n.string = read_prop_string(offset);
+        } else throw std::runtime_error {"Unknown sub property type: " + std::string {st.data, st.size}};
     }
-    void SubProperty(uint32_t node, uint64_t offset) {
-        int32_t count = ReadCInt();
-        uint32_t ni = NumNodes;
-        NumNodes += count;
-        Node & n = Nodes[node];
+    void sub_property(uint32_t prop_node, ptrdiff_t offset) {
+        int32_t count {in::read_cint()};
+        node & n {nodes[prop_node]};
+        uint32_t ni {static_cast<uint32_t>(nodes.size())};
         n.num = count;
         n.children = ni;
-        for (int i = 0; i < count; ++i, ++ni) {
-            Node & nn = Nodes[ni];
-            nn.name = ReadPropString(offset);
-            uint8_t type = Read<uint8_t>();
+        nodes.resize(nodes.size() + count);
+        for (uint32_t i = 0; i < count; ++i) {
+            node & nn {nodes[ni + i]};
+            nn.name = read_prop_string(offset);
+            uint8_t type {in::read<uint8_t>()};
             switch (type) {
-            case 0x00:
-                nn.type = Type::ireal;
-                nn.ireal = i;
+            case 0x00://Turning null nodes into integers with an id. Useful for zmap.img
+                nn.data_type = node::type::integer;
+                nn.integer = i;
                 break;
             case 0x0B:
             case 0x02:
-                nn.type = Type::ireal;
-                nn.ireal = Read<uint16_t>();
+                nn.data_type = node::type::integer;
+                nn.integer = in::read<uint16_t>();
                 break;
             case 0x03:
-                nn.type = Type::ireal;
-                nn.ireal = ReadCInt();
+                nn.data_type = node::type::integer;
+                nn.integer = in::read_cint();
                 break;
             case 0x04:
-                nn.type = Type::dreal;
-                if (Read<uint8_t>() == 0x80) nn.dreal = Read<float>();
-                else nn.dreal = 0.f;
+                nn.data_type = node::type::real;
+                nn.real = in::read<uint8_t>() == 0x80 ? in::read<float>() : 0.;
                 break;
             case 0x05:
-                nn.type = Type::dreal;
-                nn.dreal = Read<double>();
+                nn.data_type = node::type::real;
+                nn.real = in::read<double>();
                 break;
             case 0x08:
-                nn.type = Type::string;
-                nn.string = ReadPropString(offset);
+                nn.data_type = node::type::string;
+                nn.string = read_prop_string(offset);
                 break;
-            case 0x09:{
-                uint64_t p = Read<uint32_t>() + InTell();
-                ExtendedProperty(ni, offset);
-                InSeek(p);
-                break; }
+            case 0x09:
+                {
+                    ptrdiff_t p {in::read<uint32_t>() + in::tell()};
+                    extended_property(ni + i, offset);
+                    in::seek(p);
+                    break;
+                     }
+            default:
+                throw std::runtime_error {"Unknown sub property type: " + std::to_string(type)};
             }
         }
+        nodes_to_sort.emplace_back(ni, count);
     }
-    void Img(uint32_t node, uint32_t size) {
-        uint64_t p = InTell();
-        InSkip(1);
-        DeduceKey();
-        InSkip(2);
-        SubProperty(node, p);
-        InSeek(p + size);
-    }*/
+    void img(uint32_t img_node, dirsize_t size) {
+        ptrdiff_t p {in::tell()};
+        in::skip(1);
+        deduce_key();
+        in::skip(2);
+        sub_property(img_node, p);
+        in::seek(p + size);
+    }
     void wztonx(std::string filename) {
         in::open(filename);
         filename.erase(filename.find_last_of('.')).append(".nx");
@@ -411,21 +443,48 @@ namespace nl {
         deduce_key();
         in::seek(file_start + 2);
         add_string("", 0);
-        directories.emplace(0);
+        directories.push_back(0);
         while (!directories.empty()) {
             directory(directories.front());
-            directories.pop();
+            directories.pop_front();
         }
         while (!imgs.empty()) {
-            //Img(Imgs.front().first, Imgs.front().second);
-            imgs.pop();
+            img(imgs.front().first, imgs.front().second);
+            imgs.pop_front();
         }
-        out::open(filename, 0x100);
+        //Parse uols here. todo.
+        for (auto const & n : nodes_to_sort) sort_nodes(n.first, n.second);
+        uint64_t size = 52 + nodes.size() * 20 + strings.size() * 10;
+        ptrdiff_t node_offset = 52;
+        ptrdiff_t string_table_offset = 52 + nodes.size() * 20;
+        ptrdiff_t string_offset = 52 + nodes.size() * 20 + strings.size() * 8;
+        for (auto const & s : strings) size += s.size;
+        out::open(filename, size);
+        out::seek(0);
+        out::write<uint32_t>(0x34474B50);
+        out::write<uint32_t>(nodes.size());
+        out::write<uint64_t>(node_offset);
+        out::write<uint32_t>(strings.size());
+        out::write<uint64_t>(string_table_offset);
+        out::seek(node_offset);
+        out::write(nodes.data(), nodes.size() * 20);
+        out::seek(string_table_offset);
+        ptrdiff_t next_str {string_offset};
+        for (auto const & s : strings) {
+            out::write<uint64_t>(next_str);
+            next_str += s.size + 2;
+        }
+        out::seek(string_offset);
+        for (auto const & s : strings) {
+            out::write<uint16_t>(s.size);
+            out::write(s.data, s.size);
+        }
         out::close();
         in::close();
     }
 }
 int main(int argc, char ** argv) {
+    std::freopen("dump.txt", "w", stderr);
     clock_t t1 {clock()};
     if (argc > 1) nl::wztonx(argv[1]);
     else nl::wztonx("Data.wz");
