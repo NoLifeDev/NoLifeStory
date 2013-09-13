@@ -295,6 +295,45 @@ namespace nl {
             throw std::runtime_error {"Identical strings. This is baaaaaaaaaaaaaad"};
         });
     }
+    std::vector<string> resolve_path;
+    void resolve_uols(uint32_t uol_node) {
+        node & n {nodes[uol_node]};
+        if (n.data_type == node::type::uol) {
+            std::vector<string> path {resolve_path};
+            string & s {strings[n.string]};
+            uint16_t b {0};
+            for (uint16_t i {0}; i < s.size; ++i) {
+                if (s.data[i] == '/') {
+                    if (i - b == 2 && strncmp(s.data + b, "..", 2) == 0) path.pop_back();
+                    else path.push_back({s.data + b, i - b});
+                    b = ++i;
+                }
+            }
+            path.push_back({s.data + b, s.size - b});
+            uint32_t search {0};
+            for (string & s : path) {
+                node & n {nodes[search]};
+                for (uint32_t i {n.children}; i < n.children + n.num; ++i) {
+                    node & nn {nodes[i]};
+                    string & ss {strings[nn.name]};
+                    if (s.size == ss.size && strncmp(s.data, ss.data, s.size) == 0) {
+                        search = i;
+                        break;
+                    }
+                }
+            }
+            node & nn {nodes[search]};
+            n.data_type = nn.data_type;
+            n.children = nn.children;
+            n.num = nn.num;
+            n.integer = nn.integer;//Simply copies the whole value. It's a union anyway
+            //Note, we do not copy the name
+        } else {
+            if (uol_node) resolve_path.push_back(strings[n.name]);//Ignore the root node
+            for (uint32_t i {0}; i < n.num; ++i) resolve_uols(n.children + i);
+            if (uol_node) resolve_path.pop_back();
+        }
+    }
     void directory(uint32_t dir_node) {
         node & n {nodes[dir_node]};
         int32_t count {in::read_cint()};
@@ -368,6 +407,7 @@ namespace nl {
         } else if (!strncmp(st.data, "Sound_DX8", st.size)) {
             //Audio stuff
         } else if (!strncmp(st.data, "UOL", st.size)) {
+            in::skip(1);
             n.data_type = node::type::uol;
             n.string = read_prop_string(offset);
         } else throw std::runtime_error {"Unknown sub property type: " + std::string {st.data, st.size}};
@@ -409,13 +449,12 @@ namespace nl {
                 nn.data_type = node::type::string;
                 nn.string = read_prop_string(offset);
                 break;
-            case 0x09:
-                {
-                    ptrdiff_t p {in::read<uint32_t>() + in::tell()};
-                    extended_property(ni + i, offset);
-                    in::seek(p);
-                    break;
-                     }
+            case 0x09:{
+                ptrdiff_t p {in::read<uint32_t>() + in::tell()};
+                extended_property(ni + i, offset);
+                in::seek(p);
+                break;
+                      }
             default:
                 throw std::runtime_error {"Unknown sub property type: " + std::to_string(type)};
             }
@@ -443,31 +482,41 @@ namespace nl {
         deduce_key();
         in::seek(file_start + 2);
         add_string("", 0);
+        std::cout << "Opened file" << std::endl;
         directories.push_back(0);
         while (!directories.empty()) {
             directory(directories.front());
             directories.pop_front();
         }
+        std::cout << "Parsed directories" << std::endl;
         while (!imgs.empty()) {
             img(imgs.front().first, imgs.front().second);
             imgs.pop_front();
         }
-        //Parse uols here. todo.
+        std::cout << "Parsed images" << std::endl;
+        resolve_uols(0);
         for (auto const & n : nodes_to_sort) sort_nodes(n.first, n.second);
-        uint64_t size = 52 + nodes.size() * 20 + strings.size() * 10;
+        std::cout << "Node cleanup finished" << std::endl;
         ptrdiff_t node_offset = 52;
-        ptrdiff_t string_table_offset = 52 + nodes.size() * 20;
-        ptrdiff_t string_offset = 52 + nodes.size() * 20 + strings.size() * 8;
-        for (auto const & s : strings) size += s.size;
-        out::open(filename, size);
+        node_offset += 0x10 - (node_offset & 0xf);
+        ptrdiff_t string_table_offset = node_offset + nodes.size() * 20;
+        string_table_offset += 0x10 - (string_table_offset & 0xf);
+        ptrdiff_t string_offset = string_table_offset + strings.size() * 8;
+        string_offset += 0x10 - (string_offset & 0xf);
+        ptrdiff_t bitmap_table_offset = string_offset;
+        for (auto const & s : strings) bitmap_table_offset += s.size;
+        bitmap_table_offset += 0x10 - (bitmap_table_offset & 0xf);
+        out::open(filename, bitmap_table_offset);
         out::seek(0);
         out::write<uint32_t>(0x34474B50);
         out::write<uint32_t>(nodes.size());
         out::write<uint64_t>(node_offset);
         out::write<uint32_t>(strings.size());
         out::write<uint64_t>(string_table_offset);
+        std::cout << "Opened output" << std::endl;
         out::seek(node_offset);
         out::write(nodes.data(), nodes.size() * 20);
+        std::cout << "Wrote nodes" << std::endl;
         out::seek(string_table_offset);
         ptrdiff_t next_str {string_offset};
         for (auto const & s : strings) {
@@ -479,12 +528,13 @@ namespace nl {
             out::write<uint16_t>(s.size);
             out::write(s.data, s.size);
         }
+        std::cout << "Wrote strings" << std::endl;
         out::close();
         in::close();
+        std::cout << "Done" << std::endl;
     }
 }
 int main(int argc, char ** argv) {
-    std::freopen("dump.txt", "w", stderr);
     clock_t t1 {clock()};
     if (argc > 1) nl::wztonx(argv[1]);
     else nl::wztonx("Data.wz");
