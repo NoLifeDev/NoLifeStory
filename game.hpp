@@ -17,10 +17,14 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <memory>
 
 namespace nl {
-    namespace game {
-        extern bool over;
-        void play();
-    }
+    struct game_internal;
+    class game {
+    public:
+        game();
+    private:
+        std::unique_ptr<game_internal> m;
+    };
 }

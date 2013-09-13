@@ -19,29 +19,35 @@
 #include "game.hpp"
 
 namespace nl {
-    namespace game {
-        bool over {false};
-        void play() {
-            //Config::Load();
-            //LoadAllNX();
-            //Time::Init();
-            //Graphics::Init();
-            //Sprite::Init();
-            //ClassicUI::Init();
-            //Map::Init();
-            while (!over) {
-                //Player::Update();
-                //View::Update();
-                //Map::Render();
-                //ClassicUI::Render();
-                //Time::Update();
-                //Graphics::Update();
-            }
-            //BGM.stop();
-            //Graphics::Unload();
-            //Config::Save();
-            //if (Config::Threaded) SpriteMutex.unlock();
-            //sleep_for(seconds(1));//To let threads finish safely
+    struct game_internal {
+        game_internal() {
+
         }
-    }
+    };
+    game::game() : m {new game_internal {}} {}
+    //namespace game {
+    //    bool over {false};
+    //    void play() {
+    //        Config::Load();
+    //        LoadAllNX();
+    //        Time::Init();
+    //        Graphics::Init();
+    //        Sprite::Init();
+    //        ClassicUI::Init();
+    //        Map::Init();
+    //        while (!over) {
+    //            Player::Update();
+    //            View::Update();
+    //            Map::Render();
+    //            ClassicUI::Render();
+    //            Time::Update();
+    //            Graphics::Update();
+    //        }
+    //        BGM.stop();
+    //        Graphics::Unload();
+    //        Config::Save();
+    //        if (Config::Threaded) SpriteMutex.unlock();
+    //        sleep_for(seconds(1));//To let threads finish safely
+    //    }
+    //}
 }

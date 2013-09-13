@@ -43,11 +43,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <PrecompiledHeader />
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <DisableLanguageExtensions>true</DisableLanguageExtensions>
       <PreprocessorDefinitions>SFML_STATIC;GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -70,7 +71,6 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
