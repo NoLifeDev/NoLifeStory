@@ -1,50 +1,50 @@
 [submodule "NoLifeChannel"]
-	path = NoLifeChannel
+	path = channel
 	url = https://github.com/NoLifeDev/NoLifeChannel.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeClient"]
-	path = NoLifeClient
+	path = client
 	url = https://github.com/NoLifeDev/NoLifeClient.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeIRC"]
-	path = NoLifeIRC
+	path = irc
 	url = https://github.com/NoLifeDev/NoLifeIRC.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeLogin"]
-	path = NoLifeLogin
+	path = login
 	url = https://github.com/NoLifeDev/NoLifeLogin.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeNx"]
-	path = NoLifeNx
+	path = nx
 	url = https://github.com/NoLifeDev/NoLifeNx.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeNxBench"]
-	path = NoLifeNxBench
+	path = nxbench
 	url = https://github.com/NoLifeDev/NoLifeNxBench.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeProtocol"]
-	path = NoLifeProtocol
+	path = protocol
 	url = https://github.com/NoLifeDev/NoLifeProtocol.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeTrade"]
-	path = NoLifeTrade
+	path = trade
 	url = https://github.com/NoLifeDev/NoLifeTrade.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeWorld"]
-	path = NoLifeWorld
+	path = world
 	url = https://github.com/NoLifeDev/NoLifeWorld.git
 	update = merge
 	ignore = dirty
 [submodule "NoLifeWzToNx"]
-	path = NoLifeWzToNx
+	path = wztonx
 	url = https://github.com/NoLifeDev/NoLifeWzToNx.git
 	update = merge
 	ignore = dirty
