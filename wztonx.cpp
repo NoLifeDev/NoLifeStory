@@ -313,13 +313,19 @@ namespace nl {
             uint32_t search {0};
             for (string & s : path) {
                 node & n {nodes[search]};
+                bool found {false};
                 for (uint32_t i {n.children}; i < n.children + n.num; ++i) {
                     node & nn {nodes[i]};
                     string & ss {strings[nn.name]};
                     if (s.size == ss.size && strncmp(s.data, ss.data, s.size) == 0) {
                         search = i;
+                        found = true;
                         break;
                     }
+                }
+                if (!found) {//Damnit Nexon, get your shit together
+                    n.data_type = node::type::none;
+                    return;
                 }
             }
             node & nn {nodes[search]};
@@ -503,7 +509,7 @@ namespace nl {
         string_table_offset += 0x10 - (string_table_offset & 0xf);
         ptrdiff_t string_offset = string_table_offset + strings.size() * 8;
         string_offset += 0x10 - (string_offset & 0xf);
-        ptrdiff_t bitmap_table_offset = string_offset;
+        ptrdiff_t bitmap_table_offset = string_offset + strings.size() * 2;
         for (auto const & s : strings) bitmap_table_offset += s.size;
         bitmap_table_offset += 0x10 - (bitmap_table_offset & 0xf);
         out::open(filename, bitmap_table_offset);
