@@ -32,9 +32,9 @@
 namespace nl {
     file::file(std::string name) {
 #ifdef _WIN32
-        m_file = CreateFileA(name.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, 0);
+        m_file = CreateFileA(name.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, nullptr);
         if (m_file == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + name};
-        m_map = CreateFileMappingA(m_file, 0, PAGE_READONLY, 0, 0, 0);
+        m_map = CreateFileMappingA(m_file, 0, PAGE_READONLY, 0, 0, nullptr);
         if (!m_map) throw std::runtime_error {"Failed to create file mapping of file " + name};
         m_base = MapViewOfFile(m_map, FILE_MAP_READ, 0, 0, 0);
         if (!m_base) throw std::runtime_error {"Failed to map view of file " + name};
@@ -44,7 +44,7 @@ namespace nl {
         struct stat finfo;
         if (fstat(m_file, &finfo) == -1) throw std::runtime_error {"Failed to obtain file information of file " + name};
         m_size = finfo.st_size;
-        m_base = mmap(nullptr, m_size, PROT_READ, MAP_SHARED, file_handle, 0);
+        m_base = mmap(nullptr, m_size, PROT_READ, MAP_SHARED, m_file, 0);
         if (reinterpret_cast<intptr_t>(m_base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + name};
 #endif
         m_header = reinterpret_cast<header const *>(m_base);
