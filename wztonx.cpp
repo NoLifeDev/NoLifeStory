@@ -80,7 +80,7 @@ namespace nl {
             struct stat finfo;
             if (fstat(file_handle, &finfo) == -1) throw std::runtime_error {"Failed to obtain file information of file " + p};
             file_size = finfo.st_size;
-            base = mmap(nullptr, file_size, PROT_READ, MAP_SHARED, file_handle, 0);
+            base = reinterpret_cast<char const *>(mmap(nullptr, file_size, PROT_READ, MAP_SHARED, file_handle, 0));
             if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + p};
             offset = base;
         }
@@ -135,7 +135,7 @@ namespace nl {
             file_handle = ::open(p.c_str(), O_RDWR | O_CREAT | O_TRUNC);
             if (file_handle == -1) throw std::runtime_error {"Failed to open file " + p};
             file_size = size;
-            base = mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0);
+            base = reinterpret_cast<char *>(mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0));
             if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + p};
             offset = base;
         }
