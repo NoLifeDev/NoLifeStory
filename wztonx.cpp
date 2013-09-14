@@ -16,11 +16,18 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-#define NOMINMAX
-
-#include <Windows.h>
+#ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
+#  define VC_EXTRALEAN
+#  define NOMINMAX
+#  include <Windows.h>
+#else
+#  include <sys/types.h>
+#  include <sys/stat.h>
+#  include <sys/fcntl.h>
+#  include <sys/mman.h>
+#  include <unistd.h>
+#endif
 
 #include <iostream>
 #include <fstream>
@@ -45,17 +52,18 @@ namespace nl {
 
     //File stuff
     namespace in {
-        void * file_handle;
-        void * map_handle;
         char const * base;
         char const * offset;
+#ifdef _WIN32
+        void * file_handle;
+        void * map_handle;
         void open(std::string p) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open input file handle"};
+            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
             map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
-            if (map_handle == nullptr) throw std::runtime_error {"Failed to create an input file mapping"};
+            if (map_handle == nullptr) throw std::runtime_error {"Failed to create file mapping of file " + p};
             base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_READ, 0, 0, 0));
-            if (base == nullptr) throw std::runtime_error {"Failed to map a view of the input file"};
+            if (base == nullptr) throw std::runtime_error {"Failed to map view of file " + p};
             offset = base;
         }
         void close() {
@@ -63,6 +71,24 @@ namespace nl {
             CloseHandle(map_handle);
             CloseHandle(file_handle);
         }
+#else
+        int file_handle;
+        size_t file_size;
+        void open(std::string p) {
+            file_handle = ::open(p.c_str(), O_RDONLY);
+            if (file_handle == -1) throw std::runtime_error {"Failed to open file " + p};
+            struct stat finfo;
+            if (fstat(file_handle, &finfo) == -1) throw std::runtime_error {"Failed to obtain file information of file " + p};
+            file_size = finfo.st_size;
+            base = mmap(nullptr, file_size, PROT_READ, MAP_SHARED, file_handle, 0);
+            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + p};
+            offset = base;
+        }
+        void close() {
+            munmap(const_cast<char *>(base), file_size);
+            ::close(file_handle);
+        }
+#endif
         ptrdiff_t tell() {
             return offset - base;
         }
@@ -83,17 +109,18 @@ namespace nl {
         }
     }
     namespace out {
-        void * file_handle;
-        void * map_handle;
         char * base;
         char * offset;
-        void open(std::string & p, uint64_t size) {
+#ifdef _WIN32
+        void * file_handle;
+        void * map_handle;
+        void open(std::string p, uint64_t size) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
-            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open output file handle"};
+            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
             map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READWRITE, size >> 32, size & 0xffffffff, nullptr);
-            if (map_handle == nullptr) throw std::runtime_error {"Failed to create an output file mapping"};
+            if (map_handle == nullptr) throw std::runtime_error {"Failed to create file mapping of file " + p};
             base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_ALL_ACCESS, 0, 0, 0));
-            if (base == nullptr) throw std::runtime_error {"Failed to map a view of the output file"};
+            if (base == nullptr) throw std::runtime_error {"Failed to map view of file " + p};
             offset = base;
         }
         void close() {
@@ -101,6 +128,22 @@ namespace nl {
             CloseHandle(map_handle);
             CloseHandle(file_handle);
         }
+#else
+        int file_handle;
+        size_t file_size;
+        void open(std::string p, uint64_t size) {
+            file_handle = ::open(p.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+            if (file_handle == -1) throw std::runtime_error {"Failed to open file " + p};
+            file_size = size;
+            base = mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0);
+            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + p};
+            offset = base;
+        }
+        void close() {
+            munmap(const_cast<char *>(base), file_size);
+            ::close(file_handle);
+        }
+#endif
         ptrdiff_t tell() {
             return offset - base;
         }
