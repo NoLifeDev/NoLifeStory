@@ -226,7 +226,7 @@ namespace nl {
     std::unordered_map<uint32_t, uint32_t, identity<uint64_t>> string_map;
     std::vector<string> strings;
     char16_t wstr_buf[0x8000];
-    char str_buf[0x10000];
+    uint8_t str_buf[0x10000];
     std::codecvt_utf8<char16_t> convert;
     extern uint8_t key_bms[65536];
     extern uint8_t key_gms[65536];
@@ -234,9 +234,9 @@ namespace nl {
     uint8_t const (*const keys[3])[65536]{&key_bms, &key_gms, &key_kms};
     uint8_t const (*cur_key)[65536]{nullptr};
 
-    uint32_t add_string(char const * data, uint16_t size) {
+    uint32_t add_string(uint8_t const * data, uint16_t size) {
         uint32_t hash {2166136261UL};
-        char const * s {data};
+        uint8_t const * s {data};
         for (size_t i {size}; i; --i, ++s) {
             hash ^= static_cast<uint32_t>(*s);
             hash *= 16777619UL;
@@ -266,14 +266,14 @@ namespace nl {
             mbstate_t state {};
             const char16_t * fnext {};
             char * tnext {};
-            convert.out(state, wstr_buf, wstr_buf + len, fnext, str_buf, str_buf + 0x10000, tnext);
-            len = static_cast<int32_t>(tnext - str_buf);
+            convert.out(state, wstr_buf, wstr_buf + len, fnext, reinterpret_cast<char *>(str_buf), reinterpret_cast<char *>(str_buf)+0x10000, tnext);
+            len = static_cast<int32_t>(tnext - reinterpret_cast<char *>(str_buf));
         } else {
             if (len == -128) len = in::read<int32_t>();
             else len = -len;
-            char const * os {in::offset};
+            uint8_t const * os {reinterpret_cast<uint8_t const *>(in::offset)};
             in::skip(len);
-            char * s {str_buf};
+            uint8_t * s {str_buf};
             uint8_t mask {0xAA};
             uint8_t const * key {*cur_key};
             for (int32_t i {len}; i; --i, ++mask, ++os, ++s, ++key) {
@@ -308,12 +308,12 @@ namespace nl {
         else len = -len;
         cur_key = nullptr;
         for (auto key : keys) {
-            char const * os {in::offset};
+            uint8_t const * os {reinterpret_cast<uint8_t const *>(in::offset)};
             uint8_t mask {0xAA};
             uint8_t const * k {*key};
             bool valid {true};
             for (int32_t i {len}; i; --i && valid, ++mask, ++os, ++k) {
-                char c {*os ^ *k ^ mask};
+                uint8_t c {*os ^ *k ^ mask};
                 if (!isalnum(c, std::locale::classic()) && c != '.') valid = false;
             }
             if (valid) cur_key = key;
@@ -348,11 +348,11 @@ namespace nl {
             for (uint16_t i {0}; i < s.size; ++i) {
                 if (s.data[i] == '/') {
                     if (i - b == 2 && strncmp(s.data + b, "..", 2) == 0) path.pop_back();
-                    else path.push_back({s.data + b, i - b});
+                    else path.push_back({s.data + b, static_cast<uint16_t>(i - b)});
                     b = ++i;
                 }
             }
-            path.push_back({s.data + b, s.size - b});
+            path.push_back({s.data + b, static_cast<uint16_t>(s.size - b)});
             uint32_t search {0};
             for (string & s : path) {
                 node & n {nodes[search]};
@@ -522,7 +522,7 @@ namespace nl {
         in::open(filename);
         filename.erase(filename.find_last_of('.')).append(".nx");
         uint32_t magic {in::read<uint32_t>()};
-        if (magic != *reinterpret_cast<uint32_t *>("PKG1")) throw std::runtime_error {"Not a valid WZ file"};
+        if (magic != *reinterpret_cast<uint32_t const *>("PKG1")) throw std::runtime_error {"Not a valid WZ file"};
         in::skip(8);
         file_start = in::read<uint32_t>();
         in::seek(file_start + 2);
