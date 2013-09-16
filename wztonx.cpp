@@ -42,6 +42,8 @@
 namespace nl {
     typedef int32_t dirsize_t;
     typedef uint16_t strsize_t;
+    typedef char char_t;
+    typedef uint32_t node_t;
 
     //Utility
     template <typename T> struct identity {
@@ -58,12 +60,12 @@ namespace nl {
         void * file_handle;
         void * map_handle;
         void open(std::string p) {
-            file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
-            map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
-            if (map_handle == nullptr) throw std::runtime_error {"Failed to create file mapping of file " + p};
-            base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_READ, 0, 0, 0));
-            if (base == nullptr) throw std::runtime_error {"Failed to map view of file " + p};
+            (file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr)) == INVALID_HANDLE_VALUE ? throw std::runtime_error {"Failed to open file " + p} : 0;
+            if ((map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr)) == nullptr)
+                throw std::runtime_error {"Failed to create file mapping of file " + p};
+            
+            if ((base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_READ, 0, 0, 0))) == nullptr)
+                throw std::runtime_error {"Failed to map view of file " + p};
             offset = base;
         }
         void close() {
@@ -114,7 +116,7 @@ namespace nl {
 #ifdef _WIN32
         void * file_handle;
         void * map_handle;
-        void open(std::string p, uint64_t size) {
+        void open(std::string p, size_t size) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
             if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
             map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READWRITE, size >> 32, size & 0xffffffff, nullptr);
@@ -157,7 +159,7 @@ namespace nl {
             *reinterpret_cast<T *>(offset) = v;
             offset += sizeof(T);
         }
-        void write(void * buf, uint64_t size) {
+        void write(void * buf, size_t size) {
             memcpy(offset, buf, size);
             offset += size;
         }
@@ -522,7 +524,7 @@ namespace nl {
         in::open(filename);
         filename.erase(filename.find_last_of('.')).append(".nx");
         uint32_t magic {in::read<uint32_t>()};
-        if (magic != *reinterpret_cast<uint32_t const *>("PKG1")) throw std::runtime_error {"Not a valid WZ file"};
+        if (magic != 0x31474B50) throw std::runtime_error {"Not a valid WZ file"};
         in::skip(8);
         file_start = in::read<uint32_t>();
         in::seek(file_start + 2);
@@ -562,6 +564,11 @@ namespace nl {
         out::write<uint64_t>(node_offset);
         out::write<uint32_t>(strings.size());
         out::write<uint64_t>(string_table_offset);
+        //No bitmap or audio support yet
+        out::write<uint32_t>(0);
+        out::write<uint64_t>(0);
+        out::write<uint32_t>(0);
+        out::write<uint64_t>(0);
         std::cout << "Opened output" << std::endl;
         out::seek(node_offset);
         out::write(nodes.data(), nodes.size() * 20);
