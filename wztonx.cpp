@@ -200,26 +200,27 @@ namespace nl {
                 audio = 6,
                 uol = 7
         };
-        node() : name {0}, children {0}, num {0}, data_type {type::none}, integer {0} {}
+        node() : name {0}, children {0}, num {0}, data_type {type::none}, data {} {}
         uint32_t name;
         uint32_t children;
         uint16_t num;
         type data_type;
-        union {
+        union _data {
+            _data() : integer {0} {}
             int64_t integer;
             double real;
             uint32_t string;
             int32_t vector[2];
-            struct bitmap {
+            struct _bitmap {
                 uint32_t id;
                 uint16_t width;
                 uint16_t height;
-            };
-            struct audio {
+            } bitmap;
+            struct _audio {
                 uint32_t id;
                 uint32_t length;
-            };
-        };
+            } audio;
+        } data;
     };
 #pragma pack(pop)
     std::vector<node> nodes {1};
@@ -239,6 +240,11 @@ namespace nl {
     extern key_t key_kms[65536];
     key_t const (*const keys[3])[65536] {&key_bms, &key_gms, &key_kms};
     key_t const (*cur_key)[65536] {nullptr};
+    std::deque<dir_t> directories {};
+    std::deque<std::pair<img_t, int32_t>> imgs {};
+    size_t file_start {};
+    std::vector<string> resolve_path;
+
 
     string_t add_string(char8_t const * data, strsize_t size) {
         hash_t hash {2166136261UL};
@@ -327,11 +333,6 @@ namespace nl {
         if (!cur_key) throw std::runtime_error {"Failed to identify the locale"};
         in::skip(slen);
     }
-
-    std::deque<dir_t> directories {};
-    std::deque<std::pair<img_t, int32_t>> imgs {};
-    size_t file_start {};
-
     void sort_nodes(node_t first, node_t count) {
         std::sort(nodes.begin() + first, nodes.begin() + first + count, [](node const & n1, node const & n2) {
             string const & s1 {strings[n1.name]};
@@ -344,12 +345,11 @@ namespace nl {
             throw std::runtime_error {"Identical strings. This is baaaaaaaaaaaaaad"};
         });
     }
-    std::vector<string> resolve_path;
     void resolve_uols(node_t uol_node) {
         node & n {nodes[uol_node]};
         if (n.data_type == node::type::uol) {
             std::vector<string> path {resolve_path};
-            string & s {strings[n.string]};
+            string & s {strings[n.data.string]};
             strsize_t b {0};
             for (strsize_t i {0}; i < s.size; ++i) {
                 if (s.data[i] == '/') {
@@ -381,7 +381,7 @@ namespace nl {
             n.data_type = nn.data_type;
             n.children = nn.children;
             n.num = nn.num;
-            n.integer = nn.integer;//Simply copies the whole value. It's a union anyway
+            n.data.integer = nn.data.integer;//Simply copies the whole value. It's a union anyway
             //Note, we do not copy the name
         } else {
             if (uol_node) resolve_path.push_back(strings[n.name]);//Ignore the root node
@@ -445,8 +445,8 @@ namespace nl {
             //Canvas stuff todo later
         } else if (!strncmp(st.data, "Shape2D#Vector2D", st.size)) {
             n.data_type = node::type::vector;
-            n.vector[0] = in::read_cint();
-            n.vector[1] = in::read_cint();
+            n.data.vector[0] = in::read_cint();
+            n.data.vector[1] = in::read_cint();
         } else if (!strncmp(st.data, "Shape2D#Convex2D", st.size)) {
             node_t count {static_cast<node_t>(in::read_cint())};
             node_t ni {static_cast<node_t>(nodes.size())};
@@ -463,7 +463,7 @@ namespace nl {
         } else if (!strncmp(st.data, "UOL", st.size)) {
             in::skip(1);
             n.data_type = node::type::uol;
-            n.string = read_prop_string(offset);
+            n.data.string = read_prop_string(offset);
         } else throw std::runtime_error {"Unknown sub property type: " + std::string {st.data, st.size}};
     }
     void sub_property(node_t prop_node, size_t offset) {
@@ -480,28 +480,28 @@ namespace nl {
             switch (type) {
             case 0x00://Turning null nodes into integers with an id. Useful for zmap.img
                 nn.data_type = node::type::integer;
-                nn.integer = i;
+                nn.data.integer = i;
                 break;
             case 0x0B:
             case 0x02:
                 nn.data_type = node::type::integer;
-                nn.integer = in::read<uint16_t>();
+                nn.data.integer = in::read<uint16_t>();
                 break;
             case 0x03:
                 nn.data_type = node::type::integer;
-                nn.integer = in::read_cint();
+                nn.data.integer = in::read_cint();
                 break;
             case 0x04:
                 nn.data_type = node::type::real;
-                nn.real = in::read<uint8_t>() == 0x80 ? in::read<float>() : 0.;
+                nn.data.real = in::read<uint8_t>() == 0x80 ? in::read<float>() : 0.;
                 break;
             case 0x05:
                 nn.data_type = node::type::real;
-                nn.real = in::read<double>();
+                nn.data.real = in::read<double>();
                 break;
             case 0x08:
                 nn.data_type = node::type::string;
-                nn.string = read_prop_string(offset);
+                nn.data.string = read_prop_string(offset);
                 break;
             case 0x09:{
                 size_t p {in::read<int32_t>() + in::tell()};
