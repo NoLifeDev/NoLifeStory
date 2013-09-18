@@ -40,10 +40,14 @@
 #include <algorithm>
 
 namespace nl {
-    typedef int32_t dirsize_t;
     typedef uint16_t strsize_t;
-    typedef char char_t;
+    typedef char char8_t;
     typedef uint32_t node_t;
+    typedef uint32_t string_t;
+    typedef uint32_t hash_t;
+    typedef uint8_t key_t;
+    typedef uint32_t dir_t;
+    typedef uint32_t img_t;
 
     //Utility
     template <typename T> struct identity {
@@ -54,18 +58,18 @@ namespace nl {
 
     //File stuff
     namespace in {
-        char const * base;
-        char const * offset;
+        char const * base {};
+        char const * offset {};
 #ifdef _WIN32
-        void * file_handle;
-        void * map_handle;
+        void * file_handle {};
+        void * map_handle {};
         void open(std::string p) {
-            (file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr)) == INVALID_HANDLE_VALUE ? throw std::runtime_error {"Failed to open file " + p} : 0;
-            if ((map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr)) == nullptr)
-                throw std::runtime_error {"Failed to create file mapping of file " + p};
-            
-            if ((base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_READ, 0, 0, 0))) == nullptr)
-                throw std::runtime_error {"Failed to map view of file " + p};
+            file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
+            map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
+            if (map_handle == nullptr) throw std::runtime_error {"Failed to create file mapping of file " + p};
+            base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_READ, 0, 0, 0));
+            if (base == nullptr) throw std::runtime_error {"Failed to map view of file " + p};
             offset = base;
         }
         void close() {
@@ -74,8 +78,8 @@ namespace nl {
             CloseHandle(file_handle);
         }
 #else
-        int file_handle;
-        size_t file_size;
+        int file_handle {};
+        size_t file_size {};
         void open(std::string p) {
             file_handle = ::open(p.c_str(), O_RDONLY);
             if (file_handle == -1) throw std::runtime_error {"Failed to open file " + p};
@@ -91,13 +95,13 @@ namespace nl {
             ::close(file_handle);
         }
 #endif
-        ptrdiff_t tell() {
-            return offset - base;
+        size_t tell() {
+            return static_cast<size_t>(offset - base);
         }
-        void seek(ptrdiff_t n) {
+        void seek(size_t n) {
             offset = base + n;
         }
-        void skip(ptrdiff_t n) {
+        void skip(size_t n) {
             offset += n;
         }
         template <typename T> T read() {
@@ -111,11 +115,11 @@ namespace nl {
         }
     }
     namespace out {
-        char * base;
-        char * offset;
+        char * base {};
+        char * offset {};
 #ifdef _WIN32
-        void * file_handle;
-        void * map_handle;
+        void * file_handle {};
+        void * map_handle {};
         void open(std::string p, size_t size) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
             if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
@@ -146,13 +150,13 @@ namespace nl {
             ::close(file_handle);
         }
 #endif
-        ptrdiff_t tell() {
-            return offset - base;
+        size_t tell() {
+            return static_cast<size_t>(offset - base);
         }
-        void seek(ptrdiff_t n) {
+        void seek(size_t n) {
             offset = base + n;
         }
-        void skip(ptrdiff_t n) {
+        void skip(size_t n) {
             offset += n;
         }
         template <typename T> void write(T const & v) {
@@ -168,12 +172,12 @@ namespace nl {
     //Memory allocation
     namespace alloc {
         char * buffer {nullptr};
-        uint64_t remain {0};
-        uint64_t const default_size {0x1000000};
-        char * big(uint64_t size) {
+        size_t remain {0};
+        size_t const default_size {0x1000000};
+        char * big(size_t size) {
             return new char[size];
         }
-        char * small(uint64_t size) {
+        void * small(size_t size) {
             if (size > remain) {
                 buffer = big(default_size);
                 remain = default_size;
@@ -196,7 +200,7 @@ namespace nl {
                 audio = 6,
                 uol = 7
         };
-        node() : name {0}, children {0}, num {0}, data_type {type::none} {}
+        node() : name {0}, children {0}, num {0}, data_type {type::none}, integer {0} {}
         uint32_t name;
         uint32_t children;
         uint16_t num;
@@ -219,116 +223,116 @@ namespace nl {
     };
 #pragma pack(pop)
     std::vector<node> nodes {1};
-    std::vector<std::pair<uint32_t, int32_t>> nodes_to_sort;
+    std::vector<std::pair<node_t, node_t>> nodes_to_sort {};
     //String stuff
     struct string {
-        char * data;
-        uint16_t size;
+        char8_t * data;
+        strsize_t size;
     };
-    std::unordered_map<uint32_t, uint32_t, identity<uint64_t>> string_map;
-    std::vector<string> strings;
-    char16_t wstr_buf[0x8000];
-    uint8_t str_buf[0x10000];
-    std::codecvt_utf8<char16_t> convert;
-    extern uint8_t key_bms[65536];
-    extern uint8_t key_gms[65536];
-    extern uint8_t key_kms[65536];
-    uint8_t const (*const keys[3])[65536]{&key_bms, &key_gms, &key_kms};
-    uint8_t const (*cur_key)[65536]{nullptr};
+    std::unordered_map<hash_t, string_t, identity<hash_t>> string_map {};
+    std::vector<string> strings {};
+    char16_t wstr_buf[0x8000] {};
+    char8_t str_buf[0x10000] {};
+    std::codecvt_utf8<char16_t> convert {};
+    extern key_t key_bms[65536];
+    extern key_t key_gms[65536];
+    extern key_t key_kms[65536];
+    key_t const (*const keys[3])[65536] {&key_bms, &key_gms, &key_kms};
+    key_t const (*cur_key)[65536] {nullptr};
 
-    uint32_t add_string(uint8_t const * data, uint16_t size) {
-        uint32_t hash {2166136261UL};
-        uint8_t const * s {data};
-        for (size_t i {size}; i; --i, ++s) {
-            hash ^= static_cast<uint32_t>(*s);
+    string_t add_string(char8_t const * data, strsize_t size) {
+        hash_t hash {2166136261UL};
+        char8_t const * s {data};
+        for (strsize_t i {size}; i; --i, ++s) {
+            hash ^= static_cast<hash_t>(*s);
             hash *= 16777619UL;
         }
-        auto & id = string_map[hash];
+        string_t & id {string_map[hash]};
         if (id != 0) return id;
-        id = static_cast<uint32_t>(strings.size());
-        strings.push_back({alloc::small(size), size});
+        id = static_cast<string_t>(strings.size());
+        strings.push_back({static_cast<char8_t *>(alloc::small(size)), size});
         memcpy(strings.back().data, data, size);
         //For debugging purposes
         //std::cerr.write(data, size).put('\n');
         return id;
     }
-    uint32_t read_enc_string() {
-        int32_t len {in::read<int8_t>()};
-        if (len == 0) return 0;
+    string_t read_enc_string() {
+        strsize_t slen {};
+        int8_t len {in::read<int8_t>()};
         if (len > 0) {
-            if (len == 127) len = in::read<int32_t>();
+            slen = static_cast<strsize_t>(len == 127 ? in::read<int32_t>() : len);
             char16_t const * ows {reinterpret_cast<char16_t const *>(in::offset)};
-            in::skip(len * 2);
+            in::skip(slen * 2u);
             char16_t * ws {wstr_buf};
-            char16_t mask {0xAAAA};
+            uint16_t mask {0xAAAA};
             char16_t const * key {reinterpret_cast<char16_t const *>(*cur_key)};
-            for (int32_t i {len}; i; --i, ++mask, ++ows, ++ws, ++key) {
+            for (strsize_t i {slen}; i; --i, ++mask, ++ows, ++ws, ++key) {
                 *ws = static_cast<char16_t>(*ows ^ *key ^ mask);
             }
             mbstate_t state {};
-            const char16_t * fnext {};
-            char * tnext {};
-            convert.out(state, wstr_buf, wstr_buf + len, fnext, reinterpret_cast<char *>(str_buf), reinterpret_cast<char *>(str_buf)+0x10000, tnext);
-            len = static_cast<int32_t>(tnext - reinterpret_cast<char *>(str_buf));
-        } else {
-            if (len == -128) len = in::read<int32_t>();
-            else len = -len;
-            uint8_t const * os {reinterpret_cast<uint8_t const *>(in::offset)};
-            in::skip(len);
-            uint8_t * s {str_buf};
-            uint8_t mask {0xAA};
-            uint8_t const * key {*cur_key};
-            for (int32_t i {len}; i; --i, ++mask, ++os, ++s, ++key) {
-                *s = *os ^ *key ^ mask;
-            }
+            char16_t const * fnext {};
+            char8_t * tnext {};
+            convert.out(state, wstr_buf, wstr_buf + slen, fnext, str_buf, str_buf + 0x10000, tnext);
+            return add_string(str_buf, static_cast<strsize_t>(tnext - str_buf));
         }
-        return add_string(str_buf, static_cast<uint16_t>(len));
+        if (len < 0) {
+            slen = static_cast<strsize_t>(len == -128 ? in::read<int32_t>() : -len);
+            char8_t const * os {reinterpret_cast<char8_t const *>(in::offset)};
+            in::skip(slen);
+            char8_t * s {str_buf};
+            uint8_t mask {0xAA};
+            char8_t const * key {reinterpret_cast<char8_t const *>(*cur_key)};
+            for (strsize_t i {slen}; i; --i, ++mask, ++os, ++s, ++key) {
+                *s = static_cast<char8_t>(*os ^ *key ^ mask);
+            }
+            return add_string(str_buf, slen);
+        }
+        return 0;
     }
-    uint32_t read_prop_string(ptrdiff_t offset) {
-        uint8_t a = in::read<uint8_t>();
+    string_t read_prop_string(size_t offset) {
+        uint8_t a {in::read<uint8_t>()};
         switch (a) {
         case 0x00:
         case 0x73:
             return read_enc_string();
         case 0x01:
-        case 0x1B:
-            {
-                ptrdiff_t o {in::read<uint32_t>() + offset};
-                ptrdiff_t p {in::tell()};
-                in::seek(o);
-                uint32_t s {read_enc_string()};
-                in::seek(p);
-                return s;
-                 }
+        case 0x1B:{
+            size_t o {in::read<int32_t>() + offset};
+            size_t p {in::tell()};
+            in::seek(o);
+            string_t s {read_enc_string()};
+            in::seek(p);
+            return s;
+                  }
         default:
             throw std::runtime_error {"Unknown property string type: " + std::to_string(a)};
         }
     }
     void deduce_key() {
-        int32_t len {in::read<int8_t>()};
-        if (len == -128) len = in::read<int32_t>();
-        else len = -len;
+        int8_t len {in::read<int8_t>()};
+        if (len >= 0) throw std::runtime_error {"I give up"};
+        strsize_t slen {static_cast<strsize_t>(len == -128 ? in::read<int32_t>() : -len)};
         cur_key = nullptr;
         for (auto key : keys) {
-            uint8_t const * os {reinterpret_cast<uint8_t const *>(in::offset)};
+            char8_t const * os {reinterpret_cast<char8_t const *>(in::offset)};
             uint8_t mask {0xAA};
-            uint8_t const * k {*key};
+            char8_t const * k {reinterpret_cast<char8_t const *>(*key)};
             bool valid {true};
-            for (int32_t i {len}; i; --i && valid, ++mask, ++os, ++k) {
-                uint8_t c {*os ^ *k ^ mask};
-                if (!isalnum(c, std::locale::classic()) && c != '.') valid = false;
+            for (strsize_t i {slen}; i; --i && valid, ++mask, ++os, ++k) {
+                char8_t c {static_cast<char8_t>(*os ^ *k ^ mask)};
+                if (c < 0x20 || c >= 0x80) valid = false;
             }
             if (valid) cur_key = key;
         }
         if (!cur_key) throw std::runtime_error {"Failed to identify the locale"};
-        in::skip(len);
+        in::skip(slen);
     }
 
-    std::deque<uint32_t> directories;
-    std::deque<std::pair<uint32_t, dirsize_t>> imgs;
-    ptrdiff_t file_start;
+    std::deque<dir_t> directories {};
+    std::deque<std::pair<img_t, int32_t>> imgs {};
+    size_t file_start {};
 
-    void sort_nodes(uint32_t first, int32_t count) {
+    void sort_nodes(node_t first, node_t count) {
         std::sort(nodes.begin() + first, nodes.begin() + first + count, [](node const & n1, node const & n2) {
             string const & s1 {strings[n1.name]};
             string const & s2 {strings[n2.name]};
@@ -341,25 +345,25 @@ namespace nl {
         });
     }
     std::vector<string> resolve_path;
-    void resolve_uols(uint32_t uol_node) {
+    void resolve_uols(node_t uol_node) {
         node & n {nodes[uol_node]};
         if (n.data_type == node::type::uol) {
             std::vector<string> path {resolve_path};
             string & s {strings[n.string]};
-            uint16_t b {0};
-            for (uint16_t i {0}; i < s.size; ++i) {
+            strsize_t b {0};
+            for (strsize_t i {0}; i < s.size; ++i) {
                 if (s.data[i] == '/') {
                     if (i - b == 2 && strncmp(s.data + b, "..", 2) == 0) path.pop_back();
-                    else path.push_back({s.data + b, static_cast<uint16_t>(i - b)});
+                    else path.push_back({s.data + b, static_cast<strsize_t>(i - b)});
                     b = ++i;
                 }
             }
-            path.push_back({s.data + b, static_cast<uint16_t>(s.size - b)});
-            uint32_t search {0};
+            path.push_back({s.data + b, static_cast<strsize_t>(s.size - b)});
+            node_t search {0};
             for (string & s : path) {
                 node & n {nodes[search]};
                 bool found {false};
-                for (uint32_t i {n.children}; i < n.children + n.num; ++i) {
+                for (node_t i {n.children}; i < n.children + n.num; ++i) {
                     node & nn {nodes[i]};
                     string & ss {strings[nn.name]};
                     if (s.size == ss.size && strncmp(s.data, ss.data, s.size) == 0) {
@@ -381,33 +385,32 @@ namespace nl {
             //Note, we do not copy the name
         } else {
             if (uol_node) resolve_path.push_back(strings[n.name]);//Ignore the root node
-            for (uint32_t i {0}; i < n.num; ++i) resolve_uols(n.children + i);
+            for (node_t i {0}; i < n.num; ++i) resolve_uols(n.children + i);
             if (uol_node) resolve_path.pop_back();
         }
     }
-    void directory(uint32_t dir_node) {
+    void directory(node_t dir_node) {
         node & n {nodes[dir_node]};
-        int32_t count {in::read_cint()};
-        uint32_t ni {static_cast<uint32_t>(nodes.size())};
-        n.num = count;
+        node_t count {static_cast<node_t>(in::read_cint())};
+        node_t ni {static_cast<node_t>(nodes.size())};
+        n.num = static_cast<uint16_t>(count);
         n.children = ni;
-        for (uint32_t i = 0; i < count; ++i) {
+        for (node_t i {0}; i < count; ++i) {
             nodes.emplace_back();
             node & nn {nodes.back()};
             uint8_t type {in::read<uint8_t>()};
             switch (type) {
             case 1:
                 throw std::runtime_error {"Found the elusive type 1 directory"};
-            case 2:
-                {
-                    int32_t s {in::read<int32_t>()};
-                    ptrdiff_t p {in::tell()};
-                    in::seek(file_start + s);
-                    type = in::read<uint8_t>();
-                    nn.name = read_enc_string();
-                    in::seek(p);
-                    break;
-                  }
+            case 2:{
+                int32_t s {in::read<int32_t>()};
+                size_t p {in::tell()};
+                in::seek(file_start + s);
+                type = in::read<uint8_t>();
+                nn.name = read_enc_string();
+                in::seek(p);
+                break;
+                   }
             case 3:
             case 4:
                 nn.name = read_enc_string();
@@ -415,7 +418,7 @@ namespace nl {
             default:
                 throw std::runtime_error {"Unknown directory type"};
             }
-            dirsize_t size {in::read_cint()};
+            int32_t size {in::read_cint()};
             if (size <= 0) throw std::runtime_error {"Directory/img has invalid size!"};
             in::read_cint();//Checksum that nobody cares about
             in::skip(4);
@@ -425,10 +428,10 @@ namespace nl {
         }
         nodes_to_sort.emplace_back(ni, count);
     }
-    void sub_property(uint32_t, ptrdiff_t);
-    void extended_property(uint32_t prop_node, uint64_t offset) {
+    void sub_property(node_t, size_t);
+    void extended_property(node_t prop_node, size_t offset) {
         node & n {nodes[prop_node]};
-        uint32_t s {read_prop_string(offset)};
+        string_t s {read_prop_string(offset)};
         string const & st {strings[s]};
         if (!strncmp(st.data, "Property", st.size)) {
             in::skip(2);
@@ -445,13 +448,13 @@ namespace nl {
             n.vector[0] = in::read_cint();
             n.vector[1] = in::read_cint();
         } else if (!strncmp(st.data, "Shape2D#Convex2D", st.size)) {
-            int32_t count {in::read_cint()};
-            uint32_t ni {static_cast<uint32_t>(nodes.size())};
+            node_t count {static_cast<node_t>(in::read_cint())};
+            node_t ni {static_cast<node_t>(nodes.size())};
             nodes.resize(nodes.size() + count);
-            for (uint32_t i = 0; i < count; ++i) {
+            for (node_t i {0}; i < count; ++i) {
                 node & nn {nodes[ni + i]};
                 std::string es {std::to_string(i)};
-                nn.name = add_string(es.c_str(), static_cast<uint16_t>(es.size()));
+                nn.name = add_string(es.c_str(), static_cast<strsize_t>(es.size()));
                 extended_property(ni, offset);
             }
             nodes_to_sort.emplace_back(ni, count);
@@ -463,14 +466,14 @@ namespace nl {
             n.string = read_prop_string(offset);
         } else throw std::runtime_error {"Unknown sub property type: " + std::string {st.data, st.size}};
     }
-    void sub_property(uint32_t prop_node, ptrdiff_t offset) {
-        int32_t count {in::read_cint()};
+    void sub_property(node_t prop_node, size_t offset) {
+        node_t count {static_cast<node_t>(in::read_cint())};
         node & n {nodes[prop_node]};
-        uint32_t ni {static_cast<uint32_t>(nodes.size())};
-        n.num = count;
+        node_t ni {static_cast<node_t>(nodes.size())};
+        n.num = static_cast<uint16_t>(count);
         n.children = ni;
         nodes.resize(nodes.size() + count);
-        for (uint32_t i = 0; i < count; ++i) {
+        for (node_t i {0}; i < count; ++i) {
             node & nn {nodes[ni + i]};
             nn.name = read_prop_string(offset);
             uint8_t type {in::read<uint8_t>()};
@@ -501,7 +504,7 @@ namespace nl {
                 nn.string = read_prop_string(offset);
                 break;
             case 0x09:{
-                ptrdiff_t p {in::read<uint32_t>() + in::tell()};
+                size_t p {in::read<int32_t>() + in::tell()};
                 extended_property(ni + i, offset);
                 in::seek(p);
                 break;
@@ -512,8 +515,8 @@ namespace nl {
         }
         nodes_to_sort.emplace_back(ni, count);
     }
-    void img(uint32_t img_node, dirsize_t size) {
-        ptrdiff_t p {in::tell()};
+    void img(node_t img_node, int32_t size) {
+        size_t p {in::tell()};
         in::skip(1);
         deduce_key();
         in::skip(2);
@@ -548,21 +551,21 @@ namespace nl {
         resolve_uols(0);
         for (auto const & n : nodes_to_sort) sort_nodes(n.first, n.second);
         std::cout << "Node cleanup finished" << std::endl;
-        ptrdiff_t node_offset = 52;
+        size_t node_offset = 52;
         node_offset += 0x10 - (node_offset & 0xf);
-        ptrdiff_t string_table_offset = node_offset + nodes.size() * 20;
+        size_t string_table_offset = node_offset + nodes.size() * 20;
         string_table_offset += 0x10 - (string_table_offset & 0xf);
-        ptrdiff_t string_offset = string_table_offset + strings.size() * 8;
+        size_t string_offset = string_table_offset + strings.size() * 8;
         string_offset += 0x10 - (string_offset & 0xf);
-        ptrdiff_t bitmap_table_offset = string_offset + strings.size() * 2;
+        size_t bitmap_table_offset = string_offset + strings.size() * 2;
         for (auto const & s : strings) bitmap_table_offset += s.size;
         bitmap_table_offset += 0x10 - (bitmap_table_offset & 0xf);
         out::open(filename, bitmap_table_offset);
         out::seek(0);
         out::write<uint32_t>(0x34474B50);
-        out::write<uint32_t>(nodes.size());
+        out::write<uint32_t>(static_cast<uint32_t>(nodes.size()));
         out::write<uint64_t>(node_offset);
-        out::write<uint32_t>(strings.size());
+        out::write<uint32_t>(static_cast<uint32_t>(strings.size()));
         out::write<uint64_t>(string_table_offset);
         //No bitmap or audio support yet
         out::write<uint32_t>(0);
@@ -574,7 +577,7 @@ namespace nl {
         out::write(nodes.data(), nodes.size() * 20);
         std::cout << "Wrote nodes" << std::endl;
         out::seek(string_table_offset);
-        ptrdiff_t next_str {string_offset};
+        size_t next_str {string_offset};
         for (auto const & s : strings) {
             out::write<uint64_t>(next_str);
             next_str += s.size + 2;
