@@ -442,11 +442,12 @@ namespace nl {
                 in::skip(2);
                 sub_property(prop_node, offset);
             }
-            //n.data_type = node::type::bitmap;
-            //n.data.bitmap.id = static_cast<uint32_t>(bitmaps.size());
-            //bitmaps.push_back(in::tell());
-            //n.data.bitmap.width = static_cast<uint16_t>(in::read_cint());
-            //n.data.bitmap.height = static_cast<uint16_t>(in::read_cint());
+            node & n {nodes[prop_node]};
+            n.data_type = node::type::bitmap;
+            n.data.bitmap.id = static_cast<uint32_t>(bitmaps.size());
+            bitmaps.push_back(in::tell());
+            n.data.bitmap.width = static_cast<uint16_t>(in::read_cint());
+            n.data.bitmap.height = static_cast<uint16_t>(in::read_cint());
         } else if (!strncmp(st.data, "Shape2D#Vector2D", st.size)) {
             n.data_type = node::type::vector;
             n.data.vector[0] = in::read_cint();
@@ -463,14 +464,11 @@ namespace nl {
             }
             nodes_to_sort.emplace_back(ni, count);
         } else if (!strncmp(st.data, "Sound_DX8", st.size)) {
-            //n.data_type = node::type::audio;
-            //n.data.audio.id = static_cast<uint32_t>(sounds.size());
-            //sounds.push_back(in::tell());
-            //std::cout << in::read<uint8_t>() << ' ';
-            ////in::skip(1);
-            //n.data.audio.length = in::read_cint();
-            //std::cout << n.data.audio.length << ' ';
-            //std::cout << in::read_cint() << std::endl;
+            n.data_type = node::type::audio;
+            n.data.audio.id = static_cast<uint32_t>(sounds.size());
+            sounds.push_back(in::tell());
+            in::skip(1);//Always 0
+            n.data.audio.length = static_cast<uint32_t>(in::read_cint());
         } else if (!strncmp(st.data, "UOL", st.size)) {
             in::skip(1);
             n.data_type = node::type::uol;
