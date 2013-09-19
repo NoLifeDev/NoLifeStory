@@ -42,12 +42,9 @@
 namespace nl {
     typedef uint16_t strsize_t;
     typedef char char8_t;
-    typedef uint32_t node_t;
-    typedef uint32_t string_t;
+    typedef uint32_t id_t;
     typedef uint32_t hash_t;
     typedef uint8_t key_t;
-    typedef uint32_t dir_t;
-    typedef uint32_t img_t;
 
     //Utility
     template <typename T> struct identity {
@@ -224,13 +221,13 @@ namespace nl {
     };
 #pragma pack(pop)
     std::vector<node> nodes {1};
-    std::vector<std::pair<node_t, node_t>> nodes_to_sort {};
+    std::vector<std::pair<id_t, id_t>> nodes_to_sort {};
     //String stuff
     struct string {
         char8_t * data;
         strsize_t size;
     };
-    std::unordered_map<hash_t, string_t, identity<hash_t>> string_map {};
+    std::unordered_map<hash_t, id_t, identity<hash_t>> string_map {};
     std::vector<string> strings {};
     char16_t wstr_buf[0x8000] {};
     char8_t str_buf[0x10000] {};
@@ -240,29 +237,31 @@ namespace nl {
     extern key_t key_kms[65536];
     key_t const (*const keys[3])[65536] {&key_bms, &key_gms, &key_kms};
     key_t const (*cur_key)[65536] {nullptr};
-    std::deque<dir_t> directories {};
-    std::deque<std::pair<img_t, int32_t>> imgs {};
+    std::deque<id_t> directories {};
+    std::deque<std::pair<id_t, int32_t>> imgs {};
     size_t file_start {};
     std::vector<string> resolve_path;
+    std::vector<uint64_t> bitmaps {};
+    std::vector<uint64_t> sounds {};
 
 
-    string_t add_string(char8_t const * data, strsize_t size) {
+    id_t add_string(char8_t const * data, strsize_t size) {
         hash_t hash {2166136261UL};
         char8_t const * s {data};
         for (strsize_t i {size}; i; --i, ++s) {
             hash ^= static_cast<hash_t>(*s);
             hash *= 16777619UL;
         }
-        string_t & id {string_map[hash]};
+        id_t & id {string_map[hash]};
         if (id != 0) return id;
-        id = static_cast<string_t>(strings.size());
+        id = static_cast<id_t>(strings.size());
         strings.push_back({static_cast<char8_t *>(alloc::small(size)), size});
         memcpy(strings.back().data, data, size);
         //For debugging purposes
         //std::cerr.write(data, size).put('\n');
         return id;
     }
-    string_t read_enc_string() {
+    id_t read_enc_string() {
         strsize_t slen {};
         int8_t len {in::read<int8_t>()};
         if (len > 0) {
@@ -295,7 +294,7 @@ namespace nl {
         }
         return 0;
     }
-    string_t read_prop_string(size_t offset) {
+    id_t read_prop_string(size_t offset) {
         uint8_t a {in::read<uint8_t>()};
         switch (a) {
         case 0x00:
@@ -306,7 +305,7 @@ namespace nl {
             size_t o {in::read<int32_t>() + offset};
             size_t p {in::tell()};
             in::seek(o);
-            string_t s {read_enc_string()};
+            id_t s {read_enc_string()};
             in::seek(p);
             return s;
                   }
@@ -333,7 +332,7 @@ namespace nl {
         if (!cur_key) throw std::runtime_error {"Failed to identify the locale"};
         in::skip(slen);
     }
-    void sort_nodes(node_t first, node_t count) {
+    void sort_nodes(id_t first, id_t count) {
         std::sort(nodes.begin() + first, nodes.begin() + first + count, [](node const & n1, node const & n2) {
             if (&n1 == &n2) return false;
             string const & s1 {strings[n1.name]};
@@ -346,7 +345,7 @@ namespace nl {
             throw std::runtime_error {"Identical strings. This is baaaaaaaaaaaaaad"};
         });
     }
-    void resolve_uols(node_t uol_node) {
+    void resolve_uols(id_t uol_node) {
         node & n {nodes[uol_node]};
         if (n.data_type == node::type::uol) {
             std::vector<string> path {resolve_path};
@@ -360,11 +359,11 @@ namespace nl {
                 }
             }
             path.push_back({s.data + b, static_cast<strsize_t>(s.size - b)});
-            node_t search {0};
+            id_t search {0};
             for (string & s : path) {
                 node & n {nodes[search]};
                 bool found {false};
-                for (node_t i {n.children}; i < n.children + n.num; ++i) {
+                for (id_t i {n.children}; i < n.children + n.num; ++i) {
                     node & nn {nodes[i]};
                     string & ss {strings[nn.name]};
                     if (s.size == ss.size && strncmp(s.data, ss.data, s.size) == 0) {
@@ -386,17 +385,17 @@ namespace nl {
             //Note, we do not copy the name
         } else {
             if (uol_node) resolve_path.push_back(strings[n.name]);//Ignore the root node
-            for (node_t i {0}; i < n.num; ++i) resolve_uols(n.children + i);
+            for (id_t i {0}; i < n.num; ++i) resolve_uols(n.children + i);
             if (uol_node) resolve_path.pop_back();
         }
     }
-    void directory(node_t dir_node) {
+    void directory(id_t dir_node) {
         node & n {nodes[dir_node]};
-        node_t count {static_cast<node_t>(in::read_cint())};
-        node_t ni {static_cast<node_t>(nodes.size())};
+        id_t count {static_cast<id_t>(in::read_cint())};
+        id_t ni {static_cast<id_t>(nodes.size())};
         n.num = static_cast<uint16_t>(count);
         n.children = ni;
-        for (node_t i {0}; i < count; ++i) {
+        for (id_t i {0}; i < count; ++i) {
             nodes.emplace_back();
             node & nn {nodes.back()};
             uint8_t type {in::read<uint8_t>()};
@@ -429,10 +428,10 @@ namespace nl {
         }
         nodes_to_sort.emplace_back(ni, count);
     }
-    void sub_property(node_t, size_t);
-    void extended_property(node_t prop_node, size_t offset) {
+    void sub_property(id_t, size_t);
+    void extended_property(id_t prop_node, size_t offset) {
         node & n {nodes[prop_node]};
-        string_t s {read_prop_string(offset)};
+        id_t s {read_prop_string(offset)};
         string const & st {strings[s]};
         if (!strncmp(st.data, "Property", st.size)) {
             in::skip(2);
@@ -443,16 +442,20 @@ namespace nl {
                 in::skip(2);
                 sub_property(prop_node, offset);
             }
-            //Canvas stuff todo later
+            //n.data_type = node::type::bitmap;
+            //n.data.bitmap.id = static_cast<uint32_t>(bitmaps.size());
+            //bitmaps.push_back(in::tell());
+            //n.data.bitmap.width = static_cast<uint16_t>(in::read_cint());
+            //n.data.bitmap.height = static_cast<uint16_t>(in::read_cint());
         } else if (!strncmp(st.data, "Shape2D#Vector2D", st.size)) {
             n.data_type = node::type::vector;
             n.data.vector[0] = in::read_cint();
             n.data.vector[1] = in::read_cint();
         } else if (!strncmp(st.data, "Shape2D#Convex2D", st.size)) {
-            node_t count {static_cast<node_t>(in::read_cint())};
-            node_t ni {static_cast<node_t>(nodes.size())};
+            id_t count {static_cast<id_t>(in::read_cint())};
+            id_t ni {static_cast<id_t>(nodes.size())};
             nodes.resize(nodes.size() + count);
-            for (node_t i {0}; i < count; ++i) {
+            for (id_t i {0}; i < count; ++i) {
                 node & nn {nodes[ni + i]};
                 std::string es {std::to_string(i)};
                 nn.name = add_string(es.c_str(), static_cast<strsize_t>(es.size()));
@@ -460,21 +463,28 @@ namespace nl {
             }
             nodes_to_sort.emplace_back(ni, count);
         } else if (!strncmp(st.data, "Sound_DX8", st.size)) {
-            //Audio stuff
+            //n.data_type = node::type::audio;
+            //n.data.audio.id = static_cast<uint32_t>(sounds.size());
+            //sounds.push_back(in::tell());
+            //std::cout << in::read<uint8_t>() << ' ';
+            ////in::skip(1);
+            //n.data.audio.length = in::read_cint();
+            //std::cout << n.data.audio.length << ' ';
+            //std::cout << in::read_cint() << std::endl;
         } else if (!strncmp(st.data, "UOL", st.size)) {
             in::skip(1);
             n.data_type = node::type::uol;
             n.data.string = read_prop_string(offset);
         } else throw std::runtime_error {"Unknown sub property type: " + std::string {st.data, st.size}};
     }
-    void sub_property(node_t prop_node, size_t offset) {
-        node_t count {static_cast<node_t>(in::read_cint())};
+    void sub_property(id_t prop_node, size_t offset) {
+        id_t count {static_cast<id_t>(in::read_cint())};
         node & n {nodes[prop_node]};
-        node_t ni {static_cast<node_t>(nodes.size())};
+        id_t ni {static_cast<id_t>(nodes.size())};
         n.num = static_cast<uint16_t>(count);
         n.children = ni;
         nodes.resize(nodes.size() + count);
-        for (node_t i {0}; i < count; ++i) {
+        for (id_t i {0}; i < count; ++i) {
             node & nn {nodes[ni + i]};
             nn.name = read_prop_string(offset);
             uint8_t type {in::read<uint8_t>()};
@@ -516,7 +526,7 @@ namespace nl {
         }
         nodes_to_sort.emplace_back(ni, count);
     }
-    void img(node_t img_node, int32_t size) {
+    void img(id_t img_node, int32_t size) {
         size_t p {in::tell()};
         in::skip(1);
         deduce_key();
