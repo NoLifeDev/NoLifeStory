@@ -335,6 +335,7 @@ namespace nl {
     }
     void sort_nodes(node_t first, node_t count) {
         std::sort(nodes.begin() + first, nodes.begin() + first + count, [](node const & n1, node const & n2) {
+            if (&n1 == &n2) return false;
             string const & s1 {strings[n1.name]};
             string const & s2 {strings[n2.name]};
             int n {strncmp(s1.data, s2.data, std::min(s1.size, s2.size))};
