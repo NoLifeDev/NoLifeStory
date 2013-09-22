@@ -35,7 +35,7 @@ namespace nl {
         }
     }
     namespace nx {
-        extern node base, character, effect, etc, item, map, mob, morph, npc, quest, reactor, skill, sound, string, tamingmob, ui;
+        node base, character, effect, etc, item, map, mob, morph, npc, quest, reactor, skill, sound, string, tamingmob, ui;
         void load_all() {
             if (exists("Base.nx")) {
                 base = add_file("Base.nx");

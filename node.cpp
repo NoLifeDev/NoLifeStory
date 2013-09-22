@@ -196,10 +196,10 @@ namespace nl {
         return m_data && m_data->type == type::vector ? to_vector() : std::pair<int32_t, int32_t> {0, 0};
     }
     bitmap node::get_bitmap() const {
-        return m_data && m_data->type == type::bitmap ? to_bitmap() : bitmap {nullptr, 0, 0};
+        return m_data && m_data->type == type::bitmap && m_file->m_header->bitmap_count ? to_bitmap() : bitmap {nullptr, 0, 0};
     }
     audio node::get_audio() const {
-        return m_data && m_data->type == type::audio ? to_audio() : audio {nullptr, 0};
+        return m_data && m_data->type == type::audio && m_file->m_header->audio_count ? to_audio() : audio {nullptr, 0};
     }
     bool node::get_bool() const {
         return m_data && m_data->type == type::integer && to_integer() ? true : false;
