@@ -135,9 +135,11 @@ namespace nl {
         int file_handle;
         size_t file_size;
         void open(std::string p, uint64_t size) {
-            file_handle = ::open(p.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+            file_handle = ::open(p.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
             if (file_handle == -1) throw std::runtime_error {"Failed to open file " + p};
             file_size = size;
+            if (lseek(file_handle, file_size-1, SEEK_SET) == -1) throw std::runtime_error {"Error calling lseek() to 'stretch' file " + p};
+            if (write(file_handle, "", 1) != 1) throw std::runtime_error {"Error writing last byte of file " + p};
             base = reinterpret_cast<char *>(mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0));
             if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + p};
             offset = base;
