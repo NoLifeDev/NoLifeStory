@@ -33,11 +33,11 @@
 #include <fstream>
 #include <codecvt>
 #include <vector>
-#include <deque>
 #include <map>
 #include <cstdint>
 #include <unordered_map>
 #include <algorithm>
+#include <chrono>
 
 namespace nl {
     typedef uint16_t strsize_t;
@@ -237,8 +237,7 @@ namespace nl {
     extern key_t key_kms[65536];
     key_t const (*const keys[3])[65536] {&key_bms, &key_gms, &key_kms};
     key_t const (*cur_key)[65536] {nullptr};
-    std::deque<id_t> directories {};
-    std::deque<std::pair<id_t, int32_t>> imgs {};
+    std::vector<std::pair<id_t, int32_t>> imgs {};
     size_t file_start {};
     std::vector<string> resolve_path;
     std::vector<uint64_t> bitmaps {};
@@ -390,14 +389,15 @@ namespace nl {
         }
     }
     void directory(id_t dir_node) {
+        std::vector<id_t> directories {};
         node & n {nodes[dir_node]};
         id_t count {static_cast<id_t>(in::read_cint())};
         id_t ni {static_cast<id_t>(nodes.size())};
         n.num = static_cast<uint16_t>(count);
         n.children = ni;
+        nodes.resize(ni + count);
         for (id_t i {0}; i < count; ++i) {
-            nodes.emplace_back();
-            node & nn {nodes.back()};
+            node & nn {nodes[ni + i]};
             uint8_t type {in::read<uint8_t>()};
             switch (type) {
             case 1:
@@ -420,12 +420,13 @@ namespace nl {
             }
             int32_t size {in::read_cint()};
             if (size <= 0) throw std::runtime_error {"Directory/img has invalid size!"};
-            in::read_cint();//Checksum that nobody cares about
-            in::skip(4);
+            in::read_cint();//Offset that nobody cares about
+            in::skip(4);//Checksum that nobody cares about
             if (type == 3) directories.push_back(ni + i);
             else if (type == 4) imgs.emplace_back(ni + i, size);
             else throw std::runtime_error {"Unknown type 2 directory"};
         }
+        for (auto & it : directories) directory(it);
         nodes_to_sort.emplace_back(ni, count);
     }
     void sub_property(id_t, size_t);
@@ -546,16 +547,9 @@ namespace nl {
         in::seek(file_start + 2);
         add_string("", 0);
         std::cout << "Opened file" << std::endl;
-        directories.push_back(0);
-        while (!directories.empty()) {
-            directory(directories.front());
-            directories.pop_front();
-        }
+        directory(0);
         std::cout << "Parsed directories" << std::endl;
-        while (!imgs.empty()) {
-            img(imgs.front().first, imgs.front().second);
-            imgs.pop_front();
-        }
+        for (auto & it : imgs) img(it.first, it.second);
         std::cout << "Parsed images" << std::endl;
         resolve_uols(0);
         for (auto const & n : nodes_to_sort) sort_nodes(n.first, n.second);
@@ -603,9 +597,9 @@ namespace nl {
     }
 }
 int main(int argc, char ** argv) {
-    clock_t t1 {clock()};
+    std::chrono::high_resolution_clock::time_point a {std::chrono::high_resolution_clock::now()};
     if (argc > 1) nl::wztonx(argv[1]);
     else nl::wztonx("Data.wz");
-    clock_t t2 {clock()};
-    std::cout << "Took " << t2 - t1 << " ms" << std::endl;
+    std::chrono::high_resolution_clock::time_point b {std::chrono::high_resolution_clock::now()};
+    std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(b - a).count() << " ms" << std::endl;
 }
