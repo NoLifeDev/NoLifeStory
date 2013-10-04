@@ -229,6 +229,10 @@ namespace nl {
         char8_t * data;
         strsize_t size;
     };
+    std::ostream & operator<<(std::ostream & o, string const & s) {
+        o.write(s.data, s.size);
+        return o;
+    }
     std::unordered_map<hash_t, id_t, identity<hash_t>> string_map {};
     std::vector<string> strings {};
     char16_t wstr_buf[0x8000] {};
@@ -241,7 +245,8 @@ namespace nl {
     key_t const (*cur_key)[65536] {nullptr};
     std::vector<std::pair<id_t, int32_t>> imgs {};
     size_t file_start {};
-    std::vector<string> resolve_path;
+    std::vector<id_t> uol_path;
+    std::vector<std::vector<id_t>> uols;
     std::vector<uint64_t> bitmaps {};
     std::vector<uint64_t> sounds {};
 
@@ -346,49 +351,52 @@ namespace nl {
             throw std::runtime_error {"Identical strings. This is baaaaaaaaaaaaaad"};
         });
     }
-    void resolve_uols(id_t uol_node) {
+    void find_uols(id_t uol_node) {
         node & n {nodes[uol_node]};
         if (n.data_type == node::type::uol) {
-            std::vector<string> path {resolve_path};
-            string & s {strings[n.data.string]};
-            strsize_t b {0};
-            for (strsize_t i {0}; i < s.size; ++i) {
-                if (s.data[i] == '/') {
-                    if (i - b == 2 && strncmp(s.data + b, "..", 2) == 0) path.pop_back();
-                    else path.push_back({s.data + b, static_cast<strsize_t>(i - b)});
-                    b = ++i;
-                }
-            }
-            path.push_back({s.data + b, static_cast<strsize_t>(s.size - b)});
-            id_t search {0};
-            for (string & s : path) {
-                node & n {nodes[search]};
-                bool found {false};
-                for (id_t i {n.children}; i < n.children + n.num; ++i) {
-                    node & nn {nodes[i]};
-                    string & ss {strings[nn.name]};
-                    if (s.size == ss.size && strncmp(s.data, ss.data, s.size) == 0) {
-                        search = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {//Damnit Nexon, get your shit together
-                    n.data_type = node::type::none;
-                    return;
-                }
-            }
-            node & nn {nodes[search]};
-            n.data_type = nn.data_type;
-            n.children = nn.children;
-            n.num = nn.num;
-            n.data.integer = nn.data.integer;//Simply copies the whole value. It's a union anyway
-            //Note, we do not copy the name
-        } else {
-            if (uol_node) resolve_path.push_back(strings[n.name]);//Ignore the root node
-            for (id_t i {0}; i < n.num; ++i) resolve_uols(n.children + i);
-            if (uol_node) resolve_path.pop_back();
+            uol_path.push_back(uol_node);
+            uols.push_back(uol_path);
+            uol_path.pop_back();
+        } else if (n.num != 0) {
+            uol_path.push_back(uol_node);
+            for (id_t i {0}; i < n.num; ++i) find_uols(n.children + i);
+            uol_path.pop_back();
         }
+    }
+    id_t get_child(id_t parent_node, string str) {
+        if (parent_node == 0) return 0;
+        node & n {nodes[parent_node]};
+        std::vector<node>::iterator it {std::lower_bound(nodes.begin() + n.children, nodes.begin() + n.children + n.num, str, [&](node const & n, string s) {
+            string & sn {strings[n.name]};
+            int r {strncmp(sn.data, s.data, std::min(sn.size, s.size))};
+            return r < 0 || r == 0 && sn.size < s.size;
+        })};
+        if (it == nodes.begin() + n.children + n.num) return 0;
+        return it - nodes.begin();
+    }
+    bool resolve_uol(std::vector<id_t> uol) {
+        node & n {nodes[uol.back()]};
+        uol.pop_back();
+        if (n.data_type != node::type::uol) throw std::runtime_error {"Welp. I failed."};
+        string & s {strings[n.data.string]};
+        strsize_t b {0};
+        for (strsize_t i {0}; i < s.size; ++i) if (s.data[i] == '/') {
+            if (i - b == 2 && strncmp(s.data + b, "..", 2) == 0) uol.pop_back();
+            else uol.push_back(get_child(uol.back(), {s.data + b, static_cast<strsize_t>(i - b)}));
+            b = ++i;
+        }
+        uol.push_back(get_child(uol.back(), {s.data + b, static_cast<strsize_t>(s.size - b)}));
+        if (uol.back() == 0) return false;
+        node & nr {nodes[uol.back()]};
+        if (nr.data_type == node::type::uol) return false;
+        n.data_type = nr.data_type;
+        n.children = nr.children;
+        n.num = nr.num;
+        n.data.integer = nr.data.integer;
+        return true;
+    }
+    void uol_fail(std::vector<id_t> & uol) {
+        nodes[uol.back()].data_type = node::type::none;
     }
     void directory(id_t dir_node) {
         std::vector<id_t> directories {};
@@ -553,8 +561,14 @@ namespace nl {
         std::cout << "Parsed directories" << std::endl;
         for (auto & it : imgs) img(it.first, it.second);
         std::cout << "Parsed images" << std::endl;
-        resolve_uols(0);
         for (auto const & n : nodes_to_sort) sort_nodes(n.first, n.second);
+        find_uols(0);
+        for (;;) {
+            auto it = std::remove_if(uols.begin(), uols.end(), resolve_uol);
+            if (it == uols.begin() || it == uols.end()) break;
+            uols.erase(it, uols.end());
+        }
+        for (auto & it : uols) uol_fail(it);
         std::cout << "Node cleanup finished" << std::endl;
         size_t node_offset = 52;
         node_offset += 0x10 - (node_offset & 0xf);
