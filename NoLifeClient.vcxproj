@@ -87,7 +87,7 @@
     <ClInclude Include="Graphics.hpp" />
     <ClInclude Include="Layer.hpp" />
     <ClInclude Include="Log.hpp" />
-    <ClInclude Include="Map.hpp" />
+    <ClInclude Include="map.hpp" />
     <ClInclude Include="Obj.hpp" />
     <ClInclude Include="Physics.hpp" />
     <ClInclude Include="Player.hpp" />
@@ -109,7 +109,7 @@
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="Log.cpp" />
-    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="map.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Obj.cpp" />
     <ClCompile Include="Physics.cpp" />

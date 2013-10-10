@@ -17,37 +17,42 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "game.hpp"
+#include <nx/nx.hpp>
 
 namespace nl {
-    struct game_internal {
-        game_internal() {
+    namespace game {
+        bool over {false};
+        void init() {
+            nx::load_all();
+            //Config::Load();
+            //LoadAllNX();
+            //Time::Init();
+            //Graphics::Init();
+            //Sprite::Init();
+            //ClassicUI::Init();
+            //Map::Init();
+        }
+        void loop() {
+            //Player::Update();
+            //View::Update();
+            //Map::Render();
+            //ClassicUI::Render();
+            //Time::Update();
+            //Graphics::Update();
 
         }
-    };
-    game::game() : m {new game_internal {}} {}
-    //namespace game {
-    //    bool over {false};
-    //    void play() {
-    //        Config::Load();
-    //        LoadAllNX();
-    //        Time::Init();
-    //        Graphics::Init();
-    //        Sprite::Init();
-    //        ClassicUI::Init();
-    //        Map::Init();
-    //        while (!over) {
-    //            Player::Update();
-    //            View::Update();
-    //            Map::Render();
-    //            ClassicUI::Render();
-    //            Time::Update();
-    //            Graphics::Update();
-    //        }
-    //        BGM.stop();
-    //        Graphics::Unload();
-    //        Config::Save();
-    //        if (Config::Threaded) SpriteMutex.unlock();
-    //        sleep_for(seconds(1));//To let threads finish safely
-    //    }
-    //}
+        void unload() {
+            //BGM.stop();
+            //Graphics::Unload();
+            //Config::Save();
+            //if (Config::Threaded) SpriteMutex.unlock();
+            //sleep_for(seconds(1));//To let threads finish safely
+
+        }
+        void play() {
+            init();
+            while (!over) loop();
+            unload();
+        }
+    }
 }

@@ -20,11 +20,9 @@
 #include <memory>
 
 namespace nl {
-    struct game_internal;
-    class game {
-    public:
-        game();
-    private:
-        std::unique_ptr<game_internal> m;
-    };
+    namespace game {
+        void play();
+        void shut_down();
+        void is_over();
+    }
 }
