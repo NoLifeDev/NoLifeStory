@@ -23,6 +23,6 @@ namespace nl {
     namespace game {
         void play();
         void shut_down();
-        void is_over();
+        bool is_over();
     }
 }

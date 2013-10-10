@@ -15,14 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    namespace Map {
-        extern Node Current;
-        extern string Name;
-        void Init();
-        void Random();
-        void Load(string name, string portal = "sp");
-        void Render();
+#include <string>
+
+namespace nl {
+    namespace map {
+        void init();
+        void random();
+        void load(std::string const & name, std::string const & portal);
+        void update();
+        void render();
     }
 }
