@@ -42,6 +42,7 @@ namespace nl {
         uint32_t audio_count() const;
         //Returns the number of nodes in the file
         uint32_t node_count() const;
+        std::string get_string(uint32_t) const;
     private:
 #pragma pack(push, 1)
         struct header {
@@ -56,7 +57,6 @@ namespace nl {
             uint64_t const audio_offset;
         };
 #pragma pack(pop)
-        std::string get_string(uint32_t) const;
         file(const file &);//Todo: Replace with = delete once VS has support for it.
         file & operator=(const file &);//Todo: Replace with = delete once VS has support for it.
         void const * m_base;
