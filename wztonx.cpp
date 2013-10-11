@@ -263,8 +263,6 @@ namespace nl {
         id = static_cast<id_t>(strings.size());
         strings.push_back({static_cast<char8_t *>(alloc::small(size)), size});
         memcpy(strings.back().data, data, size);
-        //For debugging purposes
-        //std::cerr.write(data, size).put('\n');
         return id;
     }
     id_t read_enc_string() {
@@ -429,7 +427,7 @@ namespace nl {
                 throw std::runtime_error {"Unknown directory type"};
             }
             int32_t size {in::read_cint()};
-            if (size <= 0) throw std::runtime_error {"Directory/img has invalid size!"};
+            if (size < 0) throw std::runtime_error {"Directory/img has invalid size!"};
             in::read_cint();//Offset that nobody cares about
             in::skip(4);//Checksum that nobody cares about
             if (type == 3) directories.push_back(ni + i);
@@ -466,6 +464,8 @@ namespace nl {
         } else if (!strncmp(st.data, "Shape2D#Convex2D", st.size)) {
             id_t count {static_cast<id_t>(in::read_cint())};
             id_t ni {static_cast<id_t>(nodes.size())};
+            n.num = static_cast<uint16_t>(count);
+            n.children = ni;
             nodes.resize(nodes.size() + count);
             for (id_t i {0}; i < count; ++i) {
                 node & nn {nodes[ni + i]};
@@ -487,8 +487,8 @@ namespace nl {
         } else throw std::runtime_error {"Unknown sub property type: " + std::string {st.data, st.size}};
     }
     void sub_property(id_t prop_node, size_t offset) {
-        id_t count {static_cast<id_t>(in::read_cint())};
         node & n {nodes[prop_node]};
+        id_t count {static_cast<id_t>(in::read_cint())};
         id_t ni {static_cast<id_t>(nodes.size())};
         n.num = static_cast<uint16_t>(count);
         n.children = ni;
