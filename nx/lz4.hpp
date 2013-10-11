@@ -32,6 +32,7 @@ You can contact the author at :
 - LZ4 source repository : http://code.google.com/p/lz4/
 */
 // Modified by Peter Atashian
+// All modifications by Peter Atashian are released to the public domain
 
 #pragma once
 
