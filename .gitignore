@@ -1,8 +1,14 @@
 
 *
-!*/
-!README.md
-!NoLifeStory.sln
+!**/
 !.gitignore
-!.gitmodules
-!CMakeLists.txt
+!**/CMakeLists.txt
+!*.cmake
+!*.md
+!*.sln
+!*.cpp
+!*.hpp
+!*.vcxproj
+!*.vcxproj.filters
+sdk/*
+!sdk/README.md
