@@ -1,0 +1,8 @@
+
+* text diff merge=text encoding=utf-8
+*.mp3 binary merge=binary
+*.sln eol=crlf merge=union
+*.vcxproj eol=crlf merge=union
+*.vcxproj.filters eol=crlf merge=union
+*.cpp diff=cpp
+*.hpp diff=cpp
