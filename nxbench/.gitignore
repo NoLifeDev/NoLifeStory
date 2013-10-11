@@ -1,0 +1,8 @@
+
+*
+!README.md
+!.gitignore
+!CMakeLists.txt
+!nxbench.cpp
+!NoLifeNxBench.vcxproj
+!NoLifeNxBench.vcxproj.filters
