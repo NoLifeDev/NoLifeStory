@@ -18,12 +18,14 @@
 
 #include "game.hpp"
 #include <nx/nx.hpp>
+#include "graphics.hpp"
 
 namespace nl {
     namespace game {
         bool over {false};
         void init() {
             nx::load_all();
+            graphics::init();
             //Config::Load();
             //LoadAllNX();
             //Time::Init();
@@ -33,6 +35,7 @@ namespace nl {
             //Map::Init();
         }
         void loop() {
+            graphics::update();
             //Player::Update();
             //View::Update();
             //Map::Render();
@@ -42,6 +45,7 @@ namespace nl {
 
         }
         void unload() {
+            graphics::unload();
             //BGM.stop();
             //Graphics::Unload();
             //Config::Save();

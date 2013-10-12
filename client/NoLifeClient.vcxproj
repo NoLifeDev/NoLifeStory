@@ -84,7 +84,7 @@
     <ClInclude Include="Config.hpp" />
     <ClInclude Include="Foothold.hpp" />
     <ClInclude Include="game.hpp" />
-    <ClInclude Include="Graphics.hpp" />
+    <ClInclude Include="graphics.hpp" />
     <ClInclude Include="Layer.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="map.hpp" />
@@ -106,7 +106,7 @@
     </ClCompile>
     <ClCompile Include="Foothold.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="graphics.cpp" />
     <ClCompile Include="Layer.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="map.cpp" />

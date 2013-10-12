@@ -48,9 +48,6 @@
     <ClInclude Include="Foothold.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Physics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,15 +66,15 @@
     <ClInclude Include="map.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="graphics.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Background.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Foothold.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Layer.cpp">
@@ -126,6 +123,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -15,14 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-namespace NL {
-    namespace Graphics {
-        sf::Window * Window;
-        string Title = "NoLifeStory";
-        const sf::ContextSettings Context(0, 0, 0, 1, 5);
-        GLuint VBO;
-        void Create(bool fullscreen) {
+
+#include "graphics.hpp"
+#include <GL/glew.h>
+#include <SFML/Window.hpp>
+#include <memory>
+#include <string>
+
+namespace nl {
+    namespace graphics {
+        std::unique_ptr<sf::Window> window {};
+        std::string title {"NoLifeStory"};
+        sf::ContextSettings const context {0, 0, 0, 1, 5};
+        GLuint vbo {};
+        void recreate_window(bool fullscreen) {
             Config::Fullscreen = fullscreen;
             if (Config::Fullscreen) Window->create(sf::VideoMode(Config::FullscreenWidth, Config::FullscreenHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
             else Window->create(sf::VideoMode(Config::WindowWidth, Config::WindowHeight, 32), Title, sf::Style::Titlebar | sf::Style::Resize, Context);
@@ -40,8 +46,8 @@ namespace NL {
             glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
         }
         void Init() {
-            Window = new sf::Window();
-            GLenum err = glewInit();
+            window = std::make_unique<sf::Window>();
+            GLenum err {glewInit()};
             switch (err) {
             case GLEW_OK:
                 break;
@@ -52,12 +58,12 @@ namespace NL {
             case GLEW_ERROR_GLX_VERSION_11_ONLY:
                 throw "You need something newer than GLX 1.1";
             default:
-                throw "ERROR: Unknown GLEW error code " + to_string(err);
+                throw "ERROR: Unknown GLEW error code " + std::to_string(err);
             }
             if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5) {
                 throw "Your OpenGL is out of date. Please update your drivers and/or buy a new GPU";
             }
-            float a[] = {0, 0, 1, 0, 1, 1, 0, 1};
+            float a[]{0, 0, 1, 0, 1, 1, 0, 1};
             glGenBuffers(1, &VBO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(a), a, GL_STATIC_DRAW);

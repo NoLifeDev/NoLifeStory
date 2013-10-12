@@ -15,13 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    namespace Graphics {
-        extern sf::Window * Window;
-        void Init();
-        void Update();
-        void Unload();
-        void DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool view);
+
+namespace nl {
+    namespace graphics {
+        void init();
+        void update();
+        void unload();
+        void draw_rect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool relative);
+        void draw_line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool relative);
     }
 }
