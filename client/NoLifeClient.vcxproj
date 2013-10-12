@@ -54,7 +54,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>NoLifeProtocol.lib;glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -81,7 +81,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
     <ClInclude Include="Background.hpp" />
-    <ClInclude Include="Config.hpp" />
+    <ClInclude Include="config.hpp" />
     <ClInclude Include="Foothold.hpp" />
     <ClInclude Include="game.hpp" />
     <ClInclude Include="graphics.hpp" />
@@ -95,33 +95,18 @@
     <ClInclude Include="Sound.hpp" />
     <ClInclude Include="Sprite.hpp" />
     <ClInclude Include="Tile.hpp" />
-    <ClInclude Include="Time.hpp" />
     <ClInclude Include="ClassicUI.hpp" />
+    <ClInclude Include="time.hpp" />
     <ClInclude Include="View.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Background.cpp" />
-    <ClCompile Include="Config.cpp">
+    <ClCompile Include="config.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
-    <ClCompile Include="Foothold.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="graphics.cpp" />
-    <ClCompile Include="Layer.cpp" />
-    <ClCompile Include="Log.cpp" />
     <ClCompile Include="map.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Obj.cpp" />
-    <ClCompile Include="Physics.cpp" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="Portal.cpp" />
-    <ClCompile Include="Sound.cpp">
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
-    <ClCompile Include="Sprite.cpp" />
-    <ClCompile Include="Tile.cpp" />
-    <ClCompile Include="Time.cpp" />
-    <ClCompile Include="ClassicUI.cpp" />
-    <ClCompile Include="View.cpp" />
+    <ClCompile Include="time.cpp" />
   </ItemGroup>
 </Project>

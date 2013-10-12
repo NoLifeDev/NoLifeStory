@@ -19,44 +19,37 @@
 #include "game.hpp"
 #include <nx/nx.hpp>
 #include "graphics.hpp"
+#include "config.hpp"
+#include "time.hpp"
 
 namespace nl {
     namespace game {
         bool over {false};
         void init() {
+            config::load();
             nx::load_all();
+            time::init();
             graphics::init();
-            //Config::Load();
-            //LoadAllNX();
-            //Time::Init();
-            //Graphics::Init();
-            //Sprite::Init();
-            //ClassicUI::Init();
-            //Map::Init();
         }
         void loop() {
+            time::update();
             graphics::update();
-            //Player::Update();
-            //View::Update();
-            //Map::Render();
-            //ClassicUI::Render();
-            //Time::Update();
-            //Graphics::Update();
-
         }
         void unload() {
+            config::save();
             graphics::unload();
-            //BGM.stop();
-            //Graphics::Unload();
-            //Config::Save();
-            //if (Config::Threaded) SpriteMutex.unlock();
-            //sleep_for(seconds(1));//To let threads finish safely
 
         }
         void play() {
             init();
             while (!over) loop();
             unload();
+        }
+        void shut_down() {
+            over = true;
+        }
+        bool is_over() {
+            return over;
         }
     }
 }

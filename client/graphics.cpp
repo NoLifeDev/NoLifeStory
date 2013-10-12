@@ -21,6 +21,10 @@
 #include <SFML/Window.hpp>
 #include <memory>
 #include <string>
+#include <chrono>
+#include "config.hpp"
+#include "time.hpp"
+#include "game.hpp"
 
 namespace nl {
     namespace graphics {
@@ -29,77 +33,77 @@ namespace nl {
         sf::ContextSettings const context {0, 0, 0, 1, 5};
         GLuint vbo {};
         void recreate_window(bool fullscreen) {
-            Config::Fullscreen = fullscreen;
-            if (Config::Fullscreen) Window->create(sf::VideoMode(Config::FullscreenWidth, Config::FullscreenHeight, 32), Title, sf::Style::Default | sf::Style::Fullscreen, Context);
-            else Window->create(sf::VideoMode(Config::WindowWidth, Config::WindowHeight, 32), Title, sf::Style::Titlebar | sf::Style::Resize, Context);
-            View::Resize(Window->getSize().x, Window->getSize().y);
-            if (Config::Vsync) Window->setVerticalSyncEnabled(true);
+            config::fullscreen = fullscreen;
+            if (config::fullscreen) window->create(sf::VideoMode(config::fullscreen_width, config::fullscreen_height, 32), title, sf::Style::Fullscreen, context);
+            else window->create(sf::VideoMode(config::window_width, config::window_height, 32), title, sf::Style::Titlebar | sf::Style::Resize | sf::Style::Close, context);
+            //View::Resize(window->getSize().x, window->getSize().y);
+            if (config::vsync) window->setVerticalSyncEnabled(true);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_TEXTURE_2D);
             glColor4f(1, 1, 1, 1);
             glClearColor(0, 0, 0, 0);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glVertexPointer(2, GL_FLOAT, 0, nullptr);
             glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
         }
-        void Init() {
+        void init() {
             window = std::make_unique<sf::Window>();
             GLenum err {glewInit()};
             switch (err) {
             case GLEW_OK:
                 break;
             case GLEW_ERROR_NO_GL_VERSION:
-                throw "You need OpenGL";
+                throw std::runtime_error {"You need OpenGL"};
             case GLEW_ERROR_GL_VERSION_10_ONLY:
-                throw "You need something newer than OpenGL 1.0";
+                throw std::runtime_error {"You need something newer than OpenGL 1.0"};
             case GLEW_ERROR_GLX_VERSION_11_ONLY:
-                throw "You need something newer than GLX 1.1";
+                throw std::runtime_error {"You need something newer than GLX 1.1"};
             default:
-                throw "ERROR: Unknown GLEW error code " + std::to_string(err);
+                throw std::runtime_error {"ERROR: Unknown GLEW error code " + std::to_string(err)};
             }
             if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5) {
-                throw "Your OpenGL is out of date. Please update your drivers and/or buy a new GPU";
+                throw std::runtime_error {"Your OpenGL is out of date. Please update your drivers and/or buy a new GPU"};
             }
-            float a[]{0, 0, 1, 0, 1, 1, 0, 1};
-            glGenBuffers(1, &VBO);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            float a[] {0, 0, 1, 0, 1, 1, 0, 1};
+            glGenBuffers(1, &vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glBufferData(GL_ARRAY_BUFFER, sizeof(a), a, GL_STATIC_DRAW);
-            Create(Config::Fullscreen);
+            recreate_window(config::fullscreen);
         }
-        void Update() {
-            if (!Config::Fullscreen) {
-                //Meant to slow down title updates because apparently this causes horrible performance on X
-                static steady_clock::time_point lasttitle = steady_clock::now();
-                if (steady_clock::now() - lasttitle > milliseconds {250}) {
-                    lasttitle = steady_clock::now();
-                    Window->setTitle(Title + " drawing map " + Map::Current.Name().substr(0, 9) + " at " + to_string(Time::FPS) + " FPS");
+        void update() {
+            if (!config::fullscreen) {
+                //Too many title updates can cause bad performance
+                static std::chrono::steady_clock::time_point lasttitle {std::chrono::steady_clock::now()};
+                if (std::chrono::steady_clock::now() - lasttitle > std::chrono::milliseconds {250}) {
+                    lasttitle = std::chrono::steady_clock::now();
+                    window->setTitle("NoLifeStory {fps = " + std::to_string(time::fps) + ";};");
                 }
             }
-            Window->display();
-            GLenum err = glGetError();
+            window->display();
+            GLenum err {glGetError()};
             switch (err) {
             case GL_NO_ERROR:
                 break;
             case GL_INVALID_ENUM:
-                throw "Invalid enum";
+                throw std::runtime_error {"Invalid enum"};
             case GL_INVALID_VALUE:
-                throw "Invalid value";
+                throw std::runtime_error {"Invalid value"};
             case GL_INVALID_OPERATION:
-                throw "Invalid operation";
+                throw std::runtime_error {"Invalid operation"};
             case GL_INVALID_FRAMEBUFFER_OPERATION:
-                throw "Invalid framebuffer operation";
+                throw std::runtime_error {"Invalid framebuffer operation"};
             case GL_OUT_OF_MEMORY:
-                throw "Out of memory";
+                throw std::runtime_error {"Out of memory"};
             default:
-                throw "Unknown OpenGL error code " + to_string(err);
+                throw std::runtime_error {"Unknown OpenGL error code " + std::to_string(err)};
             }
-            sf::Event e;
-            while (Window->pollEvent(e)) switch (e.type) {
+            sf::Event e {};
+            while (window->pollEvent(e)) switch (e.type) {
             case sf::Event::Closed:
-                Game::Over = true;
+                game::shut_down();
                 break;
             case sf::Event::GainedFocus: break;
             case sf::Event::LostFocus: break;
@@ -111,36 +115,37 @@ namespace nl {
             case sf::Event::KeyPressed:
                 switch (e.key.code) {
                 case sf::Keyboard::M:
-                    BGM.setVolume(BGM.getVolume() > 0 ? 0 : 100);
+                    //BGM.setVolume(BGM.getVolume() > 0 ? 0 : 100);
                     break;
                 case sf::Keyboard::R:
-                    Config::Rave = !Config::Rave;
-                    BGM.PlayMusic();
+                    config::rave = !config::rave;
+                    //BGM.PlayMusic();
                     break;
                 case sf::Keyboard::F11:
-                    Create(!Config::Fullscreen);
+                    //Create(!Config::Fullscreen);
                     break;
                 case sf::Keyboard::Return:
-                    Map::Random();
+                    //Map::Random();
                     break;
                 case sf::Keyboard::Escape:
-                    Game::Over = true;
+                    game::shut_down();
                     break;
                 case sf::Keyboard::LAlt:
-                    Player::Pos.Jump();
+                    //Player::Pos.Jump();
                     break;
                 case sf::Keyboard::Up:
-                    Player::Pos.up = true;
+                    //Player::Pos.up = true;
                     break;
                 case sf::Keyboard::Down:
-                    Player::Pos.down = true;
+                    //Player::Pos.down = true;
                     break;
                 case sf::Keyboard::Left:
-                    Player::Pos.left = true;
+                    //Player::Pos.left = true;
                     break;
                 case sf::Keyboard::Right:
-                    Player::Pos.right = true;
+                    //Player::Pos.right = true;
                     break;
+                default: break;
                 }
                 break;
             case sf::Event::KeyReleased: break;
@@ -151,23 +156,14 @@ namespace nl {
             case sf::Event::MouseMoved: break;
             case sf::Event::MouseWheelMoved: break;
             case sf::Event::Resized:
-                View::Resize(e.size.width, e.size.height);
+                //View::Resize(e.size.width, e.size.height);
                 break;
             case sf::Event::TextEntered: break;
             }
             glClear(GL_COLOR_BUFFER_BIT);
         }
-        void Unload() {
-            Window->close();
-            delete Window;
-        }
-        void DrawRect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool view) {
-            Sprite::Unbind();
-            if (view) glTranslated(View::Width / 2 - View::X, View::Height / 2 - View::Y, 0);
-            glTranslated(x1, y1, 0);
-            glScaled(x2 - x1, y2 - y1, 1);
-            glDrawArrays(GL_QUADS, 0, 4);
-            glLoadIdentity();
+        void unload() {
+            window.reset();
         }
     }
 }

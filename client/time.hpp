@@ -15,12 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    namespace Time {
-        extern uint32_t FPS;
-        extern double Delta, TDelta;
-        void Init();
-        void Update();
+#include <cstdint>
+
+namespace nl {
+    namespace time {
+        extern uint32_t fps;
+        extern double delta, delta_total;
+        void init();
+        void update();
     }
 }

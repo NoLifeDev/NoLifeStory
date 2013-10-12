@@ -17,7 +17,14 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "game.hpp"
+#include <iostream>
 
 int main(int argc, char ** argv) {
-    nl::game::play();
+    //try {
+        nl::game::play();
+    //} catch (std::exception e) {
+        //std::cerr << "Uncaught exception: " << e.what() << std::endl;
+    //} catch (...) {
+        //std::cerr << "Unknown exception!" << std::endl;
+    //}
 }

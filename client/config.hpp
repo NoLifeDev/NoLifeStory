@@ -15,15 +15,21 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    namespace Config {
-        extern bool Rave, Fullscreen, Threaded;
-        extern bool Vsync, FrameLimit;
-        extern int32_t TargetFPS, MaxTextures;
-        extern int32_t WindowWidth, WindowHeight;
-        extern int32_t FullscreenWidth, FullscreenHeight;
-        void Save();
-        void Load();
+#include <cstdint>
+
+namespace nl {
+    namespace config {
+        extern bool rave;
+        extern bool fullscreen;
+        extern bool vsync;
+        extern bool limit_fps;
+        extern int32_t target_fps;
+        extern int32_t max_textures;
+        extern int32_t window_width, window_height;
+        extern int32_t fullscreen_width, fullscreen_height;
+        void save();
+        void load();
     }
 }

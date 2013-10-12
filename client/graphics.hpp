@@ -23,7 +23,5 @@ namespace nl {
         void init();
         void update();
         void unload();
-        void draw_rect(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool relative);
-        void draw_line(int32_t x1, int32_t y1, int32_t x2, int32_t y2, bool relative);
     }
 }

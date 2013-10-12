@@ -16,95 +16,112 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "NoLifeClient.hpp"
-#ifdef _MSC_VER
-#  include <regex>
-#else
-//Needed because regex support is horrible anywhere exception msvc
-#  include <boost/filesystem.hpp>
-#  include <boost/regex.hpp>
-using boost::smatch;
-using boost::regex_match;
-using boost::regex;
-#endif
-#ifdef NL_WINDOWS
+#include "config.hpp"
+#include <SFML/Window/VideoMode.hpp>
+#include <map>
+#include <string>
+#include <functional>
+#include <fstream>
+#include <regex>
+#ifdef _WIN32
 #  include <Windows.h>
 #endif
 
-namespace NL {
-    namespace Config {
+namespace nl {
+    namespace config {
         //Various config variables
-        bool Rave = false, Fullscreen = false, Threaded = true;
-        bool Vsync = true, FrameLimit = false;
-        int32_t TargetFPS = 100, MaxTextures = 4000;
-        int32_t WindowWidth = 1024, WindowHeight = 768;
-        int32_t FullscreenWidth = 1024, FullscreenHeight = 768;
+        bool rave {false};
+        bool fullscreen {false};
+        bool vsync {true};
+        bool limit_fps {false};
+        int32_t target_fps {100};
+        int32_t max_textures {4000};
+        int32_t window_width {1024}, window_height {768};
+        int32_t fullscreen_width {1024}, fullscreen_height {768};
         //Stuff to hold configs and their mappings
-        map<string, string> Configs;
-        map<string, pair<function<void(void)>, function<void(void)>>> Mappings;
+        struct mapping {
+            std::function<void()> save;
+            std::function<void()> load;
+        };
+        std::map<std::string, std::string> configs;
+        std::map<std::string, mapping> mappings;
         //These mappings provide an easy way to map a variable to a config
-        void StringMapping(string n, string & v) {
-            Mappings[n].first = [&v, n]{Configs[n] = v;};
-            Mappings[n].second = [&v, n]{v = Configs[n];};
+        void map_string(std::string const & n, std::string & v) {
+            mappings[n].save = [&v, n] {
+                configs[n] = v;
+            };
+            mappings[n].load = [&v, n] {
+                v = configs[n];
+            };
         }
-        void IntMapping(string n, int32_t & v) {
-            Mappings[n].first = [&v, n]{Configs[n] = to_string(v);};
-            Mappings[n].second = [&v, n]{try {v = stol(Configs[n]);} catch (...){}};
+        void map_int(std::string const & n, int32_t & v) {
+            mappings[n].save = [&v, n] {
+                configs[n] = std::to_string(v);
+            };
+            mappings[n].load = [&v, n] {
+                try {
+                    v = std::stol(configs[n]);
+                } catch (...) {}
+            };
         }
-        void BoolMapping(string n, bool & v) {
-            Mappings[n].first = [&v, n]{Configs[n] = (v ? "true" : "false");};
-            Mappings[n].second = [&v, n]{v = (Configs[n] == "true" ? true : false);};
+        void map_bool(std::string const & n, bool & v) {
+            mappings[n].save = [&v, n] {
+                configs[n] = v ? "true" : "false";
+            };
+            mappings[n].load = [&v, n] {
+                v = configs[n] == "true" ? true : false;
+            };
         }
-        void Save() {
+        void save() {
             //Write the variables to their configs
-            for (auto & m : Mappings) m.second.first();
+            for (auto const & m : mappings) m.second.save();
             //Then save the config itself
-            ofstream file("NoLifeClient.cfg");
-            for (auto && c : Configs) {
-                file << c.first << " = " << c.second << endl;
+            std::ofstream file("NoLifeClient.cfg");
+            for (auto const & c : configs) {
+                file << c.first << " = " << c.second << '\n';
             }
         }
-        void Load() {
+        void load() {
             //First set some runtime defaults
-            auto v = sf::VideoMode::getFullscreenModes()[0];
-            FullscreenWidth = v.width, FullscreenHeight = v.height;
-#ifdef NL_WINDOWS
-            DEVMODEA dev = {};
+            auto & v = sf::VideoMode::getFullscreenModes()[0];
+            fullscreen_width = v.width, fullscreen_height = v.height;
+#ifdef _WIN32
+            DEVMODEA dev {};
             dev.dmSize = sizeof(DEVMODEA);
-            dev.dmDriverExtra = 0;
             EnumDisplaySettingsA(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-            TargetFPS = dev.dmDisplayFrequency;
+            target_fps = dev.dmDisplayFrequency;
 #endif
             //Then map the configs
-            IntMapping("winwidth", WindowWidth);
-            IntMapping("winheight", WindowHeight);
-            IntMapping("fullwidth", FullscreenWidth);
-            IntMapping("fullheight", FullscreenHeight);
-            IntMapping("fps", TargetFPS);
-            IntMapping("maxtextures", MaxTextures);
-            BoolMapping("fullscreen", Fullscreen);
-            BoolMapping("rave", Rave);
-            BoolMapping("threaded", Threaded);
-            BoolMapping("vsync", Vsync);
-            BoolMapping("capfps", FrameLimit);
+            map_bool("rave", rave);
+            map_bool("fullscreen", fullscreen);
+            map_bool("vsync", vsync);
+            map_bool("capfps", limit_fps);
+            map_int("fps", target_fps);
+            map_int("maxtextures", max_textures);
+            map_int("winwidth", window_width);
+            map_int("winheight", window_height);
+            map_int("fullwidth", fullscreen_width);
+            map_int("fullheight", fullscreen_height);
             //First we save the defaults in case the config doesn't have them
-            for (auto & m : Mappings) m.second.first();
+            for (auto const & m : mappings) m.second.save();
             //Now we load the config itself
             {
-                ifstream file("NoLifeClient.cfg");
-                regex reg("[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*");
+                std::ifstream file {"NoLifeClient.cfg"};
+                std::regex reg {"[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*", std::regex_constants::optimize};
+                std::string line {};
                 if (file.is_open()) while (!file.eof()) {
-                    string s;
-                    getline(file, s);
-                    transform(s.begin(), s.end(), s.begin(), [](char c){return tolower(c);});
-                    smatch m;
-                    if (!regex_match(s, m, reg)) continue;
-                    Configs[m[1]] = m[2];
+                    getline(file, line);
+                    transform(line.cbegin(), line.cend(), line.begin(), [](char const & c) {
+                        return tolower(c);
+                    });
+                    std::smatch m;
+                    if (!std::regex_match(line, m, reg)) continue;
+                    configs[m[1]] = m[2];
                 }
             }
-            for (auto & m : Mappings) m.second.second();
-            //And then we save the config
-            Save();
+            for (auto const & m : mappings) m.second.load();
+            //And then we save the config back
+            save();
         }
     }
 }
