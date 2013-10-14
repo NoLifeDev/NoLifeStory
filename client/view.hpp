@@ -15,9 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    namespace Log {
-        void Write(string);
+#include <cstdint>
+
+namespace nl {
+    namespace view {
+        extern int32_t x, y;
+        extern double fx, fy;
+        extern int32_t width, height;
+        extern int32_t left, right, top, bottom;
+        void resize(int32_t w, int32_t h);
+        void reset();
+        void update();
+        void draw_edges();
     }
 }

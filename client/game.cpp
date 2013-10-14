@@ -17,10 +17,11 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "game.hpp"
-#include <nx/nx.hpp>
 #include "graphics.hpp"
 #include "config.hpp"
 #include "time.hpp"
+#include <nx/nx.hpp>
+#include <stdexcept>
 
 namespace nl {
     namespace game {
@@ -38,7 +39,6 @@ namespace nl {
         void unload() {
             config::save();
             graphics::unload();
-
         }
         void play() {
             init();

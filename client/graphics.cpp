@@ -17,14 +17,14 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "graphics.hpp"
+#include "config.hpp"
+#include "time.hpp"
+#include "game.hpp"
 #include <GL/glew.h>
 #include <SFML/Window.hpp>
 #include <memory>
 #include <string>
 #include <chrono>
-#include "config.hpp"
-#include "time.hpp"
-#include "game.hpp"
 
 namespace nl {
     namespace graphics {

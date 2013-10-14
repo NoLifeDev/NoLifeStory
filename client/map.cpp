@@ -17,15 +17,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "map.hpp"
-#include <vector>
-#include <string>
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
+#include <vector>
+#include <string>
 
 namespace nl {
     namespace map {
         std::vector<std::string> all_maps {};
-        node map_node;
+        node map_node {};
+        node current {};
         void init() {
             map_node = nx::map["Map"];
             for (int i = 0; i <= 9; ++i) {

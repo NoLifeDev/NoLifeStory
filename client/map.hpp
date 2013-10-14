@@ -17,10 +17,12 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <nx/node.hpp>
 #include <string>
 
 namespace nl {
     namespace map {
+        extern node current;
         void init();
         void random();
         void load(std::string const & name, std::string const & portal);

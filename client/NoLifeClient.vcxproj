@@ -80,24 +80,12 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
-    <ClInclude Include="Background.hpp" />
     <ClInclude Include="config.hpp" />
-    <ClInclude Include="Foothold.hpp" />
     <ClInclude Include="game.hpp" />
     <ClInclude Include="graphics.hpp" />
-    <ClInclude Include="Layer.hpp" />
-    <ClInclude Include="Log.hpp" />
     <ClInclude Include="map.hpp" />
-    <ClInclude Include="Obj.hpp" />
-    <ClInclude Include="Physics.hpp" />
-    <ClInclude Include="Player.hpp" />
-    <ClInclude Include="Portal.hpp" />
-    <ClInclude Include="Sound.hpp" />
-    <ClInclude Include="Sprite.hpp" />
-    <ClInclude Include="Tile.hpp" />
-    <ClInclude Include="ClassicUI.hpp" />
     <ClInclude Include="time.hpp" />
-    <ClInclude Include="View.hpp" />
+    <ClInclude Include="view.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp">
@@ -108,5 +96,6 @@
     <ClCompile Include="map.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="time.cpp" />
+    <ClCompile Include="view.cpp" />
   </ItemGroup>
 </Project>

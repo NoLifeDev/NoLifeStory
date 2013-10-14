@@ -17,11 +17,11 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "time.hpp"
+#include "config.hpp"
 #include <GL/glew.h>
 #include <deque>
 #include <chrono>
 #include <thread>
-#include "config.hpp"
 
 namespace nl {
     namespace time {
