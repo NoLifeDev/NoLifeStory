@@ -84,6 +84,7 @@
     <ClInclude Include="game.hpp" />
     <ClInclude Include="graphics.hpp" />
     <ClInclude Include="map.hpp" />
+    <ClInclude Include="sprite.hpp" />
     <ClInclude Include="time.hpp" />
     <ClInclude Include="view.hpp" />
   </ItemGroup>
@@ -95,6 +96,7 @@
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="map.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="sprite.cpp" />
     <ClCompile Include="time.cpp" />
     <ClCompile Include="view.cpp" />
   </ItemGroup>

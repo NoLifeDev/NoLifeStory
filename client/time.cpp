@@ -61,6 +61,7 @@ namespace nl {
             while (!frames.empty() && now - frames.front() > std::chrono::seconds {1}) frames.pop_front();
             frames.push_back(now);
             fps = static_cast<uint32_t>(frames.size());
+            draw();
         }
     }
 }

@@ -16,11 +16,16 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
+#define _USE_MATH_DEFINES
 #include "view.hpp"
 #include "config.hpp"
 #include "map.hpp"
+#include "time.hpp"
 #include <GL/glew.h>
 #include <algorithm>
+#include <random>
+#include <chrono>
+#include <cmath>
 
 namespace nl {
     namespace view {
@@ -31,9 +36,9 @@ namespace nl {
         template <typename T>
         void restrict(T & x, T & y) {
             if (right - left <= width) x = (right + left) / 2;
-            else x = std::max(std::min(x, right - width / 2), left + width / 2);
+            else x = std::max<int32_t>(std::min<int32_t>(x, right - width / 2), left + width / 2);
             if (bottom - top <= height) y = (bottom + top) / 2;
-            else y = std::max(std::min(x, bottom - height / 2), top + height / 2);
+            else y = std::max<int32_t>(std::min<int32_t>(x, bottom - height / 2), top + height / 2);
         }
         void resize(int32_t w, int32_t h) {
             width = w, height = h;
@@ -46,7 +51,7 @@ namespace nl {
                 config::window_height = height;
             }
         }
-        void Reset() {
+        void reset() {
             if (map::current["info"]["VRtop"]) {
                 top = map::current["info"]["VRtop"];
                 bottom = map::current["info"]["VRbottom"];
@@ -63,8 +68,10 @@ namespace nl {
                     left -= d;
                 }
             } else {
-                left = std::numeric_limits<int32_t>::max(), right = std::numeric_limits<int32_t>::min();
-                top = std::numeric_limits<int32_t>::max(), bottom = std::numeric_limits<int32_t>::min();
+                left = std::numeric_limits<int32_t>::max();
+                right = std::numeric_limits<int32_t>::min();
+                top = std::numeric_limits<int32_t>::max();
+                bottom = std::numeric_limits<int32_t>::min();
                 //for (auto & f : footholds) {
                 //    if (left > f.x1) left = f.x1;
                 //    if (left > f.x2) left = f.x2;
@@ -79,40 +86,47 @@ namespace nl {
                 bottom += 128;
                 if (top > bottom - 600) top = bottom - 600;
             }
+            x = 0;
+            y = 0;
             //X = Player::Pos.x, Y = Player::Pos.y;
             restrict(x, y);
             fx = x;
             fy = y;
         }
-        void Update() {
-            double tx(Player::Pos.x), ty(Player::Pos.y);
-            Restrict(tx, ty);
-            double sx((tx - FX) * Time::Delta * 5), sy((ty - FY) * Time::Delta * 5);
-            if (abs(sx) > abs(tx - FX)) sx = tx - FX;
-            if (abs(sy) > abs(ty - FY)) sy = ty - FY;
-            FX += sx, FY += sy;
-            Restrict(FX, FY);
-            X = FX, Y = FY;
+        void update() {
+            double tx {0};
+            double ty {0};
+            //double tx(Player::Pos.x), ty(Player::Pos.y);
+            restrict(tx, ty);
+            double sx {(tx - fx) * time::delta * 5};
+            double sy {(ty - fy) * time::delta * 5};
+            if (abs(sx) > abs(tx - fx)) sx = tx - fx;
+            if (abs(sy) > abs(ty - fy)) sy = ty - fy;
+            fx += sx;
+            fy += sy;
+            restrict(fx, fy);
+            x = fx;
+            y = fy;
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
-            if (Config::Rave) {
-                mt19937_64 engine(high_resolution_clock::now().time_since_epoch().count());
-                uniform_int_distribution<int> dist(-10, 10);
-                X += dist(engine);
-                Y += dist(engine);
-                gluPerspective(-10 * pow(0.5 * sin(Time::TDelta * 2.088 * 2 * M_PI) + 0.5, 9) + 90, double(width) / height, 0.1, 10000);
+            if (config::rave) {
+                std::mt19937_64 engine {static_cast<uint64_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
+                std::uniform_int_distribution<int32_t> dist {-10, 10};
+                x += dist(engine);
+                y += dist(engine);
+                gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * M_PI) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
                 gluLookAt(width / 2, height / 2, -height / 2, width / 2, height / 2, 0, 0, -1, 0);
             } else glOrtho(0, width, height, 0, -1, 1);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
         }
-        void DrawEdges() {
-            Sprite::Unbind();
-            glColor4f(0, 0, 0, 1);
-            Graphics::DrawRect(0, 0, width, top - Y + height / 2, false);
-            Graphics::DrawRect(0, bottom - Y + height / 2, width, height, false);
-            Graphics::DrawRect(0, top - Y + height / 2, left - X + width / 2, bottom - Y + height / 2, false);
-            Graphics::DrawRect(right - X + width / 2, top - Y + height / 2, width, bottom - Y + height / 2, false);
+        void draw_edges() {
+            //Sprite::Unbind();
+            //glColor4f(0, 0, 0, 1);
+            //Graphics::DrawRect(0, 0, width, top - Y + height / 2, false);
+            //Graphics::DrawRect(0, bottom - Y + height / 2, width, height, false);
+            //Graphics::DrawRect(0, top - Y + height / 2, left - X + width / 2, bottom - Y + height / 2, false);
+            //Graphics::DrawRect(right - X + width / 2, top - Y + height / 2, width, bottom - Y + height / 2, false);
         }
     }
 }

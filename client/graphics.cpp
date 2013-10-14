@@ -20,6 +20,7 @@
 #include "config.hpp"
 #include "time.hpp"
 #include "game.hpp"
+#include "view.hpp"
 #include <GL/glew.h>
 #include <SFML/Window.hpp>
 #include <memory>
@@ -36,7 +37,7 @@ namespace nl {
             config::fullscreen = fullscreen;
             if (config::fullscreen) window->create(sf::VideoMode(config::fullscreen_width, config::fullscreen_height, 32), title, sf::Style::Fullscreen, context);
             else window->create(sf::VideoMode(config::window_width, config::window_height, 32), title, sf::Style::Titlebar | sf::Style::Resize | sf::Style::Close, context);
-            //View::Resize(window->getSize().x, window->getSize().y);
+            view::resize(window->getSize().x, window->getSize().y);
             if (config::vsync) window->setVerticalSyncEnabled(true);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -122,7 +123,7 @@ namespace nl {
                     //BGM.PlayMusic();
                     break;
                 case sf::Keyboard::F11:
-                    //Create(!Config::Fullscreen);
+                    recreate_window(!config::fullscreen);
                     break;
                 case sf::Keyboard::Return:
                     //Map::Random();
@@ -156,9 +157,10 @@ namespace nl {
             case sf::Event::MouseMoved: break;
             case sf::Event::MouseWheelMoved: break;
             case sf::Event::Resized:
-                //View::Resize(e.size.width, e.size.height);
+                view::resize(e.size.width, e.size.height);
                 break;
             case sf::Event::TextEntered: break;
+            default: break;
             }
             glClear(GL_COLOR_BUFFER_BIT);
         }

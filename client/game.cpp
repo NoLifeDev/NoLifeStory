@@ -20,6 +20,7 @@
 #include "graphics.hpp"
 #include "config.hpp"
 #include "time.hpp"
+#include "view.hpp"
 #include <nx/nx.hpp>
 #include <stdexcept>
 
@@ -31,8 +32,10 @@ namespace nl {
             nx::load_all();
             time::init();
             graphics::init();
+            view::reset();
         }
         void loop() {
+            view::update();
             time::update();
             graphics::update();
         }

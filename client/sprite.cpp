@@ -15,118 +15,67 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-namespace NL {
-    unordered_map<size_t, GLuint> Sprites;
-    deque<size_t> LoadedSprites;
-    size_t LastBound(0);
-    mutex LoadMutex;;
-    mutex SpriteMutex;
-    set<Bitmap> SpritesToLoad;
-    atomic<bool> ThreadContextMade(false);
-    void SpriteThread() {
-        {
-            sf::Context context;
-            ThreadContextMade = true;
-            while (!Game::Over) {
-                for (;;) {
-                    Bitmap b;
-                    {
-                        lock_guard<mutex> lock(LoadMutex);
-                        if (SpritesToLoad.empty()) break;
-                        b = *SpritesToLoad.begin();
-                    }
-                    GLuint t;
-                    glGenTextures(1, &t);
-                    glBindTexture(GL_TEXTURE_2D, t);
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                    {
-                        lock_guard<mutex> lock(LoadMutex);
-                        SpritesToLoad.erase(b);
-                        Sprites[b.ID()] = t;
-                        LoadedSprites.push_back(b.ID());
-                    }
-                }
-                glFlush();
-                sleep_for(milliseconds(10));
-            }
-            SpriteMutex.lock();
-        }
-        SpriteMutex.unlock();
+
+#include "sprite.hpp"
+#include "config.hpp"
+#include "time.hpp"
+#include "view.hpp"
+#include <nx/bitmap.hpp>
+#include <GL/glew.h>
+#include <unordered_map>
+#include <deque>
+
+namespace nl {
+    std::unordered_map<size_t, GLuint> textures {};
+    std::deque<size_t> loaded_textures {};
+    size_t last_bound {0};
+    void sprite::init() {
     }
-    void Sprite::Init() {
-        if (!Config::Threaded) return;
-        thread([] {SpriteThread(); }).detach();
-        while (!ThreadContextMade) sleep_for(milliseconds(1));
-        SpriteMutex.lock();
-    }
-    void Sprite::Unbind() {
-        LastBound = 0;
+    void sprite::unbind() {
+        last_bound = 0;
         glBindTexture(GL_TEXTURE_2D, 0);
     }
-    void Sprite::Cleanup() {
-        lock_guard<mutex> lock(LoadMutex);
-        while (LoadedSprites.size() > Config::MaxTextures) {
-            size_t s = LoadedSprites.front();
-            LoadedSprites.pop_front();
-            glDeleteTextures(1, &Sprites[s]);
-            Sprites.erase(s);
+    void sprite::cleanup() {
+        while (loaded_textures.size() > config::max_textures) {
+            size_t s {loaded_textures.front()};
+            loaded_textures.pop_front();
+            auto it = textures.find(s);
+            glDeleteTextures(1, &it->second);
+            textures.erase(it);
         }
     }
-    bool BindTexture(Bitmap b) {
-        if (b.ID() == LastBound) return true;
-        GLuint t;
-        {
-            lock_guard<mutex> lock(LoadMutex);
-            t = Sprites[b.ID()];
-        }
-        if (t) {
-            LastBound = b.ID();
-            glBindTexture(GL_TEXTURE_2D, t);
-            if (!glIsTexture(t)) throw "Invalid texture detected!";
-            return true;
-        }
-        if (!Config::Threaded) {
-            GLuint t;
+    void BindTexture(bitmap b) {
+        if (b.id() == last_bound) return;
+        last_bound = b.id();
+        GLuint & t {textures[b.id()]};
+        if (!t) {
             glGenTextures(1, &t);
             glBindTexture(GL_TEXTURE_2D, t);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.Width(), b.Height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.Data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.width(), b.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.data());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            LastBound = b.ID();
-            Sprites[b.ID()] = t;
-            LoadedSprites.push_back(b.ID());
-            return true;
-        } else {
-            lock_guard<mutex> lock(LoadMutex);
-            SpritesToLoad.insert(b);
-        }
-        return false;
+            loaded_textures.push_back(b.id());
+        } else glBindTexture(GL_TEXTURE_2D, t);
     }
-    Sprite::Sprite() : frame(0), delay(0), data(), last(), next() {}
-    Sprite::Sprite(Node const &o) : frame(0), delay(0), data(o), last(), next() {
-        last = next = data.T() == Node::Type::Bitmap ? data : data["0"];
+    sprite::sprite() : data {} {}
+    sprite::sprite(node o) : frame {0}, delay {0}, data {o} {
+        last = next = data.data_type() == node::type::bitmap ? data : data["0"];
         movetype = next["moveType"];
         movew = next["moveW"];
         moveh = next["moveH"];
         movep = next["moveP"];
         mover = next["moveR"];
-        repeat = next["repeat"].GetBool();
+        repeat = next["repeat"].get_bool();
         
-        Bitmap b = last;
-        Width = b.Width();
-        Height = b.Height();
+        bitmap b = last;
+        width = b.width();
+        height = b.height();
     }
-    void Sprite::Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex, bool tiley, int32_t cx, int32_t cy) {
+    void sprite::draw(int32_t x, int32_t y, bool relative, bool flipped, bool tilex, bool tiley, int32_t cx, int32_t cy) {
         if (!data) return;
-        float alpha(1);
+        /*float alpha {1};
         if (data != next) {
             delay += Time::Delta * 1000;
             int32_t d(next["delay"]);
@@ -209,7 +158,6 @@ namespace NL {
                 int32_t y2 = (y - View::Height) % cy + View::Height + cy;
                 for (y = y1; y < y2; y += cy) single();
             } else if (x + w > 0 && x < View::Width && y + h > 0 && y < View::Height) single();
-        }
+        }*/
     }
-
 }

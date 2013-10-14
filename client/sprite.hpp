@@ -15,22 +15,25 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    extern mutex SpriteMutex;
-    class Sprite {
+#include <nx/node.hpp>
+#include <cstdint>
+
+namespace nl {
+    class sprite {
     public:
-        Sprite();
-        Sprite(Node const &);
-        void Draw(int32_t x, int32_t y, bool view, bool flipped, bool tilex = false, bool tiley = false, int32_t cx = 0, int32_t cy = 0);
-        static void Init();
-        static void Cleanup();
-        static void Unbind();
-        uint32_t Width, Height;
+        sprite();
+        sprite(node);
+        void draw(int32_t x, int32_t y, bool relative, bool flipped, bool tilex = false, bool tiley = false, int32_t cx = 0, int32_t cy = 0);
+        static void init();
+        static void cleanup();
+        static void unbind();
+        uint32_t width, height;
     private:
         int32_t frame;
         double delay;
-        Node data, last, next;
+        node data, last, next;
         int32_t movetype;
         double movew, moveh, movep, mover;
         bool repeat;

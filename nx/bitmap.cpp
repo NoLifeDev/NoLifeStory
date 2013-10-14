@@ -30,7 +30,7 @@ namespace nl {
     bitmap::operator bool() const {
         return m_data ? true : false;
     }
-    std::vector<uint8_t> buf;
+    std::vector<uint8_t> buf {};
     void const * bitmap::data() const {
         if (!m_data) return nullptr;
         size_t const l {length()};
@@ -48,6 +48,6 @@ namespace nl {
         return 4u * m_width * m_height;
     }
     size_t bitmap::id() const {
-        return reinterpret_cast<size_t>(m_data);
+        return reinterpret_cast<size_t>(m_data) ^ m_width ^ m_height;
     }
 }
