@@ -15,21 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #include "node.hpp"
 #include "file.hpp"
 #include "bitmap.hpp"
 #include "audio.hpp"
 #include <cstring>
 #include <stdexcept>
+
 namespace nl {
-#ifdef _MSC_VER
-    node::node() : m_data {nullptr}, m_file {nullptr} {}
     node::node(node const & o) : m_data {o.m_data}, m_file {o.m_file} {}
-    node::node(data const * d, file const * f) : m_data {d}, m_file {f} {}
-    node & node::operator=(node const & o) {
-        return m_data = o.m_data, m_file = o.m_file, *this;
-    }
-#endif
+    node::node(data const * const & d, file const * const & f) : m_data {d}, m_file {f} {}
     node node::begin() const {
         return {m_data ? m_file->m_node_table + m_data->children : nullptr, m_file};
     }

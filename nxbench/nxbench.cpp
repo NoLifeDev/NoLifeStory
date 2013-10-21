@@ -35,17 +35,19 @@ namespace nl {
     namespace {
         std::string const filename {"Data.nx"};
         file const nxfile {filename};
-        void load() {
-            file f {filename};
+        size_t load() {
+            return file {filename}.node_count();
         }
-        void recurse_sub(node n) {
-            for (node nn : n) recurse_sub(nn);
+        size_t recurse_sub(node const & n) {
+            size_t c {1};
+            for (node const & nn : n) c += nn.size() ? recurse_sub(nn) : 1;
+            return c;
         }
-        void recurse_load() {
-            recurse_sub(file(filename));
+        size_t recurse_load() {
+            return recurse_sub(file {filename});
         }
-        void recurse() {
-            recurse_sub(nxfile);
+        size_t recurse() {
+            return recurse_sub(nxfile);
         }
         void recurse_search_sub(node n) {
             for (node nn : n) n[nn.name_fast()] == nn ? recurse_search_sub(nn) : throw;
@@ -80,33 +82,35 @@ namespace nl {
         }
         void setup_time() {}
 #endif
-        void test(std::string name, std::function<void()> func, size_t maxruns) {
+        void test(std::string name, std::function<size_t()> func, size_t maxruns) {
             std::vector<double> results {};
-            do {
+            size_t answer {};
+            while (maxruns--) {
                 double const c1 {get_time()};
-                func();
+                answer = func();
                 double const c2 {get_time()};
                 results.emplace_back(c2 - c1);
-            } while (--maxruns);
+            }
             std::sort(results.begin(), results.end());
             std::vector<double>::const_iterator const q0 {results.cbegin()};
             std::vector<double>::const_iterator const q4 {results.cend()};
             std::vector<double>::const_iterator const q2 {q0 + (q4 - q0) / 2};
             std::vector<double>::const_iterator const q1 {q0 + (q2 - q0) / 2};
             std::vector<double>::const_iterator const q3 {q2 + (q4 - q2) / 2};
-            std::printf("%s\t%u\t%u\t%u\n", name.c_str(),
-                        static_cast<unsigned>(*q3),
-                        static_cast<unsigned>(std::accumulate(q1, q3, 0.) / (q3 - q1)),
-                        static_cast<unsigned>(*q0));
+            std::printf("%s\t%u\t%u\t%u\t%u\n", name.c_str(),
+                static_cast<unsigned>(*q3),
+                static_cast<unsigned>(std::accumulate(q1, q3, 0.) / (q3 - q1)),
+                static_cast<unsigned>(*q0),
+                static_cast<unsigned>(answer));
         }
         void bench() {
             setup_time();
-            std::printf("Name\t75%%t\tM50%%\tBest\n");
+            std::printf("Name\t75%%t\tM50%%\tBest\tAnswer\n");
             test("Ld", load, 0x1000);
-            test("Re", recurse, 0x100);
-            test("LR", recurse_load, 0x100);
-            test("SA", recurse_search, 0x100);
-            test("De", recurse_decompress, 0x10);
+            test("Re", recurse, 0x40);
+            test("LR", recurse_load, 0x40);
+            //test("SA", recurse_search, 0x40);
+            //test("De", recurse_decompress, 0x10);
         }
     }
 }

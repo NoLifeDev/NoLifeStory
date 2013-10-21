@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 #include <string>
 #include <cstdint>
@@ -37,13 +38,10 @@ namespace nl {
         };
         //Internal data structure
         typedef struct node_data data;
-        //MSVC is terrible without manual constructors
-#ifdef _MSC_VER
-        node();
-        node(node const &);
-        node(data const *, file const *);
-        node & operator=(node const &);
-#endif
+        node() = default;
+        node(node const &);//Only reason this isn't defaulted is because msvc has issues
+        node(data const * const &, file const * const &);
+        node & operator=(node const &) = default;
         //These methods are primarily so nodes can be used as iterators and iterated over
         node begin() const;
         node end() const;
@@ -123,8 +121,8 @@ namespace nl {
         type data_type() const;
         //Internal variables
         //They are only public so that the class may be Plain Old Data
-        data const * m_data;
-        class file const * m_file;
+        data const * m_data {nullptr};
+        class file const * m_file {nullptr};
     private:
         node get_child(char const *, size_t) const;
         int64_t to_integer() const;
