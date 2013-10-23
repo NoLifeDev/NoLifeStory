@@ -370,7 +370,7 @@ namespace nl {
             return r < 0 || r == 0 && sn.size < s.size;
         })};
         if (it == nodes.begin() + n.children + n.num) return 0;
-        return it - nodes.begin();
+        return static_cast<id_t>(it - nodes.begin());
     }
     bool resolve_uol(std::vector<id_t> uol) {
         node & n {nodes[uol.back()]};

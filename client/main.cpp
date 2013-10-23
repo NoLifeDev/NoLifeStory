@@ -19,7 +19,7 @@
 #include "game.hpp"
 #include <iostream>
 
-int main(int argc, char ** argv) {
+int main(int, char **) {
     try {
         std::freopen("NoLifeClient.log", "a", stderr);
         std::freopen("NoLifeClient.log", "a", stdout);

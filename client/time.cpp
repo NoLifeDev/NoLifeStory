@@ -49,8 +49,8 @@ namespace nl {
         }
         void update() {
             std::chrono::high_resolution_clock::time_point last {frames.back()};
-            if (config::target_fps <= 0) config::target_fps = 1;//Srsly, why would you do this?
-            auto step_size = std::chrono::duration_cast<std::chrono::high_resolution_clock::duration>(std::chrono::seconds {1}) / config::target_fps;
+            if (config::target_fps <= 0) config::target_fps = 1;//Because some people are idiots
+            std::chrono::high_resolution_clock::duration step_size {std::chrono::duration_cast<std::chrono::high_resolution_clock::duration>(std::chrono::seconds {1}) / config::target_fps};
             if (config::limit_fps) std::this_thread::sleep_until(last + step_size - std::chrono::milliseconds {10});
             std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
             if (config::limit_fps && now - last < step_size) now = last + step_size;

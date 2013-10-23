@@ -17,15 +17,12 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.hpp"
-#include <SFML/Window/VideoMode.hpp>
+#include <GLFW/glfw3.h>
 #include <map>
 #include <string>
 #include <functional>
 #include <fstream>
 #include <regex>
-#ifdef _WIN32
-#  include <Windows.h>
-#endif
 
 namespace nl {
     namespace config {
@@ -83,14 +80,9 @@ namespace nl {
         }
         void load() {
             //First set some runtime defaults
-            auto & v = sf::VideoMode::getFullscreenModes()[0];
-            fullscreen_width = v.width, fullscreen_height = v.height;
-#ifdef _WIN32
-            DEVMODEA dev {};
-            dev.dmSize = sizeof(DEVMODEA);
-            EnumDisplaySettingsA(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-            target_fps = dev.dmDisplayFrequency;
-#endif
+            GLFWvidmode const * mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
+            fullscreen_width = mode->width, fullscreen_height = mode->height;
+            target_fps = mode->refreshRate;
             //Then map the configs
             map_bool("rave", rave);
             map_bool("fullscreen", fullscreen);
@@ -112,7 +104,7 @@ namespace nl {
                 if (file.is_open()) while (!file.eof()) {
                     getline(file, line);
                     transform(line.cbegin(), line.cend(), line.begin(), [](char const & c) {
-                        return tolower(c);
+                        return std::tolower(c, std::locale::classic());
                     });
                     std::smatch m;
                     if (!std::regex_match(line, m, reg)) continue;

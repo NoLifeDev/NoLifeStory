@@ -19,8 +19,9 @@
 #pragma once
 
 namespace nl {
-    namespace graphics {
+    namespace window {
         void init();
+        void recreate(bool fullscreen);
         void update();
         void unload();
     }

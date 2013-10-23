@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "game.hpp"
-#include "graphics.hpp"
+#include "window.hpp"
 #include "config.hpp"
 #include "time.hpp"
 #include "view.hpp"
@@ -28,20 +28,21 @@ namespace nl {
     namespace game {
         bool over {false};
         void init() {
+            window::init();
             config::load();
             nx::load_all();
             time::init();
-            graphics::init();
             view::reset();
+            window::recreate(config::fullscreen);
         }
         void loop() {
             view::update();
             time::update();
-            graphics::update();
+            window::update();
         }
         void unload() {
             config::save();
-            graphics::unload();
+            window::unload();
         }
         void play() {
             init();

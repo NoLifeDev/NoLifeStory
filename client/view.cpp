@@ -35,13 +35,20 @@ namespace nl {
         int32_t left {0}, right {0}, top {0}, bottom {0};
         template <typename T>
         void restrict(T & x, T & y) {
-            if (right - left <= width) x = (right + left) / 2;
-            else x = std::max<int32_t>(std::min<int32_t>(x, right - width / 2), left + width / 2);
-            if (bottom - top <= height) y = (bottom + top) / 2;
-            else y = std::max<int32_t>(std::min<int32_t>(x, bottom - height / 2), top + height / 2);
+            if (right - left <= width) {
+                x = (right + left) / 2;
+            } else {
+                x = std::max(std::min(static_cast<int32_t>(x), right - width / 2), left + width / 2);
+            }
+            if (bottom - top <= height) {
+                y = (bottom + top) / 2;
+            } else {
+                y = std::max(std::min(static_cast<int32_t>(y), bottom - height / 2), top + height / 2);
+            }
         }
         void resize(int32_t w, int32_t h) {
-            width = w, height = h;
+            width = w;
+            height = h;
             glViewport(0, 0, width, height);
             if (config::fullscreen) {
                 config::fullscreen_width = width;
@@ -58,12 +65,12 @@ namespace nl {
                 left = map::current["info"]["VRleft"];
                 right = map::current["info"]["VRright"];
                 if (bottom - top < 600) {
-                    int32_t d = (600 - bottom + top) / 2;
+                    int32_t d {(600 - bottom + top) / 2};
                     bottom += d;
                     top -= d;
                 }
                 if (right - left < 800) {
-                    int32_t d = (800 - right + left) / 2;
+                    int32_t d {(800 - right + left) / 2};
                     right += d;
                     left -= d;
                 }
@@ -84,7 +91,9 @@ namespace nl {
                 //}
                 top -= 256;
                 bottom += 128;
-                if (top > bottom - 600) top = bottom - 600;
+                if (top > bottom - 600) {
+                    top = bottom - 600;
+                }
             }
             x = 0;
             y = 0;
@@ -105,8 +114,8 @@ namespace nl {
             fx += sx;
             fy += sy;
             restrict(fx, fy);
-            x = fx;
-            y = fy;
+            x = static_cast<int32_t>(fx);
+            y = static_cast<int32_t>(fy);
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             if (config::rave) {
@@ -116,7 +125,9 @@ namespace nl {
                 y += dist(engine);
                 gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * M_PI) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
                 gluLookAt(width / 2, height / 2, -height / 2, width / 2, height / 2, 0, 0, -1, 0);
-            } else glOrtho(0, width, height, 0, -1, 1);
+            } else {
+                glOrtho(0, width, height, 0, -1, 1);
+            }
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
         }

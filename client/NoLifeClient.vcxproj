@@ -49,6 +49,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;glfw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -69,18 +70,16 @@
   <ItemGroup>
     <ClInclude Include="config.hpp" />
     <ClInclude Include="game.hpp" />
-    <ClInclude Include="graphics.hpp" />
+    <ClInclude Include="window.hpp" />
     <ClInclude Include="map.hpp" />
     <ClInclude Include="sprite.hpp" />
     <ClInclude Include="time.hpp" />
     <ClInclude Include="view.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="config.cpp">
-      <DisableLanguageExtensions>false</DisableLanguageExtensions>
-    </ClCompile>
+    <ClCompile Include="config.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="graphics.cpp" />
+    <ClCompile Include="window.cpp" />
     <ClCompile Include="map.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="sprite.cpp" />
