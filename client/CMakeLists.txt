@@ -19,13 +19,6 @@ include_directories(${OPENGL_INCLUDE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 
-# Find out if we are on X11, for X11 specific hacks
-find_package(X11)
-
-if(X11_FOUND)
-    add_definitions(-DNL_X11)
-endif()
-
 #aux_source_directory(. NOLIFECLIENT_SOURCES)
 
 add_executable(NoLifeClient 
