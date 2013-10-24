@@ -36,6 +36,8 @@ You can contact the author at :
 
 #pragma once
 
+#include <cstddef>
+
 namespace lz4 {
     void uncompress(void const * source, void * dest, size_t osize);
 }
