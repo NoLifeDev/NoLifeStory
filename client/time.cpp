@@ -38,12 +38,12 @@ namespace nl {
             glColor4f(1, 0, 0, 1);
             glBegin(GL_LINE_STRIP);
             glVertex2i(0, 2500 / config::target_fps);
-            glVertex2i(frames.size() * 2, 2500 / config::target_fps);
+            glVertex2i(static_cast<GLint>(frames.size() * 2), static_cast<GLint>(2500 / config::target_fps));
             glEnd();
             glColor4f(1, 1, 1, 1);
             glBegin(GL_LINE_STRIP);
             for (size_t i {1}; i < frames.size(); ++i) {
-                glVertex2i(i * 2, std::chrono::duration_cast<std::chrono::microseconds>(frames[i] - frames[i - 1]).count() / 400);
+                glVertex2i(static_cast<GLint>(i * 2), static_cast<GLint>(std::chrono::duration_cast<std::chrono::microseconds>(frames[i] - frames[i - 1]).count() / 400));
             }
             glEnd();
         }
