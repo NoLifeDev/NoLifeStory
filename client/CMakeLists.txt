@@ -9,14 +9,7 @@ endif()
 # Access additional CMake modules.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules" ${CMAKE_MODULE_PATH})
 
-# Boost
-find_package(Boost COMPONENTS system filesystem regex REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIR})
-
-# SFML
-find_package(SFML 2 COMPONENTS system window audio REQUIRED)
-include_directories(${SFML_INCLUDE_DIR})
+include_directories(..)
 
 # OpenGL
 find_package(OpenGL REQUIRED)
@@ -26,15 +19,27 @@ include_directories(${OPENGL_INCLUDE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 
-# Find out if we are on X11, for X11 specific hacks
-find_package(X11)
+#aux_source_directory(. NOLIFECLIENT_SOURCES)
 
-if(X11_FOUND)
-    add_definitions(-DNL_X11)
-endif()
+add_executable(NoLifeClient 
+#ClassicUI.cpp
+#background.cpp
+config.cpp
+#foothold.cpp
+game.cpp
+#layer.cpp
+main.cpp
+map.cpp
+#obj.cpp
+#physics.cpp
+#player.cpp
+#portal.cpp
+#sound.cpp
+sprite.cpp
+#tile.cpp
+time.cpp
+view.cpp
+window.cpp
+)
 
-aux_source_directory(. NOLIFECLIENT_SOURCES)
-
-add_executable(NoLifeClient ${NOLIFECLIENT_SOURCES})
-
-target_link_libraries(NoLifeClient NoLifeNx ${Boost_LIBRARIES} ${SFML_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123)
+target_link_libraries(NoLifeClient NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123 glfw)
