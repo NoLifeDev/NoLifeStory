@@ -11,11 +11,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules" ${CMAKE_MODULE_PATH})
 
 include_directories(..)
 
-# Boost
-find_package(Boost COMPONENTS system filesystem REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIR})
-
 # OpenGL
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
@@ -54,4 +49,4 @@ view.cpp
 window.cpp
 )
 
-target_link_libraries(NoLifeClient NoLifeNx ${Boost_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123 glfw)
+target_link_libraries(NoLifeClient NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123 glfw)
