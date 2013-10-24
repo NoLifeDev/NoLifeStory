@@ -35,7 +35,6 @@ You can contact the author at :
 // All modifications by Peter Atashian are released to the public domain
 
 #pragma once
-
 #include <cstddef>
 
 namespace lz4 {
