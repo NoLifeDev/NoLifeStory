@@ -15,15 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    class Layer {
+#include "tile.hpp"
+#include <vector>
+#include <array>
+
+namespace nl {
+    class layer {
     public:
-        static void RenderAll();
-        static void LoadAll();
-        vector<Obj> Objs;
-        vector<Tile> Tiles;
+        static void render();
+        static void load();
+        //vector<Obj> Objs;
+        std::vector<tile> tiles;
     private:
     };
-    extern array<Layer, 8> Layers;
+    extern std::array<layer, 8> layers;
 }

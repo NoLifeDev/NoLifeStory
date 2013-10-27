@@ -26,6 +26,42 @@
 
 namespace nl {
     namespace config {
+        namespace {
+            //Stuff to hold configs and their mappings
+            struct mapping {
+                std::function<void()> save;
+                std::function<void()> load;
+            };
+            std::map<std::string, std::string> configs;
+            std::map<std::string, mapping> mappings;
+            //These mappings provide an easy way to map a variable to a config
+            void map_string(std::string const & n, std::string & v) {
+                mappings[n].save = [&v, n] {
+                    configs[n] = v;
+                };
+                mappings[n].load = [&v, n] {
+                    v = configs[n];
+                };
+            }
+            void map_int(std::string const & n, int32_t & v) {
+                mappings[n].save = [&v, n] {
+                    configs[n] = std::to_string(v);
+                };
+                mappings[n].load = [&v, n] {
+                    try {
+                        v = std::stol(configs[n]);
+                    } catch (...) {}
+                };
+            }
+            void map_bool(std::string const & n, bool & v) {
+                mappings[n].save = [&v, n] {
+                    configs[n] = v ? "true" : "false";
+                };
+                mappings[n].load = [&v, n] {
+                    v = configs[n] == "true" ? true : false;
+                };
+            }
+        }
         //Various config variables
         bool rave {false};
         bool fullscreen {false};
@@ -35,40 +71,6 @@ namespace nl {
         int32_t max_textures {4000};
         int32_t window_width {1024}, window_height {768};
         int32_t fullscreen_width {1024}, fullscreen_height {768};
-        //Stuff to hold configs and their mappings
-        struct mapping {
-            std::function<void()> save;
-            std::function<void()> load;
-        };
-        std::map<std::string, std::string> configs;
-        std::map<std::string, mapping> mappings;
-        //These mappings provide an easy way to map a variable to a config
-        void map_string(std::string const & n, std::string & v) {
-            mappings[n].save = [&v, n] {
-                configs[n] = v;
-            };
-            mappings[n].load = [&v, n] {
-                v = configs[n];
-            };
-        }
-        void map_int(std::string const & n, int32_t & v) {
-            mappings[n].save = [&v, n] {
-                configs[n] = std::to_string(v);
-            };
-            mappings[n].load = [&v, n] {
-                try {
-                    v = std::stol(configs[n]);
-                } catch (...) {}
-            };
-        }
-        void map_bool(std::string const & n, bool & v) {
-            mappings[n].save = [&v, n] {
-                configs[n] = v ? "true" : "false";
-            };
-            mappings[n].load = [&v, n] {
-                v = configs[n] == "true" ? true : false;
-            };
-        }
         void save() {
             //Write the variables to their configs
             for (auto const & m : mappings) m.second.save();

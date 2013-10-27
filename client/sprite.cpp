@@ -26,11 +26,29 @@
 #include <deque>
 
 namespace nl {
-    std::unordered_map<size_t, GLuint> textures {};
-    std::deque<size_t> loaded_textures {};
-    size_t last_bound {0};
-    void sprite::init() {
+    namespace {
+        std::unordered_map<size_t, GLuint> textures {};
+        std::deque<size_t> loaded_textures {};
+        size_t last_bound {0};
+        void bind(bitmap b) {
+            if (b.id() == last_bound) return;
+            last_bound = b.id();
+            GLuint & t {textures[b.id()]};
+            if (!t) {
+                glGenTextures(1, &t);
+                glBindTexture(GL_TEXTURE_2D, t);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.width(), b.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.data());
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                loaded_textures.push_back(b.id());
+            } else {
+                glBindTexture(GL_TEXTURE_2D, t);
+            }
+        }
     }
+    void sprite::init() {}
     void sprite::unbind() {
         last_bound = 0;
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -44,37 +62,44 @@ namespace nl {
             textures.erase(it);
         }
     }
-    void BindTexture(bitmap b) {
-        if (b.id() == last_bound) return;
-        last_bound = b.id();
-        GLuint & t {textures[b.id()]};
-        if (!t) {
-            glGenTextures(1, &t);
-            glBindTexture(GL_TEXTURE_2D, t);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.width(), b.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.data());
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            loaded_textures.push_back(b.id());
-        } else glBindTexture(GL_TEXTURE_2D, t);
-    }
     sprite::sprite() : data {} {}
-    sprite::sprite(node o) : frame {0}, delay {0}, data {o} {
-        last = next = data.data_type() == node::type::bitmap ? data : data["0"];
-        movetype = next["moveType"];
-        movew = next["moveW"];
-        moveh = next["moveH"];
-        movep = next["moveP"];
-        mover = next["moveR"];
-        repeat = next["repeat"].get_bool();
-        
-        bitmap b = last;
+    sprite::sprite(node o) : data {o} {
+        animated = data["0"].data_type() == node::type::bitmap;
+        set_frame(0);
+    }
+    void sprite::set_frame(int32_t f) {
+        frame = f;
+        if (!animated) {
+            current = data;
+        } else {
+            current = data[frame];
+            if (!current) {
+                current = data[frame = 0];
+            }
+            delay = 0;
+            next_delay = current["delay"].get_integer(100);
+        }
+        current = animated ? data : data[frame];
+        bitmap b = current;
         width = b.width();
         height = b.height();
+        movetype = current["moveType"];
+        if (movetype) {
+            movew = current["moveW"];
+            moveh = current["moveH"];
+            movep = current["moveP"];
+            mover = current["moveR"];
+        }
+        repeat = current["repeat"].get_bool();
     }
-    void sprite::draw(int32_t x, int32_t y, bool relative, bool flipped, bool tilex, bool tiley, int32_t cx, int32_t cy) {
+    void sprite::draw(int32_t x, int32_t y, flags f, int32_t cx, int32_t cy) {
         if (!data) return;
+        if (animated) {
+            delay += time::delta * 1000;
+            if (delay > next_delay) {
+                set_frame(frame + 1);
+            }
+        }
         /*float alpha {1};
         if (data != next) {
             delay += Time::Delta * 1000;

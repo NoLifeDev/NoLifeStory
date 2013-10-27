@@ -13,3 +13,4 @@
 !*.vcxproj.filters
 sdk/*
 !sdk/README.md
+!client/bgm.mp3

@@ -15,17 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-namespace NL {
-    Tile::Tile(Node n, Node dn) : x(n["x"]), y(n["y"]) {
-        Node nn(dn[n["u"]][n["no"]]);
+
+#include "tile.hpp"
+
+namespace nl {
+    tile::tile(node n, node dn) : x {n["x"]}, y {n["y"]} {
+        node nn {dn[n["u"]][n["no"]]};
         z = nn["z"];
-        data = nn;
+        spr = nn;
     }
-    void Tile::Render() {
-        data.Draw(x, y, true, false);
-    }
-    bool Tile::operator<(Tile const & o) const {
-        return z < o.z;
+    void tile::render() {
+        spr.draw(x, y, sprite::flags::relative);
     }
 }

@@ -23,19 +23,27 @@
 namespace nl {
     class sprite {
     public:
+        enum class flags {
+            none = 0x0,
+            relative = 0x1,
+            flipped = 0x2,
+            tilex = 0x4,
+            tiley = 0x8
+        };
         sprite();
         sprite(node);
-        void draw(int32_t x, int32_t y, bool relative, bool flipped, bool tilex = false, bool tiley = false, int32_t cx = 0, int32_t cy = 0);
+        void draw(int32_t x, int32_t y, flags f, int32_t cx = 0, int32_t cy = 0);
         static void init();
         static void cleanup();
         static void unbind();
         uint32_t width, height;
     private:
-        int32_t frame;
-        double delay;
-        node data, last, next;
-        int32_t movetype;
+        void set_frame(int32_t f);
+        node data, current;
+        double delay, next_delay;
         double movew, moveh, movep, mover;
-        bool repeat;
+        int32_t movetype;
+        int32_t frame;
+        bool repeat, animated;
     };
 }

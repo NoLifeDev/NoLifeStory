@@ -24,6 +24,7 @@ int main(int, char **) {
         std::freopen("NoLifeClient.log", "a", stderr);
         std::freopen("NoLifeClient.log", "a", stdout);
         nl::game::play();
+        return EXIT_SUCCESS;
     } catch (std::exception const & e) {
         std::cerr << "Uncaught exception: " << e.what() << std::endl;
         return EXIT_FAILURE;
@@ -31,5 +32,4 @@ int main(int, char **) {
         std::cerr << "Unknown exception!" << std::endl;
         return EXIT_FAILURE;
     }
-    return EXIT_SUCCESS;
 }

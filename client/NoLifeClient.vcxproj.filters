@@ -36,6 +36,12 @@
     <ClInclude Include="window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="tile.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="layer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -60,6 +66,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="layer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

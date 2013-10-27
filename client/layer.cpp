@@ -15,7 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
+
+#include "layer.hpp"
+
 namespace NL {
     array<Layer, 8> Layers;
     void Layer::RenderAll() {
