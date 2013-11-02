@@ -19,6 +19,7 @@
 #include "layer.hpp"
 #include "map.hpp"
 #include <nx/nx.hpp>
+#include <algorithm>
 
 namespace nl {
     std::array<layer, 8> layers;
