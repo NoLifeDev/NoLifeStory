@@ -21,6 +21,7 @@
 #include "config.hpp"
 #include "time.hpp"
 #include "view.hpp"
+#include "map.hpp"
 #include <nx/nx.hpp>
 #include <stdexcept>
 
@@ -33,12 +34,14 @@ namespace nl {
                 config::load();
                 nx::load_all();
                 time::init();
-                view::reset();
                 window::recreate(config::fullscreen);
+                map::init();
             }
             void loop() {
                 view::update();
                 time::update();
+                map::update();
+                map::render();
                 window::update();
             }
             void unload() {

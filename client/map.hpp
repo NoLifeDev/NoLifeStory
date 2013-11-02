@@ -25,7 +25,7 @@ namespace nl {
         extern node current;
         void init();
         void random();
-        void load(std::string const & name, std::string const & portal);
+        void load(std::string name, std::string portal);
         void update();
         void render();
     }

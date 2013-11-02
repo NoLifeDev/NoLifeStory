@@ -15,10 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-namespace NL {
-    vector<Foothold> Footholds;
-    void Foothold::Construct(Node n, int32_t id, int32_t group, int32_t layer) {
+
+#include "foothold.hpp"
+#include "map.hpp"
+#include <algorithm>
+#include <string>
+
+namespace nl {
+    std::vector<foothold> footholds;
+    foothold::foothold(node n, uint32_t id, uint32_t group, uint32_t layer) : id {id}, group {group}, layer {layer} {
         x1 = n["x1"];
         x2 = n["x2"];
         y1 = n["y1"];
@@ -27,25 +32,18 @@ namespace NL {
         piece = n["piece"];
         nextid = n["next"];
         previd = n["prev"];
-        cantThrough = n["cantThrough"].GetBool();
-        forbidFallDown = n["forbidFallDown"].GetBool();
-        this->id = id;
-        this->group = group;
-        this->layer = layer;
-        next = nullptr;
-        prev = nullptr;
+        cant_through = n["cantThrough"].get_bool();
+        forbid_fall_down = n["forbidFallDown"].get_bool();
+        next = &footholds[nextid];
+        prev = &footholds[previd];
     }
-    void Foothold::Load() {
-        Footholds.clear();
+    void foothold::load() {
+        footholds.clear();
         size_t s = 0;
-        for (Node layer : Map::Current["foothold"]) for (Node group : layer) for (Node id : group) s = max<size_t>(stol(id.Name()), s);
-        Footholds.resize(s + 1);
-        for (Node layer : Map::Current["foothold"]) for (Node group : layer) for (Node id : group) {
-            Footholds[stol(id.Name())].Construct(id, stol(id.Name()), stol(group.Name()), stol(layer.Name()));
-        }
-        for (Foothold & f : Footholds) {
-            if (f.nextid) f.next = &Footholds[f.nextid];
-            if (f.previd) f.prev = &Footholds[f.previd];
+        for (node layer : map::current["foothold"]) for (node group : layer) for (node id : group) s = std::max<size_t>(std::stoul(id.name()), s);
+        footholds.resize(s + 1);
+        for (node layer : map::current["foothold"]) for (node group : layer) for (node id : group) {
+            footholds[std::stoul(id.name())] = foothold {id, std::stoul(id.name()), std::stoul(group.name()), std::stoul(layer.name())};
         }
     }
 }

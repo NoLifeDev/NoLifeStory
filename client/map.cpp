@@ -17,6 +17,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "map.hpp"
+#include "layer.hpp"
+#include "view.hpp"
+#include "foothold.hpp"
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
 #include <vector>
@@ -26,7 +29,7 @@ namespace nl {
     namespace map {
         std::vector<std::string> all_maps {};
         node map_node {};
-        node current {};
+        node current {}, next {};
         void init() {
             map_node = nx::map["Map"];
             for (int i = 0; i <= 9; ++i) {
@@ -36,7 +39,28 @@ namespace nl {
                     all_maps.emplace_back(name.substr(0, name.size() - 4));
                 }
             }
-            //Todo - Load a default map until we get networking with login
+            load("100000000", "sp");
+        }
+        void load(std::string name, std::string portal) {
+            if (name.size() < 9) name.insert(0, name.size(), '0');
+            node m = map_node[std::string {"Map"} + name[0]][name + ".img"];
+            if (!m) return;
+            next = m;
+            
+        }
+        void load_now() {
+            current = next;
+            layer::load();
+            foothold::load();
+            view::reset();
+        }
+        void update() {
+            if (next != current) {
+                load_now();
+            }
+        }
+        void render() {
+            layer::render();
         }
         /*
         Node Current;

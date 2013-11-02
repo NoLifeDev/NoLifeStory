@@ -21,11 +21,13 @@
 #include "config.hpp"
 #include "map.hpp"
 #include "time.hpp"
+#include "foothold.hpp"
 #include <GL/glew.h>
 #include <algorithm>
 #include <random>
 #include <chrono>
 #include <cmath>
+#include <iostream>
 
 namespace nl {
     namespace view {
@@ -33,17 +35,18 @@ namespace nl {
         int32_t width {0}, height {0};
         double fx {0}, fy {0};
         int32_t left {0}, right {0}, top {0}, bottom {0};
+        double tx {0}, ty {0};
         template <typename T>
         void restrict(T & x, T & y) {
             if (right - left <= width) {
                 x = (right + left) / 2;
             } else {
-                x = std::max(std::min(static_cast<int32_t>(x), right - width / 2), left + width / 2);
+                x = std::max<T>(std::min<T>(x, right - width / 2), left + width / 2);
             }
             if (bottom - top <= height) {
                 y = (bottom + top) / 2;
             } else {
-                y = std::max(std::min(static_cast<int32_t>(y), bottom - height / 2), top + height / 2);
+                y = std::max<T>(std::min<T>(y, bottom - height / 2), top + height / 2);
             }
         }
         void resize(int32_t w, int32_t h) {
@@ -79,16 +82,16 @@ namespace nl {
                 right = std::numeric_limits<int32_t>::min();
                 top = std::numeric_limits<int32_t>::max();
                 bottom = std::numeric_limits<int32_t>::min();
-                //for (auto & f : footholds) {
-                //    if (left > f.x1) left = f.x1;
-                //    if (left > f.x2) left = f.x2;
-                //    if (right < f.x1) right = f.x1;
-                //    if (right < f.x2) right = f.x2;
-                //    if (top > f.y1) top = f.y1;
-                //    if (top > f.y2) top = f.y2;
-                //    if (bottom < f.y1) bottom = f.y1;
-                //    if (bottom < f.y2) bottom = f.y2;
-                //}
+                for (auto & f : footholds) {
+                    if (left > f.x1) left = f.x1;
+                    if (left > f.x2) left = f.x2;
+                    if (right < f.x1) right = f.x1;
+                    if (right < f.x2) right = f.x2;
+                    if (top > f.y1) top = f.y1;
+                    if (top > f.y2) top = f.y2;
+                    if (bottom < f.y1) bottom = f.y1;
+                    if (bottom < f.y2) bottom = f.y2;
+                }
                 top -= 256;
                 bottom += 128;
                 if (top > bottom - 600) {
@@ -103,9 +106,6 @@ namespace nl {
             fy = y;
         }
         void update() {
-            double tx {0};
-            double ty {0};
-            //double tx(Player::Pos.x), ty(Player::Pos.y);
             restrict(tx, ty);
             double sx {(tx - fx) * time::delta * 5};
             double sy {(ty - fy) * time::delta * 5};

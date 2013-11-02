@@ -48,6 +48,6 @@ namespace nl {
         return 4u * m_width * m_height;
     }
     size_t bitmap::id() const {
-        return reinterpret_cast<size_t>(m_data) ^ m_width ^ m_height;
+        return reinterpret_cast<size_t>(m_data);
     }
 }

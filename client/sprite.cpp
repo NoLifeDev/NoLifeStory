@@ -30,32 +30,51 @@ namespace nl {
         std::unordered_map<size_t, GLuint> textures {};
         std::deque<size_t> loaded_textures {};
         size_t last_bound {0};
-        void bind(bitmap b) {
-            if (b.id() == last_bound) return;
-            last_bound = b.id();
-            GLuint & t {textures[b.id()]};
-            if (!t) {
-                glGenTextures(1, &t);
-                glBindTexture(GL_TEXTURE_2D, t);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.width(), b.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.data());
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-                loaded_textures.push_back(b.id());
-            } else {
-                glBindTexture(GL_TEXTURE_2D, t);
-            }
+        GLuint vbo {0};
+    }
+    void sprite::init() {
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        float a[] = {0, 0, 1, 0, 1, 1, 0, 1};
+        glBufferData(GL_ARRAY_BUFFER, sizeof(a), a, GL_STATIC_DRAW);
+    }
+    void sprite::reinit() {
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glVertexPointer(2, GL_FLOAT, 0, nullptr);
+        glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
+    }
+    void sprite::bind() {
+        bitmap b = current;
+        if (b.id() == last_bound) return;
+        if (!last_bound) reinit();
+        last_bound = b.id();
+        GLuint & t = textures[b.id()];
+        if (!t) {
+            glGenTextures(1, &t);
+            glBindTexture(GL_TEXTURE_2D, t);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.width(), b.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.data());
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            loaded_textures.push_back(b.id());
+        } else {
+            glBindTexture(GL_TEXTURE_2D, t);
         }
     }
-    void sprite::init() {}
     void sprite::unbind() {
         last_bound = 0;
         glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_TEXTURE_2D);
     }
     void sprite::cleanup() {
         while (loaded_textures.size() > config::max_textures) {
-            size_t s {loaded_textures.front()};
+            size_t s = loaded_textures.front();
             loaded_textures.pop_front();
             auto it = textures.find(s);
             glDeleteTextures(1, &it->second);
@@ -64,10 +83,17 @@ namespace nl {
     }
     sprite::sprite() : data {} {}
     sprite::sprite(node o) : data {o} {
-        animated = data["0"].data_type() == node::type::bitmap;
+        if (data.data_type() == node::type::bitmap) {
+            animated = false;
+        } else if (data["0"].data_type() == node::type::bitmap) {
+            animated = true;
+        } else {
+            data = {};
+        }
         set_frame(0);
     }
     void sprite::set_frame(int32_t f) {
+        if (!data) return;
         frame = f;
         if (!animated) {
             current = data;
@@ -77,12 +103,14 @@ namespace nl {
                 current = data[frame = 0];
             }
             delay = 0;
-            next_delay = current["delay"].get_integer(100);
+            next_delay = current["delay"].get_real(100);
         }
-        current = animated ? data : data[frame];
         bitmap b = current;
         width = b.width();
         height = b.height();
+        node o = current["origin"];
+        originx = o.x();
+        originy = o.y();
         movetype = current["moveType"];
         if (movetype) {
             movew = current["moveW"];
@@ -100,6 +128,23 @@ namespace nl {
                 set_frame(frame + 1);
             }
         }
+        if (!cx) cx = width;
+        if (!cy) cy = height;
+        f & flipped ? x -= width - originx : x -= originx;
+        y -= originy;
+        if (f & relative) {
+            x += view::width / 2;
+            y += view::height / 2;
+            x -= view::x;
+            y -= view::y;
+        }
+        bind();
+        glTranslated(x + originx, y + originy, 0);
+        //glRotated(ang, 0, 0, 1);
+        glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
+        glScaled(f & flipped ? -width : width, height, 1);
+        glDrawArrays(GL_QUADS, 0, 4);
+        glLoadIdentity();
         /*float alpha {1};
         if (data != next) {
             delay += Time::Delta * 1000;

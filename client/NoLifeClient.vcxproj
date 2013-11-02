@@ -69,6 +69,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
     <ClInclude Include="config.hpp" />
+    <ClInclude Include="foothold.hpp" />
     <ClInclude Include="game.hpp" />
     <ClInclude Include="layer.hpp" />
     <ClInclude Include="tile.hpp" />
@@ -80,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />
+    <ClCompile Include="foothold.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="layer.cpp" />
     <ClCompile Include="tile.cpp" />

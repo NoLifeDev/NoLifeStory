@@ -22,6 +22,7 @@
 namespace nl {
     namespace view {
         extern int32_t x, y;
+        extern double tx, ty;
         extern double fx, fy;
         extern int32_t width, height;
         extern int32_t left, right, top, bottom;

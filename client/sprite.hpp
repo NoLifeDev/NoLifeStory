@@ -23,7 +23,7 @@
 namespace nl {
     class sprite {
     public:
-        enum class flags {
+        enum flags {
             none = 0x0,
             relative = 0x1,
             flipped = 0x2,
@@ -36,14 +36,17 @@ namespace nl {
         static void init();
         static void cleanup();
         static void unbind();
-        uint32_t width, height;
+        static void reinit();
     private:
         void set_frame(int32_t f);
+        void bind();
         node data, current;
         double delay, next_delay;
         double movew, moveh, movep, mover;
         int32_t movetype;
         int32_t frame;
+        int32_t originx, originy;
+        uint16_t width, height;
         bool repeat, animated;
     };
 }

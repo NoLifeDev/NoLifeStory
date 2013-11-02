@@ -17,27 +17,31 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "layer.hpp"
+#include "map.hpp"
+#include <nx/nx.hpp>
 
-namespace NL {
-    array<Layer, 8> Layers;
-    void Layer::RenderAll() {
-        for (size_t i = 0; i < 8; ++i) {
-            for (Obj & o : Layers[i].Objs) o.Render();
-            for (Tile & t : Layers[i].Tiles) t.Render();
-            if (Player::Pos.layer == i) Player::Render();
+namespace nl {
+    std::array<layer, 8> layers;
+    void layer::render() {
+        for (uint8_t i = 0; i < 8; ++i) {
+            //for (obj & o : layers[i].Objs) o.Render();
+            for (tile & t : layers[i].tiles) t.render();
+            //if (Player::Pos.layer == i) Player::Render();
         }
     }
-    void Layer::LoadAll() {
-        for (int i = 0; i < 8; ++i) {
-            Layer & l = Layers[i];
-            Node n = Map::Current[i];
-            Node tn = NXMap["Tile"][n["info"]["tS"] + ".img"];
-            l.Objs.clear();
-            for (Node nn : n["obj"]) l.Objs.emplace_back(nn);
-            sort(l.Objs.begin(), l.Objs.end());
-            l.Tiles.clear();
-            for (Node nn : n["tile"]) l.Tiles.emplace_back(nn, tn);
-            sort(l.Tiles.begin(), l.Tiles.end());
+    void layer::load() {
+        for (uint8_t i = 0; i < 8; ++i) {
+            layer & l = layers[i];
+            node n = map::current[i];
+            node tn = nx::map["Tile"][n["info"]["tS"] + ".img"];
+            //l.Objs.clear();
+            //for (node nn : n["obj"]) l.Objs.emplace_back(nn);
+            //sort(l.Objs.begin(), l.Objs.end());
+            l.tiles.clear();
+            for (node nn : n["tile"]) l.tiles.emplace_back(nn, tn);
+            std::sort(l.tiles.begin(), l.tiles.end(), [](tile const & a, tile const & b) {
+                return a.z < b.z;
+            });
         }
     }
 }

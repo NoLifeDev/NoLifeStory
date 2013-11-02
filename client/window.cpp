@@ -21,6 +21,7 @@
 #include "time.hpp"
 #include "game.hpp"
 #include "view.hpp"
+#include "sprite.hpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <memory>
@@ -115,6 +116,7 @@ namespace nl {
             glfwSetWindowSizeCallback(window, callback::resize);
             glfwSetKeyCallback(window, callback::key);
             last_title = std::chrono::steady_clock::now();
+            sprite::reinit();
         }
         void init() {
             if (glfwInit() != GL_TRUE) {
@@ -145,6 +147,7 @@ namespace nl {
             if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5) {
                 throw std::runtime_error {"Your OpenGL is out of date. Please update your drivers and/or buy a new GPU."};
             }
+            sprite::init();
         }
         void update() {
             if (!config::fullscreen) {
@@ -174,7 +177,12 @@ namespace nl {
                 throw std::runtime_error {"Unknown OpenGL error code " + std::to_string(err)};
             }
             glfwPollEvents();
+            glClearColor(0.1f, 0.1f, 0.5f, 0);
             glClear(GL_COLOR_BUFFER_BIT);
+            if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) view::tx -= time::delta * 500;
+            if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) view::tx += time::delta * 500;
+            if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) view::ty -= time::delta * 500;
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) view::ty += time::delta * 500;
         }
         void unload() {
             glfwTerminate();

@@ -25,6 +25,6 @@ namespace nl {
         spr = nn;
     }
     void tile::render() {
-        spr.draw(x, y, sprite::flags::relative);
+        spr.draw(x, y, sprite::relative);
     }
 }

@@ -15,18 +15,27 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    class Foothold {
+#include <nx/node.hpp>
+#include <cstdint>
+#include <vector>
+
+namespace nl {
+    class foothold {
     public:
-        void Construct(Node, int32_t, int32_t, int32_t);
-        static void Load();
-        Foothold * next, * prev;
-        double x1, y1, x2, y2;
-        int32_t force, piece, nextid, previd;
-        int32_t id, group, layer;
-        bool cantThrough, forbidFallDown;
+        foothold() = default;
+        foothold(foothold const &) = default;
+        foothold & operator=(foothold const &) = default;
+        foothold(node, uint32_t, uint32_t, uint32_t);
+        static void load();
+        foothold * next {}, *prev {};
+        double x1 {}, y1 {}, x2 {}, y2 {};
+        int32_t force {}, piece {};
+        uint32_t nextid {}, previd {};
+        uint32_t id {}, group {}, layer {};
+        bool cant_through {}, forbid_fall_down {};
     private:
     };
-    extern vector<Foothold> Footholds;
+    extern std::vector<foothold> footholds;
 }
