@@ -17,16 +17,15 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <cstdint>
 
 namespace nl {
     namespace view {
-        extern int32_t x, y;
+        extern int x, y;
         extern double tx, ty;
         extern double fx, fy;
-        extern int32_t width, height;
-        extern int32_t left, right, top, bottom;
-        void resize(int32_t w, int32_t h);
+        extern int width, height;
+        extern int left, right, top, bottom;
+        void resize(int w, int h);
         void reset();
         void update();
         void draw_edges();

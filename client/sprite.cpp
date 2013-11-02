@@ -27,10 +27,10 @@
 
 namespace nl {
     namespace {
-        std::unordered_map<size_t, GLuint> textures {};
-        std::deque<size_t> loaded_textures {};
-        size_t last_bound {0};
-        GLuint vbo {0};
+        std::unordered_map<size_t, GLuint> textures;
+        std::deque<size_t> loaded_textures;
+        size_t last_bound = 0;
+        GLuint vbo = 0;
     }
     void sprite::init() {
         glGenBuffers(1, &vbo);
@@ -73,7 +73,7 @@ namespace nl {
         glDisable(GL_TEXTURE_2D);
     }
     void sprite::cleanup() {
-        while (loaded_textures.size() > config::max_textures) {
+        while (static_cast<int>(loaded_textures.size()) > config::max_textures) {
             size_t s = loaded_textures.front();
             loaded_textures.pop_front();
             auto it = textures.find(s);
@@ -81,8 +81,8 @@ namespace nl {
             textures.erase(it);
         }
     }
-    sprite::sprite() : data {} {}
-    sprite::sprite(node o) : data {o} {
+    sprite::sprite() {}
+    sprite::sprite(node o) : data(o) {
         if (data.data_type() == node::type::bitmap) {
             animated = false;
         } else if (data["0"].data_type() == node::type::bitmap) {
@@ -92,7 +92,7 @@ namespace nl {
         }
         set_frame(0);
     }
-    void sprite::set_frame(int32_t f) {
+    void sprite::set_frame(int f) {
         if (!data) return;
         frame = f;
         if (!animated) {
@@ -120,7 +120,7 @@ namespace nl {
         }
         repeat = current["repeat"].get_bool();
     }
-    void sprite::draw(int32_t x, int32_t y, flags f, int32_t cx, int32_t cy) {
+    void sprite::draw(int x, int y, flags f, int cx, int cy) {
         if (!data) return;
         if (animated) {
             delay += time::delta * 1000;
@@ -138,13 +138,18 @@ namespace nl {
             x -= view::x;
             y -= view::y;
         }
+        glColor4f(1, 1, 1, 1);
+        double angle = 0;
         bind();
-        glTranslated(x + originx, y + originy, 0);
-        //glRotated(ang, 0, 0, 1);
-        glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
-        glScaled(f & flipped ? -width : width, height, 1);
-        glDrawArrays(GL_QUADS, 0, 4);
-        glLoadIdentity();
+        auto single = [&]() {
+            glLoadIdentity();
+            glTranslated(x + originx, y + originy, 0);
+            if (angle) glRotated(angle, 0, 0, 1);
+            glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
+            glScaled(f & flipped ? -width : width, height, 1);
+            glDrawArrays(GL_QUADS, 0, 4);
+        };
+        single();
         /*float alpha {1};
         if (data != next) {
             delay += Time::Delta * 1000;

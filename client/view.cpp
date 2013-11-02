@@ -16,7 +16,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#define _USE_MATH_DEFINES
 #include "view.hpp"
 #include "config.hpp"
 #include "map.hpp"
@@ -31,11 +30,12 @@
 
 namespace nl {
     namespace view {
-        int32_t x {0}, y {0};
-        int32_t width {0}, height {0};
-        double fx {0}, fy {0};
-        int32_t left {0}, right {0}, top {0}, bottom {0};
-        double tx {0}, ty {0};
+        double const pi = 3.14159265358979323846264338327950288419716939937510582;
+        int x = 0, y = 0;
+        int width = 0, height = 0;
+        double fx = 0, fy = 0;
+        int left = 0, right = 0, top = 0, bottom = 0;
+        double tx = 0, ty = 0;
         template <typename T>
         void restrict(T & x, T & y) {
             if (right - left <= width) {
@@ -49,7 +49,7 @@ namespace nl {
                 y = std::max<T>(std::min<T>(y, bottom - height / 2), top + height / 2);
             }
         }
-        void resize(int32_t w, int32_t h) {
+        void resize(int w, int h) {
             width = w;
             height = h;
             glViewport(0, 0, width, height);
@@ -68,21 +68,21 @@ namespace nl {
                 left = map::current["info"]["VRleft"];
                 right = map::current["info"]["VRright"];
                 if (bottom - top < 600) {
-                    int32_t d {(600 - bottom + top) / 2};
+                    int d = (600 - bottom + top) / 2;
                     bottom += d;
                     top -= d;
                 }
                 if (right - left < 800) {
-                    int32_t d {(800 - right + left) / 2};
+                    int d = (800 - right + left) / 2;
                     right += d;
                     left -= d;
                 }
             } else {
-                left = std::numeric_limits<int32_t>::max();
-                right = std::numeric_limits<int32_t>::min();
-                top = std::numeric_limits<int32_t>::max();
-                bottom = std::numeric_limits<int32_t>::min();
-                for (auto & f : footholds) {
+                left = std::numeric_limits<int>::max();
+                right = std::numeric_limits<int>::min();
+                top = std::numeric_limits<int>::max();
+                bottom = std::numeric_limits<int>::min();
+                for (foothold & f : footholds) {
                     if (left > f.x1) left = f.x1;
                     if (left > f.x2) left = f.x2;
                     if (right < f.x1) right = f.x1;
@@ -107,24 +107,24 @@ namespace nl {
         }
         void update() {
             restrict(tx, ty);
-            double sx {(tx - fx) * time::delta * 5};
-            double sy {(ty - fy) * time::delta * 5};
+            double sx = (tx - fx) * time::delta * 5;
+            double sy = (ty - fy) * time::delta * 5;
             if (abs(sx) > abs(tx - fx)) sx = tx - fx;
             if (abs(sy) > abs(ty - fy)) sy = ty - fy;
             fx += sx;
             fy += sy;
             restrict(fx, fy);
-            x = static_cast<int32_t>(fx);
-            y = static_cast<int32_t>(fy);
+            x = static_cast<int>(fx);
+            y = static_cast<int>(fy);
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             if (config::rave) {
-                std::mt19937_64 engine {static_cast<uint64_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
-                std::uniform_int_distribution<int32_t> dist {-10, 10};
+                std::mt19937_64 engine(static_cast<uint64_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+                std::uniform_int_distribution<int> dist(-10, 10);
                 x += dist(engine);
                 y += dist(engine);
-                gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * M_PI) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
-                gluLookAt(width / 2, height / 2, -height / 2, width / 2, height / 2, 0, 0, -1, 0);
+                gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
+                gluLookAt(width / 2, height / 2, 0 - height / 2, width / 2, height / 2, 0, 0, -1, 0);
             } else {
                 glOrtho(0, width, height, 0, -1, 1);
             }

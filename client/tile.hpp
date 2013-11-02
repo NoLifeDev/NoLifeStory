@@ -25,7 +25,7 @@ namespace nl {
     public:
         tile(node, node);
         void render();
-        int32_t x, y, z;
+        int x, y, z;
     private:
         sprite spr;
     };

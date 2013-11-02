@@ -27,9 +27,9 @@
 
 namespace nl {
     namespace map {
-        std::vector<std::string> all_maps {};
-        node map_node {};
-        node current {}, next {};
+        std::vector<std::string> all_maps;
+        node map_node;
+        node current, next;
         void init() {
             map_node = nx::map["Map"];
             for (int i = 0; i <= 9; ++i) {
@@ -43,10 +43,9 @@ namespace nl {
         }
         void load(std::string name, std::string portal) {
             if (name.size() < 9) name.insert(0, name.size(), '0');
-            node m = map_node[std::string {"Map"} + name[0]][name + ".img"];
+            node m = map_node[std::string("Map") + name[0]][name + ".img"];
             if (!m) return;
             next = m;
-            
         }
         void load_now() {
             current = next;

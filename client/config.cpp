@@ -26,6 +26,15 @@
 
 namespace nl {
     namespace config {
+        //Various config variables
+        bool rave = false;
+        bool fullscreen = false;
+        bool vsync = true;
+        bool limit_fps = false;
+        int target_fps = 100;
+        int max_textures = 4000;
+        int window_width = 1024, window_height = 768;
+        int fullscreen_width = 1024, fullscreen_height = 768;
         namespace {
             //Stuff to hold configs and their mappings
             struct mapping {
@@ -43,13 +52,14 @@ namespace nl {
                     v = configs[n];
                 };
             }
-            void map_int(std::string const & n, int32_t & v) {
+            void map_int(std::string const & n, int & v) {
                 mappings[n].save = [&v, n] {
                     configs[n] = std::to_string(v);
                 };
                 mappings[n].load = [&v, n] {
+                    //Try catch this to prevent crashes from user stupidity
                     try {
-                        v = std::stol(configs[n]);
+                        v = std::stoi(configs[n]);
                     } catch (...) {}
                 };
             }
@@ -62,15 +72,6 @@ namespace nl {
                 };
             }
         }
-        //Various config variables
-        bool rave {false};
-        bool fullscreen {false};
-        bool vsync {true};
-        bool limit_fps {false};
-        int32_t target_fps {100};
-        int32_t max_textures {4000};
-        int32_t window_width {1024}, window_height {768};
-        int32_t fullscreen_width {1024}, fullscreen_height {768};
         void save() {
             //Write the variables to their configs
             for (auto const & m : mappings) m.second.save();
@@ -83,7 +84,8 @@ namespace nl {
         void load() {
             //First set some runtime defaults
             GLFWvidmode const * mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
-            fullscreen_width = mode->width, fullscreen_height = mode->height;
+            fullscreen_width = mode->width;
+            fullscreen_height = mode->height;
             target_fps = mode->refreshRate;
             //Then map the configs
             map_bool("rave", rave);
@@ -96,22 +98,20 @@ namespace nl {
             map_int("winheight", window_height);
             map_int("fullwidth", fullscreen_width);
             map_int("fullheight", fullscreen_height);
-            //First we save the defaults in case the config doesn't have them
+            //First we save the defaults in case the config file doesn't have them
             for (auto const & m : mappings) m.second.save();
             //Now we load the config itself
-            {
-                std::ifstream file {"NoLifeClient.cfg"};
-                std::regex reg {"[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*", std::regex_constants::optimize};
-                std::string line {};
-                if (file.is_open()) while (!file.eof()) {
-                    getline(file, line);
-                    transform(line.cbegin(), line.cend(), line.begin(), [](char const & c) {
-                        return std::tolower(c, std::locale::classic());
-                    });
-                    std::smatch m;
-                    if (!std::regex_match(line, m, reg)) continue;
-                    configs[m[1]] = m[2];
-                }
+            std::ifstream file("NoLifeClient.cfg");
+            std::regex reg("[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*", std::regex_constants::optimize);
+            std::string line;
+            if (file.is_open()) while (!file.eof()) {
+                getline(file, line);
+                transform(line.cbegin(), line.cend(), line.begin(), [](char const & c) {
+                    return std::tolower(c, std::locale::classic());
+                });
+                std::smatch m;
+                if (!std::regex_match(line, m, reg)) continue;
+                configs[m[1]] = m[2];
             }
             for (auto const & m : mappings) m.second.load();
             //And then we save the config back

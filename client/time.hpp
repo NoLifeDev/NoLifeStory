@@ -17,11 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <cstdint>
 
 namespace nl {
     namespace time {
-        extern uint32_t fps;
+        extern unsigned fps;
         extern double delta, delta_total;
         void init();
         void update();

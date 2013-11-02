@@ -18,7 +18,6 @@
 
 #pragma once
 #include <nx/node.hpp>
-#include <cstdint>
 
 namespace nl {
     class sprite {
@@ -32,21 +31,21 @@ namespace nl {
         };
         sprite();
         sprite(node);
-        void draw(int32_t x, int32_t y, flags f, int32_t cx = 0, int32_t cy = 0);
+        void draw(int x, int y, flags f, int cx = 0, int cy = 0);
         static void init();
         static void cleanup();
         static void unbind();
         static void reinit();
     private:
-        void set_frame(int32_t f);
+        void set_frame(int f);
         void bind();
         node data, current;
         double delay, next_delay;
         double movew, moveh, movep, mover;
-        int32_t movetype;
-        int32_t frame;
-        int32_t originx, originy;
-        uint16_t width, height;
+        int movetype;
+        int frame;
+        int originx, originy;
+        int width, height;
         bool repeat, animated;
     };
 }

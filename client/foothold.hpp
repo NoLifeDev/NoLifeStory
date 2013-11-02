@@ -18,24 +18,23 @@
 
 #pragma once
 #include <nx/node.hpp>
-#include <cstdint>
 #include <vector>
 
 namespace nl {
     class foothold {
     public:
-        foothold() = default;
         foothold(foothold const &) = default;
+        foothold() = default;
         foothold & operator=(foothold const &) = default;
-        foothold(node, uint32_t, uint32_t, uint32_t);
         static void load();
-        foothold * next {}, *prev {};
-        double x1 {}, y1 {}, x2 {}, y2 {};
-        int32_t force {}, piece {};
-        uint32_t nextid {}, previd {};
-        uint32_t id {}, group {}, layer {};
-        bool cant_through {}, forbid_fall_down {};
+        foothold * next = nullptr, * prev = nullptr;
+        int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+        int force = 0, piece = 0;
+        unsigned nextid = 0, previd = 0;
+        unsigned id = 0, group = 0, layer = 0;
+        bool cant_through = false, forbid_fall_down= false;
     private:
+        foothold(node, unsigned, unsigned, unsigned);
     };
     extern std::vector<foothold> footholds;
 }

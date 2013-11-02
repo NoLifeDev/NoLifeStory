@@ -19,17 +19,23 @@
 #include "game.hpp"
 #include <iostream>
 
+void terminated() {
+    std::cerr << "Fatal termination!" << std::endl;
+    std::abort();
+}
+
 int main(int, char **) {
     try {
+        std::set_terminate(terminated);
         std::freopen("NoLifeClient.log", "a", stderr);
         std::freopen("NoLifeClient.log", "a", stdout);
         nl::game::play();
         return EXIT_SUCCESS;
     } catch (std::exception const & e) {
-        std::cerr << "Uncaught exception: " << e.what() << std::endl;
+        std::cerr << "Fatal uncaught exception: " << e.what() << std::endl;
         return EXIT_FAILURE;
     } catch (...) {
-        std::cerr << "Unknown exception!" << std::endl;
+        std::cerr << "Fatal unknown exception!" << std::endl;
         return EXIT_FAILURE;
     }
 }

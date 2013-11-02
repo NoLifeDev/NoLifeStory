@@ -17,7 +17,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <cstdint>
 
 namespace nl {
     namespace config {
@@ -25,10 +24,10 @@ namespace nl {
         extern bool fullscreen;
         extern bool vsync;
         extern bool limit_fps;
-        extern int32_t target_fps;
-        extern int32_t max_textures;
-        extern int32_t window_width, window_height;
-        extern int32_t fullscreen_width, fullscreen_height;
+        extern int target_fps;
+        extern int max_textures;
+        extern int window_width, window_height;
+        extern int fullscreen_width, fullscreen_height;
         void save();
         void load();
     }

@@ -19,21 +19,23 @@
 #include "layer.hpp"
 #include "map.hpp"
 #include <nx/nx.hpp>
+#include <algorithm>
 
 namespace nl {
     std::array<layer, 8> layers;
     void layer::render() {
-        for (uint8_t i = 0; i < 8; ++i) {
+        for (unsigned i = 0; i < 8; ++i) {
             //for (obj & o : layers[i].Objs) o.Render();
             for (tile & t : layers[i].tiles) t.render();
             //if (Player::Pos.layer == i) Player::Render();
         }
     }
     void layer::load() {
-        for (uint8_t i = 0; i < 8; ++i) {
+        node tile_node = nx::map["Tile"];
+        for (unsigned i = 0; i < 8; ++i) {
             layer & l = layers[i];
             node n = map::current[i];
-            node tn = nx::map["Tile"][n["info"]["tS"] + ".img"];
+            node tn = tile_node[n["info"]["tS"] + ".img"];
             //l.Objs.clear();
             //for (node nn : n["obj"]) l.Objs.emplace_back(nn);
             //sort(l.Objs.begin(), l.Objs.end());

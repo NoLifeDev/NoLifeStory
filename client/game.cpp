@@ -23,12 +23,11 @@
 #include "view.hpp"
 #include "map.hpp"
 #include <nx/nx.hpp>
-#include <stdexcept>
 
 namespace nl {
     namespace game {
         namespace {
-            bool over {false};
+            bool over = false;
             void init() {
                 window::init();
                 config::load();
