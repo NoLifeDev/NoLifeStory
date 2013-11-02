@@ -25,9 +25,9 @@ add_executable(NoLifeClient
 #ClassicUI.cpp
 #background.cpp
 config.cpp
-#foothold.cpp
+foothold.cpp
 game.cpp
-#layer.cpp
+layer.cpp
 main.cpp
 map.cpp
 #obj.cpp
@@ -36,7 +36,7 @@ map.cpp
 #portal.cpp
 #sound.cpp
 sprite.cpp
-#tile.cpp
+tile.cpp
 time.cpp
 view.cpp
 window.cpp
