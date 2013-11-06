@@ -70,21 +70,21 @@ namespace nl {
             break;
         case 4:
             flags |= sprite::tilex;
-            dx += time::delta_total * rx * 10;
+            dx += static_cast<int>(time::delta_total * rx * 10);
             break;
         case 5:
             flags |= sprite::tiley;
-            dy += time::delta_total * ry * 10;
+            dy += static_cast<int>(time::delta_total * ry * 10);
             break;
         case 6:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
-            dx += time::delta_total * rx * 10;
+            dx += static_cast<int>(time::delta_total * rx * 10);
             break;
         case 7:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
-            dy += time::delta_total * ry * 10;
+            dy += static_cast<int>(time::delta_total * ry * 10);
             break;
         }
         spr.draw(dx, dy, flags, cx, cy);

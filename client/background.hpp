@@ -28,9 +28,9 @@ namespace nl {
         void render();
         static void load();
         sprite spr;
-        int32_t x, y, z;
-        int32_t rx, ry, cx, cy;
-        int32_t type;
+        int x, y, z;
+        int rx, ry, cx, cy;
+        int type;
         bool flipped;
     private:
     };

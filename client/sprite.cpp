@@ -153,12 +153,12 @@ namespace nl {
         case 0:
             break;
         case 1:
-            if (movep) x += movew * sin(time::delta_total * 1000 * 2 * pi / movep);
-            else x += movew * sin(time::delta_total);
+            if (movep) x += static_cast<int>(movew * sin(time::delta_total * 1000 * 2 * pi / movep));
+            else x += static_cast<int>(movew * sin(time::delta_total));
             break;
         case 2:
-            if (movep) y += moveh * sin(time::delta_total * 1000 * 2 * pi / movep);
-            else y += moveh * sin(time::delta_total);
+            if (movep) y += static_cast<int>(moveh * sin(time::delta_total * 1000 * 2 * pi / movep));
+            else y += static_cast<int>(moveh * sin(time::delta_total));
             break;
         case 3:
             angle = time::delta_total * 1000 * 180 / pi / mover;
@@ -173,9 +173,9 @@ namespace nl {
         if (config::rave) {
         } else if (animated) {
             double dif = delay / next_delay;
-            glColor4f(1, 1, 1, dif * a1 + (1 - dif) * a0);
+            glColor4d(1, 1, 1, dif * a1 + (1 - dif) * a0);
         } else {
-            glColor4f(1, 1, 1, 1);
+            glColor4d(1, 1, 1, 1);
         }
         bind();
         auto single = [&]() {

@@ -125,12 +125,12 @@ namespace nl {
                 y += dist(engine);
                 gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
                 gluLookAt(width / 2, height / 2, 0 - height / 2, width / 2, height / 2, 0, 0, -1, 0);
-                float d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
-                float r(sin(d)), g(sin(d + pi * 2 / 3)), b(sin(d + pi * 4 / 3));
+                double d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
+                double r(sin(d)), g(sin(d + pi * 2 / 3)), b(sin(d + pi * 4 / 3));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                GLfloat c[] = {r, g, b, 1};
+                GLfloat c[] = {static_cast<GLfloat>(r), static_cast<GLfloat>(g), static_cast<GLfloat>(b), 1};
                 glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
-                glColor4f(1 - r, 1 - g, 1 - b, 1);
+                glColor4d(1 - r, 1 - g, 1 - b, 1);
             } else {
                 glOrtho(0, width, height, 0, -1, 1);
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);

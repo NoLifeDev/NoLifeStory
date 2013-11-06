@@ -29,8 +29,8 @@ namespace nl {
         z = n["z"];
         rx = n["rx"];
         ry = n["ry"];
-        cx = n["cx"].get_integer(1000);
-        cy = n["cy"].get_integer(1000);
+        cx = n["cx"] ? n["cx"] : 1000;
+        cy = n["cy"] ? n["cy"] : 1000;
         flow = n["flow"];
         flip = n["f"].get_bool();
         spr = nx::map["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
