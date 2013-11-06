@@ -68,6 +68,7 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
+    <ClInclude Include="background.hpp" />
     <ClInclude Include="config.hpp" />
     <ClInclude Include="foothold.hpp" />
     <ClInclude Include="game.hpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="view.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="background.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="foothold.cpp" />
     <ClCompile Include="game.cpp" />

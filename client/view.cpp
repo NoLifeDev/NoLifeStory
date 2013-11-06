@@ -116,10 +116,6 @@ namespace nl {
             restrict(fx, fy);
             x = static_cast<int>(fx);
             y = static_cast<int>(fy);
-            xmin = x - width / 2;
-            xmax = x + width / 2;
-            ymin = y - height / 2;
-            ymax = y + height / 2;
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             if (config::rave) {
@@ -129,11 +125,22 @@ namespace nl {
                 y += dist(engine);
                 gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
                 gluLookAt(width / 2, height / 2, 0 - height / 2, width / 2, height / 2, 0, 0, -1, 0);
+                float d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
+                float r(sin(d)), g(sin(d + pi * 2 / 3)), b(sin(d + pi * 4 / 3));
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+                GLfloat c[] = {r, g, b, 1};
+                glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
+                glColor4f(1 - r, 1 - g, 1 - b, 1);
             } else {
                 glOrtho(0, width, height, 0, -1, 1);
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             }
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
+            xmin = x - width / 2;
+            xmax = x + width / 2;
+            ymin = y - height / 2;
+            ymax = y + height / 2;
         }
         void draw_edges() {
             //Sprite::Unbind();

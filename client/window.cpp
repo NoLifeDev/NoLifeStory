@@ -79,6 +79,9 @@ namespace nl {
                     case GLFW_KEY_M:
                         map::load_random();
                         break;
+                    case GLFW_KEY_R:
+                        config::rave = !config::rave;
+                        break;
                     default:;
                     }
                     break;

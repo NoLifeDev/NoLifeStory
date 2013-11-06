@@ -40,25 +40,13 @@ namespace nl {
         if (flip) flags |= sprite::flipped;
         int dx = x;
         int dy = y;
-        switch (flow) {
-        case 0:
-            break;
-        case 1:
+        if (flow & 1) {
             x += static_cast<int>(rx * 10 * time::delta_total);
             flags |= sprite::tilex;
-            break;
-        case 2:
+        }
+        if (flow & 2) {
             y += static_cast<int>(ry * 10 * time::delta_total);
             flags |= sprite::tiley;
-            break;
-        case 3:
-            x += static_cast<int>(rx * 10 * time::delta_total);
-            y += static_cast<int>(ry * 10 * time::delta_total);
-            flags |= sprite::tilex;
-            flags |= sprite::tiley;
-            break;
-        default:
-            std::cerr << "Unknown obj flow: " << flow << std::endl;
         }
         spr.draw(dx, dy, flags, cx, cy);
     }

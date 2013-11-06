@@ -135,26 +135,19 @@ namespace nl {
                 set_frame(frame + 1);
             }
         }
+        //cx and cy represent tiling distance
         if (!cx) cx = width;
         else if (cx < 0) cx = -cx;
         if (!cy) cy = height;
         else if (cy < 0) cy = -cy;
+        //A bit of origin and view shifting
         f & flipped ? x -= width - originx : x -= originx;
         y -= originy;
         if (f & relative) {
             x -= view::xmin;
             y -= view::ymin;
         }
-        if (x + width < 0) return;
-        if (x > view::width) return;
-        if (y + height < 0) return;
-        if (y > view::height) return;
-        if (animated) {
-            double dif = delay / next_delay;
-            glColor4f(1, 1, 1, dif * a1 + (1 - dif) * a0);
-        } else {
-            glColor4f(1, 1, 1, 1);
-        }
+        //Handling movetypes
         double angle = 0;
         switch (movetype) {
         case 0:
@@ -173,6 +166,17 @@ namespace nl {
         default:
             std::cerr << "Unknown move type: " << movetype << std::endl;
         }
+        if (x + width < 0) return;
+        if (x > view::width) return;
+        if (y + height < 0) return;
+        if (y > view::height) return;
+        if (config::rave) {
+        } else if (animated) {
+            double dif = delay / next_delay;
+            glColor4f(1, 1, 1, dif * a1 + (1 - dif) * a0);
+        } else {
+            glColor4f(1, 1, 1, 1);
+        }
         bind();
         auto single = [&]() {
             glLoadIdentity();
@@ -184,20 +188,6 @@ namespace nl {
         };
         single();
         /*
-        double ang(0);
-        switch (movetype) {
-        case 1:
-            if (movep) x += movew * sin(Time::TDelta * 1000 * 2 * M_PI / movep);
-            else x += movew * sin(Time::TDelta);
-            break;
-        case 2:
-            if (movep) y += moveh * sin(Time::TDelta * 1000 * 2 * M_PI / movep);
-            else y += moveh * sin(Time::TDelta);
-            break;
-        case 3:
-            ang = Time::TDelta * 1000 * 180 / M_PI / mover;
-            break;
-        }
         if (!Config::Rave) glColor4f(1, 1, 1, alpha);
         auto single = [&]() {
             glTranslated(x + ox, y + oy, 0);

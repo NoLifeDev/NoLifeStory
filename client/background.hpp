@@ -15,20 +15,25 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    class Background {
+#include "sprite.hpp"
+#include <nx/node.hpp>
+#include <vector>
+
+namespace nl {
+    class background {
     public:
-        Background(Node);
-        void Render();
-        static void Load();
-        Sprite spr;
+        background(node);
+        void render();
+        static void load();
+        sprite spr;
         int32_t x, y, z;
         int32_t rx, ry, cx, cy;
         int32_t type;
         bool flipped;
     private:
     };
-    extern vector<Background> Backgrounds;
-    extern vector<Background> Foregrounds;
+    extern std::vector<background> backgrounds;
+    extern std::vector<background> foregrounds;
 }

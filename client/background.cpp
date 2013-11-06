@@ -15,57 +15,78 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-namespace NL {
-    Background::Background(Node n) :
-        x(n["x"]), y(n["y"]), z(n["z"]),
-        rx(n["rx"]), ry(n["ry"]), cx(n["cx"]), cy(n["cy"]),
-        type(n["type"]), flipped(n["f"].GetBool()), 
-        spr(NXMap["Back"][n["bS"] + ".img"][n["ani"].GetBool() ? "ani" : "back"][n["no"]]) {
-            if (cx < 0) cx = -cx;
-            if (cy < 0) cy = -cy;
+
+#include "background.hpp"
+#include "map.hpp"
+#include "view.hpp"
+#include "time.hpp"
+#include <nx/nx.hpp>
+
+namespace nl {
+    std::vector<background> backgrounds;
+    std::vector<background> foregrounds;
+    background::background(node n) {
+        x = n["x"];
+        y = n["y"];
+        z = n["z"];
+        rx = n["rx"];
+        ry = n["ry"];
+        cx = n["cx"];
+        cy = n["cy"];
+        type = n["type"];
+        flipped = n["f"].get_bool();
+        spr = nx::map["Back"][n["bS"] + ".img"][n["ani"].get_bool() ? "ani" : "back"][n["no"]];
     }
-    void Background::Load() {
-        Backgrounds.clear();
-        Foregrounds.clear();
-        Node b = Map::Current["back"];
-        for (size_t i = 0;; ++i) {
-            Node n = b[i];
-            if (!n) break;
-            if (n["front"].GetBool()) Foregrounds.emplace_back(n);
-            else Backgrounds.emplace_back(n);
+    void background::load() {
+        backgrounds.clear();
+        foregrounds.clear();
+        node b = map::current["back"];
+        for (size_t i = 0; b[i]; ++i) {
+            node n = b[i];
+            if (n["front"].get_bool()) {
+                foregrounds.emplace_back(n);
+            } else {
+                backgrounds.emplace_back(n);
+            }
         }
     }
-    void Background::Render() {
-        int32_t ox = rx * View::X / 100 + View::Width / 2;
-        int32_t oy = ry * View::Y / 100 + View::Height / 2;
+    void background::render() {
+        int32_t dx = x + rx * view::x / 100 + view::width / 2;
+        int32_t dy = y + ry * view::y / 100 + view::height / 2;
+        sprite::flags flags = sprite::none;
+        if (flipped) flags |= sprite::flipped;
         switch (type) {
         case 0:
-            spr.Draw(x + ox, y + oy, false, flipped, false, false, cx, cy);
             break;
         case 1:
-            spr.Draw(x + ox, y + oy, false, flipped, true, false, cx, cy);
+            flags |= sprite::tilex;
             break;
         case 2:
-            spr.Draw(x + ox, y + oy, false, flipped, false, true, cx, cy);
+            flags |= sprite::tiley;
             break;
         case 3:
-            spr.Draw(x + ox, y + oy, false, flipped, true, true, cx, cy);
+            flags |= sprite::tilex;
+            flags |= sprite::tiley;
             break;
         case 4:
-            spr.Draw(x + ox + Time::TDelta * rx * 10, y + oy, false, flipped, true, false, cx, cy);
+            flags |= sprite::tilex;
+            dx += time::delta_total * rx * 10;
             break;
         case 5:
-            spr.Draw(x + ox, y + oy + Time::TDelta * ry * 10, false, flipped, false, true, cx, cy);
+            flags |= sprite::tiley;
+            dy += time::delta_total * ry * 10;
             break;
         case 6:
-            spr.Draw(x + ox + Time::TDelta * rx * 10, y + oy, false, flipped, true, true, cx, cy);
+            flags |= sprite::tilex;
+            flags |= sprite::tiley;
+            dx += time::delta_total * rx * 10;
             break;
         case 7:
-            spr.Draw(x + ox, y + oy + Time::TDelta * ry * 10, false, flipped, true, true, cx, cy);
+            flags |= sprite::tilex;
+            flags |= sprite::tiley;
+            dy += time::delta_total * ry * 10;
             break;
         }
+        spr.draw(dx, dy, flags, cx, cy);
     }
-    vector<Background> Backgrounds;
-    vector<Background> Foregrounds;
 }

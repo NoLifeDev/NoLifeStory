@@ -20,6 +20,7 @@
 #include "layer.hpp"
 #include "view.hpp"
 #include "foothold.hpp"
+#include "background.hpp"
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
 #include <vector>
@@ -58,6 +59,7 @@ namespace nl {
             current = next;
             sprite::cleanup();
             layer::load();
+            background::load();
             foothold::load();
             view::reset();
         }
@@ -67,7 +69,9 @@ namespace nl {
             }
         }
         void render() {
+            for (background & b : backgrounds) b.render();
             layer::render();
+            for (background & b : foregrounds) b.render();
         }
         /*
         Node Current;
@@ -120,14 +124,6 @@ namespace nl {
             NextPortal = portal;
         }
         void Render() {
-            if (Config::Rave) {
-                float d = floor(Time::TDelta * 2.088 - 0.1) * 1.95;
-                float r(sin(d)), g(sin(d + M_PI * 2 / 3)), b(sin(d + M_PI * 4 / 3));
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                GLfloat c[] = {r, g, b, 1};
-                glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
-                glColor4f(1 - r, 1 - g, 1 - b, 1);
-            } else glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
             for (auto && p : NL::Portals) p.Render();

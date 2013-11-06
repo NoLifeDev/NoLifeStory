@@ -37,8 +37,8 @@ namespace nl {
             map::init();
         }
         void loop() {
-            view::update();
             time::update();
+            view::update();
             map::update();
             map::render();
             window::update();
