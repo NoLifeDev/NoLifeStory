@@ -29,8 +29,8 @@
 #include <iostream>
 
 namespace nl {
+    double const pi = 3.14159265358979323846264338327950288419716939937510582;
     namespace view {
-        double const pi = 3.14159265358979323846264338327950288419716939937510582;
         int x = 0, y = 0;
         int width = 0, height = 0;
         double fx = 0, fy = 0;

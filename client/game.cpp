@@ -23,6 +23,7 @@
 #include "view.hpp"
 #include "map.hpp"
 #include <nx/nx.hpp>
+#include <iostream>
 
 namespace nl {
     namespace game {

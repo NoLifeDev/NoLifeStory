@@ -24,8 +24,10 @@
 #include <GL/glew.h>
 #include <unordered_map>
 #include <deque>
+#include <iostream>
 
 namespace nl {
+    double const pi = 3.14159265358979323846264338327950288419716939937510582;
     std::unordered_map<size_t, GLuint> textures;
     std::deque<size_t> loaded_textures;
     size_t last_bound = 0;
@@ -109,8 +111,8 @@ namespace nl {
         node o = current["origin"];
         originx = o.x();
         originy = o.y();
-        movetype = current["moveType"];
-        if (movetype) {
+        if (current["moveType"]) {
+            movetype = current["moveType"];
             movew = current["moveW"];
             moveh = current["moveH"];
             movep = current["moveP"];
@@ -154,43 +156,34 @@ namespace nl {
             glColor4f(1, 1, 1, 1);
         }
         double angle = 0;
+        switch (movetype) {
+        case 0:
+            break;
+        case 1:
+            if (movep) x += movew * sin(time::delta_total * 1000 * 2 * pi / movep);
+            else x += movew * sin(time::delta_total);
+            break;
+        case 2:
+            if (movep) y += moveh * sin(time::delta_total * 1000 * 2 * pi / movep);
+            else y += moveh * sin(time::delta_total);
+            break;
+        case 3:
+            angle = time::delta_total * 1000 * 180 / pi / mover;
+            break;
+        default:
+            std::cerr << "Unknown move type: " << movetype << std::endl;
+        }
         bind();
         auto single = [&]() {
             glLoadIdentity();
             glTranslated(x + originx, y + originy, 0);
-            if (angle) glRotated(angle, 0, 0, 1);
+            glRotated(angle, 0, 0, 1);
             glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
             glScaled(f & flipped ? -width : width, height, 1);
             glDrawArrays(GL_QUADS, 0, 4);
         };
         single();
-        /*float alpha {1};
-        if (data != next) {
-            delay += Time::Delta * 1000;
-            int32_t d(next["delay"]);
-            if (!d) d = 100;
-            if (delay >= d) {
-                delay = 0;
-                if (!(next = data[++frame])) next = data[frame = 0];
-            }
-            if (next["a0"] || next["a1"]) {
-                double a0(next["a0"]), a1(next["a1"]);
-                double dif(double(delay) / d);
-                alpha = (a0 * (1 - dif) + a1 * dif) / 255;
-            }
-        }
-        Bitmap b;
-        if (next.T() == Node::Type::Bitmap && BindTexture(b = next)) last = next;
-        else if (last.T() == Node::Type::Bitmap && BindTexture(b = last));
-        else return;
-        Node o(last["origin"]);
-        uint16_t w(b.Width()), h(b.Height());
-        int32_t ox(o.X()), oy(o.Y());
-        flipped ? x -= w - ox : x -= ox, y -= oy;
-        if (view) {
-            x += View::Width / 2, y += View::Height / 2;
-            x -= View::X, y -= View::Y;
-        }
+        /*
         double ang(0);
         switch (movetype) {
         case 1:
