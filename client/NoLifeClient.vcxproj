@@ -72,6 +72,7 @@
     <ClInclude Include="foothold.hpp" />
     <ClInclude Include="game.hpp" />
     <ClInclude Include="layer.hpp" />
+    <ClInclude Include="obj.hpp" />
     <ClInclude Include="tile.hpp" />
     <ClInclude Include="window.hpp" />
     <ClInclude Include="map.hpp" />
@@ -84,6 +85,7 @@
     <ClCompile Include="foothold.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="layer.cpp" />
+    <ClCompile Include="obj.cpp" />
     <ClCompile Include="tile.cpp" />
     <ClCompile Include="window.cpp" />
     <ClCompile Include="map.cpp" />

@@ -15,18 +15,21 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    class Obj {
+#include "sprite.hpp"
+#include <nx/node.hpp>
+
+namespace nl {
+    class obj {
     public:
-        Obj(Node);
-        void Render();
-        bool operator<(Obj const &) const;
+        obj(node);
+        void render();
+        int x, y, z;
     private:
-        Sprite data;
-        int32_t rx, ry;
-        int32_t x, y, z;
-        int32_t flow, cx, cy;
-        bool flip, repeat;
+        sprite spr;
+        int rx, ry;
+        int flow, cx, cy;
+        bool flip;
     };
 }

@@ -18,6 +18,7 @@
 
 #include "time.hpp"
 #include "config.hpp"
+#include "sprite.hpp"
 #include <GL/glew.h>
 #include <deque>
 #include <chrono>
@@ -35,7 +36,7 @@ namespace nl {
             frames.push_back(first);
         }
         void draw() {
-            //Sprite::Unbind();
+            sprite::unbind();
             glLoadIdentity();
             glColor4f(1, 0, 0, 1);
             glBegin(GL_LINE_STRIP);

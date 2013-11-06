@@ -18,6 +18,7 @@
 
 #pragma once
 #include "tile.hpp"
+#include "obj.hpp"
 #include <vector>
 #include <array>
 
@@ -26,7 +27,7 @@ namespace nl {
     public:
         static void render();
         static void load();
-        //vector<Obj> Objs;
+        std::vector<obj> objs;
         std::vector<tile> tiles;
     private:
     };

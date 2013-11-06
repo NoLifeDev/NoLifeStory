@@ -24,6 +24,8 @@
 #include <nx/node.hpp>
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <random>
 
 namespace nl {
     namespace map {
@@ -47,8 +49,14 @@ namespace nl {
             if (!m) return;
             next = m;
         }
+        void load_random() {
+            std::random_device rand;
+            std::uniform_int_distribution<size_t> dist(0, all_maps.size());
+            load(all_maps[dist(rand)], "sp");
+        }
         void load_now() {
             current = next;
+            sprite::cleanup();
             layer::load();
             foothold::load();
             view::reset();

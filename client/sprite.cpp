@@ -119,6 +119,13 @@ namespace nl {
             mover = current["moveR"];
         }
         repeat = current["repeat"].get_bool();
+        if (current["a0"] || current["a1"]) {
+            a0 = current["a0"].get_real(0) / 255.;
+            a1 = current["a1"].get_real(0) / 255.;
+        } else {
+            a0 = 1;
+            a1 = 1;
+        }
     }
     void sprite::draw(int x, int y, flags f, int cx, int cy) {
         if (!data) return;
@@ -129,16 +136,25 @@ namespace nl {
             }
         }
         if (!cx) cx = width;
+        else if (cx < 0) cx = -cx;
         if (!cy) cy = height;
+        else if (cy < 0) cy = -cy;
         f & flipped ? x -= width - originx : x -= originx;
         y -= originy;
         if (f & relative) {
-            x += view::width / 2;
-            y += view::height / 2;
-            x -= view::x;
-            y -= view::y;
+            x -= view::xmin;
+            y -= view::ymin;
         }
-        glColor4f(1, 1, 1, 1);
+        if (x + width < 0) return;
+        if (x > view::width) return;
+        if (y + height < 0) return;
+        if (y > view::height) return;
+        if (animated) {
+            double dif = delay / next_delay;
+            glColor4f(1, 1, 1, dif * a1 + (1 - dif) * a0);
+        } else {
+            glColor4f(1, 1, 1, 1);
+        }
         double angle = 0;
         bind();
         auto single = [&]() {
@@ -234,5 +250,12 @@ namespace nl {
                 for (y = y1; y < y2; y += cy) single();
             } else if (x + w > 0 && x < View::Width && y + h > 0 && y < View::Height) single();
         }*/
+    }
+    sprite::flags & operator|=(sprite::flags & a, sprite::flags b) {
+        a = static_cast<sprite::flags>(static_cast<int>(a) | static_cast<int>(b));
+        return a;
+    }
+    sprite::flags operator|(sprite::flags a, sprite::flags b) {
+        return static_cast<sprite::flags>(static_cast<int>(a) | static_cast<int>(b));
     }
 }

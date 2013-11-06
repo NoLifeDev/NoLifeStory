@@ -15,35 +15,51 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
-namespace NL {
-    Obj::Obj(Node n) :
-        x(n["x"]), y(n["y"]), z(n["z"]),
-        rx(n["rx"]), ry(n["ry"]), flip(n["f"].GetBool()), 
-        cx(n["cx"]), cy(n["cy"]), flow(n["flow"]),
-        data(NXMap["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]]) {
-            if (!cx) cx = View::Right - View::Left;
-            if (!cy) cy = View::Bottom - View::Top;
-            if (cx < 0) cx = -cx;
-            if (cy < 0) cy = -cy;
+
+#include "obj.hpp"
+#include "time.hpp"
+#include "view.hpp"
+#include <nx/nx.hpp>
+#include <iostream>
+
+namespace nl {
+    obj::obj(node n) {
+        x = n["x"];
+        y = n["y"];
+        z = n["z"];
+        rx = n["rx"];
+        ry = n["ry"];
+        cx = n["cx"].get_integer(1000);
+        cy = n["cy"].get_integer(1000);
+        flow = n["flow"];
+        flip = n["f"].get_bool();
+        spr = nx::map["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
     }
-    bool Obj::operator<(Obj const & o) const {
-        return z < o.z;
-    }
-    void Obj::Render() {
+    void obj::render() {
+        sprite::flags flags = sprite::relative;
+        if (flip) flags |= sprite::flipped;
+        int dx = x;
+        int dy = y;
         switch (flow) {
         case 0:
-            data.Draw(x, y, true, flip, false, false, cx, cy);
             break;
         case 1:
-            data.Draw(x + Time::TDelta * rx * 10, y, true, flip, true, false, cx, cy);
+            x += static_cast<int>(rx * 10 * time::delta_total);
+            flags |= sprite::tilex;
             break;
         case 2:
-            data.Draw(x, y + Time::TDelta * ry * 10, true, flip, false, true, cx, cy);
+            y += static_cast<int>(ry * 10 * time::delta_total);
+            flags |= sprite::tiley;
             break;
         case 3:
-            data.Draw(x + Time::TDelta * rx * 10, y + Time::TDelta * ry * 10, true, flip, true, true, cx, cy);
+            x += static_cast<int>(rx * 10 * time::delta_total);
+            y += static_cast<int>(ry * 10 * time::delta_total);
+            flags |= sprite::tilex;
+            flags |= sprite::tiley;
             break;
+        default:
+            std::cerr << "Unknown obj flow: " << flow << std::endl;
         }
+        spr.draw(dx, dy, flags, cx, cy);
     }
 }

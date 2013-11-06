@@ -25,6 +25,7 @@ namespace nl {
         extern double fx, fy;
         extern int width, height;
         extern int left, right, top, bottom;
+        extern int xmin, xmax, ymin, ymax;
         void resize(int w, int h);
         void reset();
         void update();

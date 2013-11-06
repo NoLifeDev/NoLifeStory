@@ -35,6 +35,7 @@ namespace nl {
         int width = 0, height = 0;
         double fx = 0, fy = 0;
         int left = 0, right = 0, top = 0, bottom = 0;
+        int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
         double tx = 0, ty = 0;
         template <typename T>
         void restrict(T & x, T & y) {
@@ -98,12 +99,11 @@ namespace nl {
                     top = bottom - 600;
                 }
             }
-            x = 0;
-            y = 0;
-            //X = Player::Pos.x, Y = Player::Pos.y;
-            restrict(x, y);
-            fx = x;
-            fy = y;
+            fx = 0;
+            fy = 0;
+            tx = 0;
+            ty = 0;
+            update();
         }
         void update() {
             restrict(tx, ty);
@@ -116,6 +116,10 @@ namespace nl {
             restrict(fx, fy);
             x = static_cast<int>(fx);
             y = static_cast<int>(fy);
+            xmin = x - width / 2;
+            xmax = x + width / 2;
+            ymin = y - height / 2;
+            ymax = y + height / 2;
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             if (config::rave) {

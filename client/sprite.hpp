@@ -22,7 +22,7 @@
 namespace nl {
     class sprite {
     public:
-        enum flags {
+        enum flags : unsigned {
             none = 0x0,
             relative = 0x1,
             flipped = 0x2,
@@ -42,10 +42,13 @@ namespace nl {
         node data, current;
         double delay, next_delay;
         double movew, moveh, movep, mover;
+        double a0, a1;
         int movetype;
         int frame;
         int originx, originy;
         int width, height;
         bool repeat, animated;
     };
+    sprite::flags & operator|=(sprite::flags &, sprite::flags);
+    sprite::flags operator|(sprite::flags, sprite::flags);
 }

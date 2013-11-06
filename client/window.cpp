@@ -22,6 +22,7 @@
 #include "game.hpp"
 #include "view.hpp"
 #include "sprite.hpp"
+#include "map.hpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <memory>
@@ -74,6 +75,9 @@ namespace nl {
                         if (mod & GLFW_MOD_ALT) {
                             recreate(!config::fullscreen);
                         }
+                        break;
+                    case GLFW_KEY_M:
+                        map::load_random();
                         break;
                     default:;
                     }

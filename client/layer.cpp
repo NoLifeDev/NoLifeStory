@@ -25,7 +25,7 @@ namespace nl {
     std::array<layer, 8> layers;
     void layer::render() {
         for (unsigned i = 0; i < 8; ++i) {
-            //for (obj & o : layers[i].Objs) o.Render();
+            for (obj & o : layers[i].objs) o.render();
             for (tile & t : layers[i].tiles) t.render();
             //if (Player::Pos.layer == i) Player::Render();
         }
@@ -36,9 +36,11 @@ namespace nl {
             layer & l = layers[i];
             node n = map::current[i];
             node tn = tile_node[n["info"]["tS"] + ".img"];
-            //l.Objs.clear();
-            //for (node nn : n["obj"]) l.Objs.emplace_back(nn);
-            //sort(l.Objs.begin(), l.Objs.end());
+            l.objs.clear();
+            for (node nn : n["obj"]) l.objs.emplace_back(nn);
+            sort(l.objs.begin(), l.objs.end(), [](obj const & a, obj const & b) {
+                return a.z < b.z;
+            });
             l.tiles.clear();
             for (node nn : n["tile"]) l.tiles.emplace_back(nn, tn);
             std::sort(l.tiles.begin(), l.tiles.end(), [](tile const & a, tile const & b) {
