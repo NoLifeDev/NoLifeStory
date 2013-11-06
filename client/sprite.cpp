@@ -25,6 +25,7 @@
 #include <unordered_map>
 #include <deque>
 #include <iostream>
+#include <cmath>
 
 namespace nl {
     double const pi = 3.14159265358979323846264338327950288419716939937510582;
