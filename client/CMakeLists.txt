@@ -10,14 +10,14 @@ include_directories(${GLEW_INCLUDE_DIRS})
 
 add_executable(NoLifeClient 
 #ClassicUI.cpp
-#background.cpp
+background.cpp
 config.cpp
 foothold.cpp
 game.cpp
 layer.cpp
 main.cpp
 map.cpp
-#obj.cpp
+obj.cpp
 #physics.cpp
 #player.cpp
 #portal.cpp
