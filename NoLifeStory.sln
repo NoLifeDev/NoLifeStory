@@ -5,14 +5,14 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNx", "nx\NoLifeNx.vcxproj", "{A9F2D040-71A0-4593-9EAE-0E6820DC39FE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNxBench", "nxbench\NoLifeNxBench.vcxproj", "{77E91142-3BCB-4283-8E80-4EE48AED491F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeWzToNx", "wztonx\NoLifeWzToNx.vcxproj", "{52EBD968-07B9-46B1-85F6-1491693355AF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeClient", "client\NoLifeClient.vcxproj", "{21EFC7E3-D40F-4E4D-96F2-D5CAEA30A4C4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeWzToNx", "wztonx\NoLifeWzToNx.vcxproj", "{52EBD968-07B9-46B1-85F6-1491693355AF}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeClient", "client\NoLifeClient.vcxproj", "{21EFC7E3-D40F-4E4D-96F2-D5CAEA30A4C4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNxBench", "nxbench\NoLifeNxBench.vcxproj", "{77E91142-3BCB-4283-8E80-4EE48AED491F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
 	EndProjectSection
@@ -33,14 +33,6 @@ Global
 		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE}.Release|Win32.Build.0 = Release|Win32
 		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE}.Release|x64.ActiveCfg = Release|x64
 		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE}.Release|x64.Build.0 = Release|x64
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|Win32.ActiveCfg = Debug|Win32
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|Win32.Build.0 = Debug|Win32
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|x64.ActiveCfg = Debug|x64
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|x64.Build.0 = Debug|x64
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|Win32.ActiveCfg = Release|Win32
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|Win32.Build.0 = Release|Win32
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|x64.ActiveCfg = Release|x64
-		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|x64.Build.0 = Release|x64
 		{52EBD968-07B9-46B1-85F6-1491693355AF}.Debug|Win32.ActiveCfg = Debug|Win32
 		{52EBD968-07B9-46B1-85F6-1491693355AF}.Debug|Win32.Build.0 = Debug|Win32
 		{52EBD968-07B9-46B1-85F6-1491693355AF}.Debug|x64.ActiveCfg = Debug|x64
@@ -57,6 +49,14 @@ Global
 		{21EFC7E3-D40F-4E4D-96F2-D5CAEA30A4C4}.Release|Win32.Build.0 = Release|Win32
 		{21EFC7E3-D40F-4E4D-96F2-D5CAEA30A4C4}.Release|x64.ActiveCfg = Release|x64
 		{21EFC7E3-D40F-4E4D-96F2-D5CAEA30A4C4}.Release|x64.Build.0 = Release|x64
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|Win32.Build.0 = Debug|Win32
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|x64.ActiveCfg = Debug|x64
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Debug|x64.Build.0 = Debug|x64
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|Win32.ActiveCfg = Release|Win32
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|Win32.Build.0 = Release|Win32
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|x64.ActiveCfg = Release|x64
+		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

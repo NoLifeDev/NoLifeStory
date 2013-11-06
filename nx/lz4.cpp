@@ -41,19 +41,17 @@ You can contact the author at :
 #include <cstddef>
 
 namespace lz4 {
-    namespace {
-        size_t const copylength {8u};
-        size_t const mlbits {4u};
-        size_t const mlmask {(1u << mlbits) - 1u};
-        size_t const runbits {4u};
-        size_t const runmask {(1u << runbits) - 1u};
-        ptrdiff_t const stepsize {sizeof(size_t)};
-        bool const arch64 {stepsize == 8};
-        size_t const archshift {stepsize == 8 ? 3u : 2u};
-        size_t const archadd {stepsize == 8 ? 7u : 3u};
-        ptrdiff_t const dectable1[] {0, 3, 2, 3, 0, 0, 0, 0};
-        ptrdiff_t const dectable2[] {0, 0, 0, -1, 0, 1, 2, 3};
-    }
+    size_t const copylength {8u};
+    size_t const mlbits {4u};
+    size_t const mlmask {(1u << mlbits) - 1u};
+    size_t const runbits {4u};
+    size_t const runmask {(1u << runbits) - 1u};
+    ptrdiff_t const stepsize {sizeof(size_t)};
+    bool const arch64 {stepsize == 8};
+    size_t const archshift {stepsize == 8 ? 3u : 2u};
+    size_t const archadd {stepsize == 8 ? 7u : 3u};
+    ptrdiff_t const dectable1[] {0, 3, 2, 3, 0, 0, 0, 0};
+    ptrdiff_t const dectable2[] {0, 0, 0, -1, 0, 1, 2, 3};
     void uncompress(void const * source, void * dest, size_t osize) {
         uint8_t const * ip {reinterpret_cast<uint8_t const *>(source)};
         uint8_t * op {reinterpret_cast<uint8_t *>(dest)};

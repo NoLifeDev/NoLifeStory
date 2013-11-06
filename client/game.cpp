@@ -26,27 +26,25 @@
 
 namespace nl {
     namespace game {
-        namespace {
-            bool over = false;
-            void init() {
-                window::init();
-                config::load();
-                nx::load_all();
-                time::init();
-                window::recreate(config::fullscreen);
-                map::init();
-            }
-            void loop() {
-                view::update();
-                time::update();
-                map::update();
-                map::render();
-                window::update();
-            }
-            void unload() {
-                config::save();
-                window::unload();
-            }
+        bool over = false;
+        void init() {
+            window::init();
+            config::load();
+            nx::load_all();
+            time::init();
+            window::recreate(config::fullscreen);
+            map::init();
+        }
+        void loop() {
+            view::update();
+            time::update();
+            map::update();
+            map::render();
+            window::update();
+        }
+        void unload() {
+            config::save();
+            window::unload();
         }
         void play() {
             init();

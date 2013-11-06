@@ -26,12 +26,10 @@
 #include <deque>
 
 namespace nl {
-    namespace {
-        std::unordered_map<size_t, GLuint> textures;
-        std::deque<size_t> loaded_textures;
-        size_t last_bound = 0;
-        GLuint vbo = 0;
-    }
+    std::unordered_map<size_t, GLuint> textures;
+    std::deque<size_t> loaded_textures;
+    size_t last_bound = 0;
+    GLuint vbo = 0;
     void sprite::init() {
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);

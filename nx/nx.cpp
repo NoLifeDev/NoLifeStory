@@ -23,7 +23,7 @@
 #include <memory>
 #include <stdexcept>
 namespace nl {
-    namespace {
+    namespace nx {
         std::vector<std::unique_ptr<file>> files {};
         bool exists(std::string name) {
             return std::ifstream {name}.is_open();
@@ -33,8 +33,6 @@ namespace nl {
             files.emplace_back(new file(name));
             return *files.back();
         }
-    }
-    namespace nx {
         node base, character, effect, etc, item, map, mob, morph, npc, quest, reactor, skill, sound, string, tamingmob, ui;
         void load_all() {
             if (exists("Base.nx")) {
