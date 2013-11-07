@@ -29,7 +29,9 @@ int main(int, char **) {
         std::set_terminate(terminated);
         std::freopen("NoLifeClient.log", "a", stderr);
         std::freopen("NoLifeClient.log", "a", stdout);
+        std::cout << "Starting up NoLifeClient" << std::endl;
         nl::game::play();
+        std::cout << "Shutting down NoLifeClient" << std::endl;
         return EXIT_SUCCESS;
     } catch (std::exception const & e) {
         std::cerr << "Fatal uncaught exception: " << e.what() << std::endl;

@@ -22,7 +22,7 @@ namespace nl {
     namespace time {
         extern unsigned fps;
         extern double delta, delta_total;
-        void init();
+        void reset();
         void update();
     }
 }

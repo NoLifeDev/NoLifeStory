@@ -32,7 +32,7 @@ namespace nl {
         int force = 0, piece = 0;
         unsigned nextid = 0, previd = 0;
         unsigned id = 0, group = 0, layer = 0;
-        bool cant_through = false, forbid_fall_down= false;
+        bool cant_through = false, forbid_fall_down = false, initialized = false;
     private:
         foothold(node, unsigned, unsigned, unsigned);
     };

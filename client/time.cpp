@@ -31,9 +31,8 @@ namespace nl {
         double delta = 1, delta_total = 0;
         std::deque<clock::time_point> frames;
         clock::time_point first;
-        void init() {
-            first = clock::now();
-            frames.push_back(first);
+        void reset() {
+            frames = {first = clock::now()};
         }
         void draw() {
             sprite::unbind();
@@ -64,7 +63,7 @@ namespace nl {
             while (!frames.empty() && now - frames.front() > std::chrono::seconds(1)) frames.pop_front();
             frames.push_back(now);
             fps = static_cast<unsigned>(frames.size());
-            draw();
+            //draw();
         }
     }
 }

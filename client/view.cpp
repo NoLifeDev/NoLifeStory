@@ -21,6 +21,7 @@
 #include "map.hpp"
 #include "time.hpp"
 #include "foothold.hpp"
+#include "sprite.hpp"
 #include <GL/glew.h>
 #include <algorithm>
 #include <random>
@@ -84,6 +85,7 @@ namespace nl {
                 top = std::numeric_limits<int>::max();
                 bottom = std::numeric_limits<int>::min();
                 for (foothold & f : footholds) {
+                    if (!f.initialized) continue;
                     if (left > f.x1) left = f.x1;
                     if (left > f.x2) left = f.x2;
                     if (right < f.x1) right = f.x1;
@@ -93,8 +95,8 @@ namespace nl {
                     if (bottom < f.y1) bottom = f.y1;
                     if (bottom < f.y2) bottom = f.y2;
                 }
-                top -= 256;
-                bottom += 128;
+                top -= 200;
+                bottom += 100;
                 if (top > bottom - 600) {
                     top = bottom - 600;
                 }
@@ -143,12 +145,26 @@ namespace nl {
             ymax = y + height / 2;
         }
         void draw_edges() {
-            //Sprite::Unbind();
-            //glColor4f(0, 0, 0, 1);
-            //Graphics::DrawRect(0, 0, width, top - Y + height / 2, false);
-            //Graphics::DrawRect(0, bottom - Y + height / 2, width, height, false);
-            //Graphics::DrawRect(0, top - Y + height / 2, left - X + width / 2, bottom - Y + height / 2, false);
-            //Graphics::DrawRect(right - X + width / 2, top - Y + height / 2, width, bottom - Y + height / 2, false);
+            sprite::unbind();
+            glColor4d(0, 0, 0, 1);
+            glBegin(GL_QUADS);
+            glVertex2i(0, 0);
+            glVertex2i(right - xmin, 0);
+            glVertex2i(right - xmin, top - ymin);
+            glVertex2i(0, top - ymin);
+            glVertex2i(right - xmin, 0);
+            glVertex2i(width, 0);
+            glVertex2i(width, bottom - ymin);
+            glVertex2i(right - xmin, bottom - ymin);
+            glVertex2i(left - xmin, bottom - ymin);
+            glVertex2i(width, bottom - ymin);
+            glVertex2i(width, height);
+            glVertex2i(left - xmin, height);
+            glVertex2i(0, top - ymin);
+            glVertex2i(left - xmin, top - ymin);
+            glVertex2i(left - xmin, height);
+            glVertex2i(0, height);
+            glEnd();
         }
     }
 }

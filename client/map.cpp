@@ -21,29 +21,20 @@
 #include "view.hpp"
 #include "foothold.hpp"
 #include "background.hpp"
+#include "time.hpp"
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <random>
+#include <iostream>
 
 namespace nl {
     namespace map {
         std::vector<std::string> all_maps;
         node map_node;
         node current, next;
-        void init() {
-            map_node = nx::map["Map"];
-            for (int i = 0; i <= 9; ++i) {
-                for (node n : map_node["Map" + std::to_string(i)]) {
-                    std::string name = n.name();
-                    if (name.size() < 4) continue;//This shouldn't happen
-                    all_maps.emplace_back(name.substr(0, name.size() - 4));
-                }
-            }
-            load("100000000", "sp");
-        }
         void load(std::string name, std::string portal) {
             if (name.size() < 9) name.insert(0, name.size(), '0');
             node m = map_node[std::string("Map") + name[0]][name + ".img"];
@@ -57,11 +48,25 @@ namespace nl {
         }
         void load_now() {
             current = next;
+            std::cout << "Loading map " << current.name() << std::endl;
+            //time::reset();
             sprite::cleanup();
             layer::load();
             background::load();
             foothold::load();
             view::reset();
+        }
+        void init() {
+            map_node = nx::map["Map"];
+            for (int i = 0; i <= 9; ++i) {
+                for (node n : map_node["Map" + std::to_string(i)]) {
+                    std::string name = n.name();
+                    if (name.size() < 4) continue;//This shouldn't happen
+                    all_maps.emplace_back(name.substr(0, name.size() - 4));
+                }
+            }
+            load("102000002", "sp");
+            load_now();
         }
         void update() {
             if (next != current) {
@@ -72,38 +77,9 @@ namespace nl {
             for (background & b : backgrounds) b.render();
             layer::render();
             for (background & b : foregrounds) b.render();
+            view::draw_edges();
         }
         /*
-        Node Current;
-        string Name;
-        Node Next;
-        string NextPortal;
-        float Shade = 0;
-        vector<string> Maps;
-        void LoadNow() {
-            Shade = 2;
-            Current = Next;
-            Name = Current.Name().erase(Current.Name().size() - 4);
-            Next = Node();
-            BGM.PlayMusic();
-            Foothold::Load();
-            Layer::LoadAll();
-            Background::Load();
-            Portal::Load();
-            Sprite::Cleanup();
-            Player::Respawn(NextPortal);
-            View::Reset();
-        }
-        void Init() {
-            for (int i = 0; i <= 9; ++i) {
-                for (Node n2 : NXMap["Map"]["Map" + to_string(i)]) {
-                    string name = n2.Name();
-                    Maps.emplace_back(name.substr(0, name.size() - 4));
-                }
-            }
-            Load("100000000");
-            LoadNow();
-        }
         void Load(string name, string portal) {
             if (Next) return;
             name.insert(0, 9 - name.size(), '0');

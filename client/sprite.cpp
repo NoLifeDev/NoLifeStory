@@ -71,6 +71,7 @@ namespace nl {
         last_bound = 0;
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_TEXTURE_2D);
+        glLoadIdentity();
     }
     void sprite::cleanup() {
         while (static_cast<int>(loaded_textures.size()) > config::max_textures) {
@@ -166,10 +167,36 @@ namespace nl {
         default:
             std::cerr << "Unknown move type: " << movetype << std::endl;
         }
-        if (x + width < 0) return;
-        if (x > view::width) return;
-        if (y + height < 0) return;
-        if (y > view::height) return;
+        int xbegin = x;
+        int xend = x;
+        int ybegin = y;
+        int yend = y;
+        if (f & tilex) {
+            xbegin += width;
+            xbegin %= cx;
+            if (xbegin <= 0) xbegin += cx;
+            xbegin -= width;
+            xend -= view::width;
+            xend %= cx;
+            if (xend >= 0) xend -= cx;
+            xend += view::width;
+            if (xend < xbegin) return;
+        }
+        if (f & tiley) {
+            ybegin += height;
+            ybegin %= cy;
+            if (ybegin <= 0) ybegin += cy;
+            ybegin -= height;
+            yend -= view::height;
+            yend %= cy;
+            if (yend >= 0) yend -= cy;
+            yend += view::height;
+            if (yend < ybegin) return;
+        }
+        if (xend + width < 0) return;
+        if (xbegin > view::width) return;
+        if (yend + height < 0) return;
+        if (ybegin > view::height) return;
         if (config::rave) {
         } else if (animated) {
             double dif = delay / next_delay;
@@ -178,25 +205,65 @@ namespace nl {
             glColor4d(1, 1, 1, 1);
         }
         bind();
-        auto single = [&]() {
+        if (f & tilex && cx == width) {
+            if (f & tiley && cy == height) {
+                xend += cx;
+                yend += cy;
+                int xm = (xend - xbegin) / cx;
+                int ym = (yend - ybegin) / cy;
+                glLoadIdentity();
+                glBegin(GL_QUADS);
+                glTexCoord2i(0, 0);
+                glVertex2i(xbegin, ybegin);
+                glTexCoord2i(xm, 0);
+                glVertex2i(xend, ybegin);
+                glTexCoord2i(xm, ym);
+                glVertex2i(xend, yend);
+                glTexCoord2i(0, ym);
+                glVertex2i(xbegin, yend);
+                glEnd();
+            } else {
+                xend += cx;
+                int xm = (xend - xbegin) / cx;
+                glLoadIdentity();
+                glBegin(GL_QUADS);
+                for (y = ybegin; y <= yend; y += cy) {
+                    glTexCoord2i(0, 0);
+                    glVertex2i(xbegin, y);
+                    glTexCoord2i(xm, 0);
+                    glVertex2i(xend, y);
+                    glTexCoord2i(xm, 1);
+                    glVertex2i(xend, y + height);
+                    glTexCoord2i(0, 1);
+                    glVertex2i(xbegin, y + height);
+                }
+                glEnd();
+            }
+        } else if (f & tiley && cy == height) {
+            yend += cy;
+            int ym = (yend - ybegin) / cy;
+            glLoadIdentity();
+            glBegin(GL_QUADS);
+            for (x = xbegin; x <= xend; x += cx) {
+                glTexCoord2i(0, 0);
+                glVertex2i(x, ybegin);
+                glTexCoord2i(1, 0);
+                glVertex2i(x + width, ybegin);
+                glTexCoord2i(1, ym);
+                glVertex2i(x + width, yend);
+                glTexCoord2i(0, ym);
+                glVertex2i(x, yend);
+            }
+            glEnd();
+        } else for (x = xbegin; x <= xend; x += cx) for (y = ybegin; y <= yend; y += cy) {
             glLoadIdentity();
             glTranslated(x + originx, y + originy, 0);
             glRotated(angle, 0, 0, 1);
             glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
             glScaled(f & flipped ? -width : width, height, 1);
             glDrawArrays(GL_QUADS, 0, 4);
-        };
-        single();
+        }
         /*
-        if (!Config::Rave) glColor4f(1, 1, 1, alpha);
-        auto single = [&]() {
-            glTranslated(x + ox, y + oy, 0);
-            glRotated(ang, 0, 0, 1);
-            glTranslated(flipped ? w - ox : -ox, -oy, 0);
-            glScaled(flipped ? -w : w, h, 1);
-            glDrawArrays(GL_QUADS, 0, 4);
-            glLoadIdentity();
-        };
         if (tilex) {
             if (tiley) {
                 if (!cx) cx = w;

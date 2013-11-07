@@ -31,16 +31,16 @@ namespace nl {
         void init() {
             window::init();
             config::load();
+            time::reset();
             nx::load_all();
-            time::init();
             window::recreate(config::fullscreen);
             map::init();
         }
         void loop() {
-            time::update();
             view::update();
             map::update();
             map::render();
+            time::update();
             window::update();
         }
         void unload() {

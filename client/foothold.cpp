@@ -36,6 +36,7 @@ namespace nl {
         forbid_fall_down = n["forbidFallDown"].get_bool();
         if (nextid < footholds.size()) next = &footholds[nextid];
         if (previd < footholds.size()) prev = &footholds[previd];
+        initialized = true;
     }
     void foothold::load() {
         footholds.clear();
