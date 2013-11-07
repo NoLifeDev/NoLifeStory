@@ -95,7 +95,7 @@ namespace nl {
                     if (bottom < f.y1) bottom = f.y1;
                     if (bottom < f.y2) bottom = f.y2;
                 }
-                top -= 200;
+                top -= 100;
                 bottom += 100;
                 if (top > bottom - 600) {
                     top = bottom - 600;
