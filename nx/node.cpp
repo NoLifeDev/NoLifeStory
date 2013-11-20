@@ -239,7 +239,7 @@ namespace nl {
         return {s + 2, *reinterpret_cast<uint16_t const *>(s)};
     }
     size_t node::size() const {
-        return m_data ? m_data->num : 0U;
+        return m_data ? m_data->num : 0u;
     }
     node::type node::data_type() const {
         return m_data ? m_data->type : type::none;
