@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "bitmap.hpp"
-#include <lz4/lz4.h>
+#include <lz4.h>
 #include <vector>
 
 namespace nl {
