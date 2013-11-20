@@ -1,6 +1,8 @@
 Todo
 ====
 
+If you want to contribute to NoLifeStory, looking here is a good place to get an idea of what needs to be done
+
 NoLifeWzToNx
 ------------
 
@@ -10,13 +12,15 @@ NoLifeWzToNx
 NoLifeClient
 ------------
 
-* Refactor everything to use the style I converted NoLifeNx to, with lowercase namings and underscores and m_name for member variables
-* Refactor sprite so it does proper view culling, and does so before binding the texture
-* Implement text drawing
-* Implement full character rendering
-* Add mobs and npcs
-* Add user interface
-* Implement networking
+* Finish refactoring everything
+* Text drawing using actual font rendering
+* Re-implement physics
+* Character rendering
+* Portals
+* Mobs and npcs
+* User Interface (styled after windows 8 metro and new VS theme, but better)
+* Implement networking (using NoLifeProtocol)
+* Figure out how to correctly determine view boundaries
 
 NoLifeProtocol
 --------------

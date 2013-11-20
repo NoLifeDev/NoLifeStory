@@ -45,8 +45,8 @@ namespace nl {
         void * file = nullptr;
         void * map = nullptr;
 #else
-        int m_file = 0;
-        size_t m_size = 0;
+        int file = 0;
+        size_t size = 0;
 #endif
     };
 }
