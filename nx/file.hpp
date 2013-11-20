@@ -17,22 +17,43 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "nxfwd.hpp"
 #include <cstdint>
 #include <string>
 
 namespace nl {
+    struct _file_data;
     class file {
     public:
+        typedef _file_data data;
+        struct header;
+        //Creates a null file object
+        //Nothing can really be done until you call open()
+        file() = default;
         //Used to construct an nx file from a filename
-        //Multiple file objects can be created from the same filename without problem
+        //Multiple file objects can be created from the same filename
         //and the resulting nodes are interchangeable
         file(std::string name);
-        //Upon being destroyed all nodes that originated from this file become invalid
-        //and may error or crash on access
+        //Destructor calls close()
         ~file();
+        //Files cannot be copied
+        file(file const &) = delete;
+        //Files cannot be copied
+        file & operator=(file const &) = delete;
+        //Transfers ownership of the file handle to another file
+        file(file &&);
+        //Transfers ownership of the file handle to another file
+        file & operator=(file &&);
+        //Opens the file with the given name
+        void open(std::string name);
+        //Closes the given file
+        //Any nodes derived from this file become invalid after closing it
+        //Any attempts to use invalid nodes will result in undefined behavior
+        void close();
         //Obtains the root node from which all other nodes may be accessed
-        class node root() const;
-        //An alternate way to obtain the root node that saves some typing
+        //If the file is not open, a null node is returned
+        node root() const;
+        //Effectivelly calls root()
         operator node() const;
         //Returns the number of strings in the file
         uint32_t string_count() const;
@@ -42,38 +63,12 @@ namespace nl {
         uint32_t audio_count() const;
         //Returns the number of nodes in the file
         uint32_t node_count() const;
+        //Returns the string with a given id number
         std::string get_string(uint32_t) const;
     private:
-#pragma pack(push, 1)
-        struct header {
-            uint32_t const magic;
-            uint32_t const node_count;
-            uint64_t const node_offset;
-            uint32_t const string_count;
-            uint64_t const string_offset;
-            uint32_t const bitmap_count;
-            uint64_t const bitmap_offset;
-            uint32_t const audio_count;
-            uint64_t const audio_offset;
-        };
-#pragma pack(pop)
-        file(const file &);//Todo: Replace with = delete once VS has support for it.
-        file & operator=(const file &);//Todo: Replace with = delete once VS has support for it.
-        void const * m_base;
-        struct node_data const * m_node_table;
-        uint64_t const * m_string_table;
-        uint64_t const * m_bitmap_table;
-        uint64_t const * m_audio_table;
-        header const * m_header;
-#ifdef _WIN32
-        void * m_file;
-        void * m_map;
-#else
-        int m_file;
-        size_t m_size;
-#endif
-        friend class node;
-        friend class bitmap;
-        friend class audio;
+        data * m_data = nullptr;
+        friend node;
+        friend bitmap;
+        friend audio;
     };
 }

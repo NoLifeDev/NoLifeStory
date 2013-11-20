@@ -24,12 +24,13 @@
 #include <stdexcept>
 namespace nl {
     namespace nx {
-        std::vector<std::unique_ptr<file>> files {};
+        std::vector<std::unique_ptr<file>> files;
         bool exists(std::string name) {
-            return std::ifstream {name}.is_open();
+            return std::ifstream(name).is_open();
         }
         node add_file(std::string name) {
-            if (!exists(name)) return {};
+            if (!exists(name))
+                return {};
             files.emplace_back(new file(name));
             return *files.back();
         }
@@ -70,7 +71,7 @@ namespace nl {
                 tamingmob = base["TamingMob"];
                 ui = base["UI"];
             } else {
-                throw std::runtime_error {"Failed to locate nx files."};
+                throw std::runtime_error("Failed to locate nx files.");
             }
         }
     }

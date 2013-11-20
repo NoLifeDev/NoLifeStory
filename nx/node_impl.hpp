@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifeNx - Part of the NoLifeStory project                               //
-// Copyright Â© 2013 Peter Atashian                                          //
+// Copyright © 2013 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -16,27 +16,32 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "audio.hpp"
+#pragma once
+#include "node.hpp"
 
 namespace nl {
-    audio::audio(void const * d, uint32_t l) :
-        m_data(d), m_length(l) {}
-    bool audio::operator<(audio const & o) const {
-        return m_data < o.m_data;
-    }
-    bool audio::operator==(audio const & o) const {
-        return m_data == o.m_data;
-    }
-    audio::operator bool() const {
-        return m_data ? true : false;
-    }
-    void const * audio::data() const {
-        return m_data;
-    }
-    uint32_t audio::length() const {
-        return m_length;
-    }
-    size_t audio::id() const {
-        return reinterpret_cast<size_t>(m_data);
-    }
+    //Internal data structure
+#pragma pack(push, 1)
+    struct node::data {
+        uint32_t const name;
+        uint32_t const children;
+        uint16_t const num;
+        node::type const type;
+        union {
+            int64_t const ireal;
+            double const dreal;
+            uint32_t const string;
+            int32_t const vector[2];
+            struct {
+                uint32_t index;
+                uint16_t width;
+                uint16_t height;
+            } const bitmap;
+            struct {
+                uint32_t index;
+                uint32_t length;
+            } const audio;
+        };
+    };
+#pragma pack(pop)
 }

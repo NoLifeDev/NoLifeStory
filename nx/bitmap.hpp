@@ -17,12 +17,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "nxfwd.hpp"
 #include <cstdint>
 #include <cstddef>
 
 namespace nl {
     class bitmap {
     public:
+        bitmap() = default;
+        bitmap(bitmap const &) = default;
+        bitmap & operator=(bitmap const &) = default;
         //Comparison operators, useful for containers
         bool operator==(bitmap const &) const;
         bool operator<(bitmap const &) const;
@@ -38,11 +42,11 @@ namespace nl {
         uint32_t length() const;
         //Returns a unique id, useful for keeping track of what bitmaps you loaded
         size_t id() const;
-        //Internal variables
-        //They are only public so that the class may be Plain Old Data
-        void const * m_data;
-        uint16_t m_width, m_height;
     private:
-        friend class node;
+        bitmap(void const *, uint16_t, uint16_t);
+        void const * m_data = nullptr;
+        uint16_t m_width = 0;
+        uint16_t m_height = 0;
+        friend node;
     };
 }

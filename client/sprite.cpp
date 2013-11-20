@@ -264,41 +264,6 @@ namespace nl {
             glScaled(f & flipped ? -width : width, height, 1);
             glDrawArrays(GL_QUADS, 0, 4);
         }
-        /*
-        if (tilex) {
-            if (tiley) {
-                if (!cx) cx = w;
-                int32_t x1 = x % cx - cx;
-                int32_t x2 = (x - View::Width) % cx + View::Width + cx;
-                if (!cy) cy = h;
-                int32_t y1 = y % cy - cy;
-                int32_t y2 = (y - View::Height) % cy + View::Height + cy;
-                if (cx == w && cy == h) {
-                    glBegin(GL_QUADS);
-                    glTexCoord2i(0, 0);
-                    glVertex2i(x1, y1);
-                    glTexCoord2i((x2 - x1) / cx, 0);
-                    glVertex2i(x2, y1);
-                    glTexCoord2i((x2 - x1) / cx, (y2 - y1) / cy);
-                    glVertex2i(x2, y2);
-                    glTexCoord2i(0, (y2 - y1) / cy);
-                    glVertex2i(x1, y2);
-                    glEnd();
-                } else for (x = x1; x < x2; x += cx) for (y = y1; y < y2; y += cy) single();
-            } else {
-                if (!cx) cx = w;
-                int32_t x1 = x % cx - cx;
-                int32_t x2 = (x - View::Width) % cx + View::Width + cx;
-                for (x = x1; x < x2; x += cx) single();
-            }
-        } else {
-            if (tiley) {
-                if (!cy) cy = h;
-                int32_t y1 = y % cy - cy;
-                int32_t y2 = (y - View::Height) % cy + View::Height + cy;
-                for (y = y1; y < y2; y += cy) single();
-            } else if (x + w > 0 && x < View::Width && y + h > 0 && y < View::Height) single();
-        }*/
     }
     sprite::flags & operator|=(sprite::flags & a, sprite::flags b) {
         a = static_cast<sprite::flags>(static_cast<int>(a) | static_cast<int>(b));

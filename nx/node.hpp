@@ -17,15 +17,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "nxfwd.hpp"
 #include <string>
 #include <cstdint>
 
 namespace nl {
-    class bitmap;
-    class audio;
-    class file;
+    struct _file_data;
+    typedef std::pair<int32_t, int32_t> vector;
     class node {
     public:
+        struct data;
         //Type of node data
         enum class type : uint16_t {
             none = 0,
@@ -36,11 +37,9 @@ namespace nl {
             bitmap = 5,
             audio = 6,
         };
-        //Internal data structure
-        typedef struct node_data data;
+        //Constructors
         node() = default;
         node(node const &);//Only reason this isn't defaulted is because msvc has issues
-        node(data const * const &, file const * const &);
         node & operator=(node const &) = default;
         //These methods are primarily so nodes can be used as iterators and iterated over
         node begin() const;
@@ -56,9 +55,6 @@ namespace nl {
         //However, if the file this node was obtained from was deleted
         //then the node becomes invalid and this operator cannot tell you that
         explicit operator bool() const;
-        //Used to easily concatenate the string value of a node with another string
-        std::string operator+(std::string const &) const;
-        std::string operator+(char const *) const;
         //Methods to access the children of the node by name
         //Note that the versions taking integers convert the integer to a string
         //They do not access the children by their integer index
@@ -73,7 +69,6 @@ namespace nl {
         node operator[](char const *) const;
         //This method uses the string value of the node, not the node's name
         node operator[](node const &) const;
-        node operator[](std::pair<char const *, size_t> const &) const;
         //Operators to easily cast a node to get the data
         //Allows things like string s = somenode
         //Will automatically cast between data types as needed
@@ -93,20 +88,18 @@ namespace nl {
         operator double() const;
         operator long double() const;
         operator std::string() const;
-        operator std::pair<int32_t, int32_t>() const;
+        operator vector() const;
         operator bitmap() const;
         operator audio() const;
         //Explicitly called versions of all the operators
         //When it takes a parameter, that is used as the default value
         //if a suitable data value cannot be found in the node
-        int64_t get_integer() const;
-        int64_t get_integer(int64_t) const;
-        double get_real() const;
-        double get_real(double) const;
-        std::string get_string() const;
-        std::pair<int32_t, int32_t> get_vector() const;
-        class bitmap get_bitmap() const;
-        class audio get_audio() const;
+        int64_t get_integer(int64_t = 0) const;
+        double get_real(double = 0) const;
+        std::string get_string(std::string = "") const;
+        vector get_vector(vector = {0, 0}) const;
+        bitmap get_bitmap() const;
+        audio get_audio() const;
         bool get_bool() const;
         bool get_bool(bool) const;
         //Returns the x and y coordinates of the vector data value
@@ -114,50 +107,27 @@ namespace nl {
         int32_t y() const;
         //The name of the node
         std::string name() const;
-        std::pair<char const *, size_t> name_fast() const;
         //The number of children in the node
         size_t size() const;
         //Gets the type of data contained within the node
         type data_type() const;
-        //Internal variables
-        //They are only public so that the class may be Plain Old Data
-        data const * m_data {nullptr};
-        class file const * m_file {nullptr};
     private:
-        node get_child(char const *, size_t) const;
+        node(data const *, _file_data const *);
+        node get_child(char const *, uint16_t) const;
         int64_t to_integer() const;
         double to_real() const;
         std::string to_string() const;
-        std::pair<int32_t, int32_t> to_vector() const;
-        class bitmap to_bitmap() const;
-        class audio to_audio() const;
-        friend class file;
+        vector to_vector() const;
+        bitmap to_bitmap() const;
+        audio to_audio() const;
+        //Internal variables
+        data const * m_data = nullptr;
+        _file_data const * m_file = nullptr;
+        friend file;
     };
     //More convenience string concatenation operators
     std::string operator+(std::string, node);
     std::string operator+(char const *, node);
-    //Internal data structure
-#pragma pack(push, 1)
-    struct node_data {
-        uint32_t const name;
-        uint32_t const children;
-        uint16_t const num;
-        node::type const type;
-        union {
-            int64_t const ireal;
-            double const dreal;
-            uint32_t const string;
-            int32_t const vector[2];
-            struct {
-                uint32_t index;
-                uint16_t width;
-                uint16_t height;
-            } const bitmap;
-            struct {
-                uint32_t index;
-                uint32_t length;
-            } const audio;
-        };
-    };
-#pragma pack(pop)
+    std::string operator+(node, std::string);
+    std::string operator+(node, char const *);
 }

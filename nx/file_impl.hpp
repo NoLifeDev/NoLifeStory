@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifeNx - Part of the NoLifeStory project                               //
-// Copyright Â© 2013 Peter Atashian                                          //
+// Copyright © 2013 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -16,27 +16,37 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "audio.hpp"
+#pragma once
+#include "file.hpp"
+#include "node_impl.hpp"
 
 namespace nl {
-    audio::audio(void const * d, uint32_t l) :
-        m_data(d), m_length(l) {}
-    bool audio::operator<(audio const & o) const {
-        return m_data < o.m_data;
-    }
-    bool audio::operator==(audio const & o) const {
-        return m_data == o.m_data;
-    }
-    audio::operator bool() const {
-        return m_data ? true : false;
-    }
-    void const * audio::data() const {
-        return m_data;
-    }
-    uint32_t audio::length() const {
-        return m_length;
-    }
-    size_t audio::id() const {
-        return reinterpret_cast<size_t>(m_data);
-    }
+#pragma pack(push, 1)
+    struct file::header {
+        uint32_t const magic;
+        uint32_t const node_count;
+        uint64_t const node_offset;
+        uint32_t const string_count;
+        uint64_t const string_offset;
+        uint32_t const bitmap_count;
+        uint64_t const bitmap_offset;
+        uint32_t const audio_count;
+        uint64_t const audio_offset;
+    };
+#pragma pack(pop)
+    struct _file_data {
+        void const * base = nullptr;
+        node::data const * node_table = nullptr;
+        uint64_t const * string_table = nullptr;
+        uint64_t const * bitmap_table = nullptr;
+        uint64_t const * audio_table = nullptr;
+        file::header const * header = nullptr;
+#ifdef _WIN32
+        void * file = nullptr;
+        void * map = nullptr;
+#else
+        int m_file = 0;
+        size_t m_size = 0;
+#endif
+    };
 }

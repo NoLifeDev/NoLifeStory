@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifeNx - Part of the NoLifeStory project                               //
-// Copyright Â© 2013 Peter Atashian                                          //
+// Copyright © 2013 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -16,27 +16,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "audio.hpp"
+#pragma once
 
 namespace nl {
-    audio::audio(void const * d, uint32_t l) :
-        m_data(d), m_length(l) {}
-    bool audio::operator<(audio const & o) const {
-        return m_data < o.m_data;
-    }
-    bool audio::operator==(audio const & o) const {
-        return m_data == o.m_data;
-    }
-    audio::operator bool() const {
-        return m_data ? true : false;
-    }
-    void const * audio::data() const {
-        return m_data;
-    }
-    uint32_t audio::length() const {
-        return m_length;
-    }
-    size_t audio::id() const {
-        return reinterpret_cast<size_t>(m_data);
-    }
+    class node;
+    class file;
+    class bitmap;
+    class audio;
 }

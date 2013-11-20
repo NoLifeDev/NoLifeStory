@@ -17,10 +17,12 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "bitmap.hpp"
-#include "lz4.hpp"
+#include <lz4/lz4.h>
 #include <vector>
 
 namespace nl {
+    bitmap::bitmap(void const * d, uint16_t w, uint16_t h) :
+        m_data(d), m_width(w), m_height(h) {}
     bool bitmap::operator<(bitmap const & o) const {
         return m_data < o.m_data;
     }
@@ -30,12 +32,15 @@ namespace nl {
     bitmap::operator bool() const {
         return m_data ? true : false;
     }
-    std::vector<uint8_t> buf {};
+    std::vector<char> buf;
     void const * bitmap::data() const {
-        if (!m_data) return nullptr;
-        size_t const l {length()};
-        if (l + 0x20 > buf.size()) buf.resize(l + 0x20);
-        lz4::uncompress(reinterpret_cast<uint8_t const *>(m_data) + 4, buf.data(), l);
+        if (!m_data)
+            return nullptr;
+        auto const l = length();
+        if (l + 0x20 > buf.size())
+            buf.resize(l + 0x20);
+        LZ4_decompress_fast(reinterpret_cast<char const *>(m_data) + 4,
+                            buf.data(), static_cast<int>(l));
         return buf.data();
     }
     uint16_t bitmap::width() const {

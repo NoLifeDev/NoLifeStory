@@ -40,56 +40,79 @@
 #include <chrono>
 
 namespace nl {
+    //Some typedefs
     typedef uint16_t strsize_t;
     typedef char char8_t;
     typedef uint32_t id_t;
     typedef uint32_t hash_t;
     typedef uint8_t key_t;
-
-    //Utility
+    //The keys
+    //TODO - Use AES to generate these keys at runtime
+    extern key_t key_bms[65536];
+    extern key_t key_gms[65536];
+    extern key_t key_kms[65536];
+    key_t const * keys[3] = {key_bms, key_gms, key_kms};
+    //Identity operation because C++ doesn't have such a template. Surprising, I know.
     template <typename T> struct identity {
         T operator()(T const & v) const {
             return v;
         }
     };
-
-    //File stuff
-    namespace in {
-        char const * base {};
-        char const * offset {};
+    //Memory allocation
+    namespace alloc {
+        char * buffer {nullptr};
+        size_t remain {0};
+        size_t const default_size {0x1000000};
+        char * big(size_t size) {
+            return new char[size];
+        }
+        void * small(size_t size) {
+            if (size > remain) {
+                buffer = big(default_size);
+                remain = default_size;
+            }
+            char * r {buffer};
+            buffer += size, remain -= size;
+            return r;
+        }
+    }
+    //Input memory mapped file
+    struct imapfile {
+        char const * base = nullptr;
+        char const * offset = nullptr;
 #ifdef _WIN32
-        void * file_handle {};
-        void * map_handle {};
+        void * file_handle = nullptr;
+        void * map_handle = nullptr;
         void open(std::string p) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
+            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error("Failed to open file " + p);
             map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
-            if (map_handle == nullptr) throw std::runtime_error {"Failed to create file mapping of file " + p};
+            if (map_handle == nullptr) throw std::runtime_error("Failed to create file mapping of file " + p);
             base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_READ, 0, 0, 0));
-            if (base == nullptr) throw std::runtime_error {"Failed to map view of file " + p};
+            if (base == nullptr) throw std::runtime_error("Failed to map view of file " + p);
             offset = base;
         }
-        void close() {
+        ~imapfile() {
             UnmapViewOfFile(base);
             CloseHandle(map_handle);
             CloseHandle(file_handle);
         }
 #else
-        int file_handle {};
-        size_t file_size {};
+        int file_handle = 0;
+        size_t file_size = 0;
         void open(std::string p) {
             file_handle = ::open(p.c_str(), O_RDONLY);
-            if (file_handle == -1) throw std::runtime_error {"Failed to open file " + p};
+            if (file_handle == -1) throw std::runtime_error("Failed to open file " + p);
             struct stat finfo;
-            if (fstat(file_handle, &finfo) == -1) throw std::runtime_error {"Failed to obtain file information of file " + p};
+            if (fstat(file_handle, &finfo) == -1) throw std::runtime_error("Failed to obtain file information of file " + p);
             file_size = finfo.st_size;
             base = reinterpret_cast<char const *>(mmap(nullptr, file_size, PROT_READ, MAP_SHARED, file_handle, 0));
-            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + p};
+            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error("Failed to create memory mapping of file " + p);
             offset = base;
         }
-        void close() {
+        ~imapfile() {
             munmap(const_cast<char *>(base), file_size);
-            ::close(file_handle);
+            close(file_handle);
         }
 #endif
         size_t tell() {
@@ -102,28 +125,29 @@ namespace nl {
             offset += n;
         }
         template <typename T> T read() {
-            T v {*reinterpret_cast<T const *>(offset)};
+            auto & v = *reinterpret_cast<T const *>(offset);
             offset += sizeof(T);
             return v;
         }
         int32_t read_cint() {
-            int8_t a {read<int8_t>()};
+            int8_t a = read<int8_t>();
             return a != -128 ? a : read<int32_t>();
         }
-    }
-    namespace out {
-        char * base {};
-        char * offset {};
+    };
+    //Output memory mapped file
+    struct omapfile {
+        char * base = nullptr;
+        char * offset = nullptr;
 #ifdef _WIN32
-        void * file_handle {};
-        void * map_handle {};
+        void * file_handle = nullptr;
+        void * map_handle = nullptr;
         void open(std::string p, size_t size) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
-            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error {"Failed to open file " + p};
+            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error("Failed to open file " + p);
             map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READWRITE, size >> 32, size & 0xffffffff, nullptr);
-            if (map_handle == nullptr) throw std::runtime_error {"Failed to create file mapping of file " + p};
+            if (map_handle == nullptr) throw std::runtime_error("Failed to create file mapping of file " + p);
             base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_ALL_ACCESS, 0, 0, 0));
-            if (base == nullptr) throw std::runtime_error {"Failed to map view of file " + p};
+            if (base == nullptr) throw std::runtime_error("Failed to map view of file " + p);
             offset = base;
         }
         void close() {
@@ -132,16 +156,16 @@ namespace nl {
             CloseHandle(file_handle);
         }
 #else
-        int file_handle;
-        size_t file_size;
+        int file_handle = 0;
+        size_t file_size = 0;
         void open(std::string p, uint64_t size) {
             file_handle = ::open(p.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            if (file_handle == -1) throw std::runtime_error {"Failed to open file " + p};
+            if (file_handle == -1) throw std::runtime_error("Failed to open file " + p);
             file_size = size;
-            if (lseek(file_handle, file_size-1, SEEK_SET) == -1) throw std::runtime_error {"Error calling lseek() to 'stretch' file " + p};
-            if (write(file_handle, "", 1) != 1) throw std::runtime_error {"Error writing last byte of file " + p};
+            if (lseek(file_handle, file_size - 1, SEEK_SET) == -1) throw std::runtime_error("Error calling lseek() to 'stretch' file " + p);
+            if (write(file_handle, "", 1) != 1) throw std::runtime_error("Error writing last byte of file " + p);
             base = reinterpret_cast<char *>(mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0));
-            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error {"Failed to create memory mapping of file " + p};
+            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error("Failed to create memory mapping of file " + p);
             offset = base;
         }
         void close() {
@@ -166,47 +190,26 @@ namespace nl {
             memcpy(offset, buf, size);
             offset += size;
         }
-    }
-
-    //Memory allocation
-    namespace alloc {
-        char * buffer {nullptr};
-        size_t remain {0};
-        size_t const default_size {0x1000000};
-        char * big(size_t size) {
-            return new char[size];
-        }
-        void * small(size_t size) {
-            if (size > remain) {
-                buffer = big(default_size);
-                remain = default_size;
-            }
-            char * r {buffer};
-            buffer += size, remain -= size;
-            return r;
-        }
-    }
+    };
     //Node stuff
 #pragma pack(push, 1)
     struct node {
         enum class type : uint16_t {
             none = 0,
-                integer = 1,
-                real = 2,
-                string = 3,
-                vector = 4,
-                bitmap = 5,
-                audio = 6,
-                uol = 7
+            integer = 1,
+            real = 2,
+            string = 3,
+            vector = 4,
+            bitmap = 5,
+            audio = 6,
+            uol = 7
         };
-        node() : name {0}, children {0}, num {0}, data_type {type::none}, data {} {}
-        uint32_t name;
-        uint32_t children;
-        uint16_t num;
-        type data_type;
+        uint32_t name = 0;
+        uint32_t children = 0;
+        uint16_t num = 0;
+        type data_type = type::none;
         union _data {
-            _data() : integer {0} {}
-            int64_t integer;
+            int64_t integer = 0;
             double real;
             uint32_t string;
             int32_t vector[2];
@@ -222,120 +225,123 @@ namespace nl {
         } data;
     };
 #pragma pack(pop)
-    std::vector<node> nodes {1};
-    std::vector<std::pair<id_t, id_t>> nodes_to_sort {};
-    //String stuff
+    //The string class
     struct string {
         char8_t * data;
         strsize_t size;
     };
-    std::ostream & operator<<(std::ostream & o, string const & s) {
-        o.write(s.data, s.size);
-        return o;
-    }
-    std::unordered_map<hash_t, id_t, identity<hash_t>> string_map {};
-    std::vector<string> strings {};
-    char16_t wstr_buf[0x8000] {};
-    char8_t str_buf[0x10000] {};
-    std::codecvt_utf8<char16_t> convert {};
-    extern key_t key_bms[65536];
-    extern key_t key_gms[65536];
-    extern key_t key_kms[65536];
-    key_t const (*const keys[3])[65536] {&key_bms, &key_gms, &key_kms};
-    key_t const (*cur_key)[65536] {nullptr};
-    std::vector<std::pair<id_t, int32_t>> imgs {};
-    size_t file_start {};
-    std::vector<id_t> uol_path;
-    std::vector<std::vector<id_t>> uols;
-    std::vector<uint64_t> bitmaps {};
-    std::vector<uint64_t> sounds {};
-
-
-    id_t add_string(char8_t const * data, strsize_t size) {
-        hash_t hash {2166136261UL};
-        char8_t const * s {data};
-        for (strsize_t i {size}; i; --i, ++s) {
-            hash ^= static_cast<hash_t>(*s);
-            hash *= 16777619UL;
-        }
-        id_t & id {string_map[hash]};
-        if (id != 0) return id;
-        id = static_cast<id_t>(strings.size());
-        strings.push_back({static_cast<char8_t *>(alloc::small(size)), size});
-        memcpy(strings.back().data, data, size);
-        return id;
-    }
-    id_t read_enc_string() {
-        strsize_t slen {};
-        int8_t len {in::read<int8_t>()};
-        if (len > 0) {
-            slen = static_cast<strsize_t>(len == 127 ? in::read<int32_t>() : len);
-            char16_t const * ows {reinterpret_cast<char16_t const *>(in::offset)};
-            in::skip(slen * 2u);
-            char16_t * ws {wstr_buf};
-            uint16_t mask {0xAAAA};
-            char16_t const * key {reinterpret_cast<char16_t const *>(*cur_key)};
-            for (strsize_t i {slen}; i; --i, ++mask, ++ows, ++ws, ++key) {
-                *ws = static_cast<char16_t>(*ows ^ *key ^ mask);
+    char16_t wstr_buf[0x8000] = {};
+    char8_t str_buf[0x10000] = {};
+    //The main class itself
+    struct wztonx {
+        //Variables
+        imapfile in;
+        omapfile out;
+        std::vector<node> nodes = {{node()}};
+        std::vector<std::pair<id_t, id_t>> nodes_to_sort;
+        std::unordered_map<hash_t, id_t, identity<hash_t>> string_map;
+        std::vector<string> strings;
+        std::codecvt_utf8<char16_t> convert;
+        char8_t const * u8key = nullptr;
+        char16_t const * u16key = nullptr;
+        std::vector<std::pair<id_t, int32_t>> imgs;
+        size_t file_start = 0;
+        std::vector<id_t> uol_path;
+        std::vector<std::vector<id_t>> uols;
+        std::vector<uint64_t> bitmaps;
+        std::vector<uint64_t> sounds;
+        //Methods
+        id_t add_string(char8_t const * data, strsize_t size) {
+            hash_t hash = 2166136261UL;
+            for (strsize_t i = 0; i < size; ++i) {
+                hash ^= static_cast<hash_t>(data[i]);
+                hash *= 16777619UL;
             }
-            mbstate_t state {};
-            char16_t const * fnext {};
-            char8_t * tnext {};
-            convert.out(state, wstr_buf, wstr_buf + slen, fnext, str_buf, str_buf + 0x10000, tnext);
-            return add_string(str_buf, static_cast<strsize_t>(tnext - str_buf));
+            id_t & id = string_map[hash];
+            if (id != 0) return id;
+            id = static_cast<id_t>(strings.size());
+            //TODO - Use vectors instead of allocations
+            strings.emplace_back(static_cast<char8_t *>(alloc::small(size)), size);
+            memcpy(strings.back().data, data, size);
+            return id;
         }
-        if (len < 0) {
-            slen = static_cast<strsize_t>(len == -128 ? in::read<int32_t>() : -len);
-            char8_t const * os {reinterpret_cast<char8_t const *>(in::offset)};
-            in::skip(slen);
-            char8_t * s {str_buf};
-            uint8_t mask {0xAA};
-            char8_t const * key {reinterpret_cast<char8_t const *>(*cur_key)};
-            for (strsize_t i {slen}; i; --i, ++mask, ++os, ++s, ++key) {
-                *s = static_cast<char8_t>(*os ^ *key ^ mask);
+        id_t read_enc_string() {
+            int8_t len = in.read<int8_t>();
+            if (len > 0) {
+                uint32_t slen = len == 127 ? in.read<uint32_t>() : len;
+                if (slen * 2 > std::numeric_limits<strsize_t>::max()) {
+                    throw std::runtime_error("String is too long!");
+                }
+                char16_t const * ows = reinterpret_cast<char16_t const *>(in.offset);
+                in.skip(slen * 2u);
+                uint16_t mask = 0xAAAA;
+                for (uint32_t i = 0; i < slen; ++i, ++mask) {
+                    wstr_buf[i] = static_cast<char16_t>(ows[i] ^ u16key[i] ^ mask);
+                }
+                mbstate_t state;
+                char16_t const * fnext;
+                char8_t * tnext;
+                convert.out(state, wstr_buf, wstr_buf + slen, fnext, str_buf, str_buf + 0x10000, tnext);
+                return add_string(str_buf, static_cast<strsize_t>(tnext - str_buf));
             }
-            return add_string(str_buf, slen);
-        }
-        return 0;
-    }
-    id_t read_prop_string(size_t offset) {
-        uint8_t a {in::read<uint8_t>()};
-        switch (a) {
-        case 0x00:
-        case 0x73:
-            return read_enc_string();
-        case 0x01:
-        case 0x1B:{
-            size_t o {in::read<int32_t>() + offset};
-            size_t p {in::tell()};
-            in::seek(o);
-            id_t s {read_enc_string()};
-            in::seek(p);
-            return s;
-                  }
-        default:
-            throw std::runtime_error {"Unknown property string type: " + std::to_string(a)};
-        }
-    }
-    void deduce_key() {
-        int8_t len {in::read<int8_t>()};
-        if (len >= 0) throw std::runtime_error {"I give up"};
-        strsize_t slen {static_cast<strsize_t>(len == -128 ? in::read<int32_t>() : -len)};
-        cur_key = nullptr;
-        for (auto key : keys) {
-            char8_t const * os {reinterpret_cast<char8_t const *>(in::offset)};
-            uint8_t mask {0xAA};
-            char8_t const * k {reinterpret_cast<char8_t const *>(*key)};
-            bool valid {true};
-            for (strsize_t i {slen}; i; --i && valid, ++mask, ++os, ++k) {
-                char8_t c {static_cast<char8_t>(*os ^ *k ^ mask)};
-                if (c < 0x20 || c >= 0x80) valid = false;
+            if (len < 0) {
+                uint32_t slen = len == -128 ? in.read<uint32_t>() : -len;
+                if (slen > std::numeric_limits<strsize_t>::max()) {
+                    throw std::runtime_error("String is too long!");
+                }
+                char8_t const * os = reinterpret_cast<char8_t const *>(in.offset);
+                in.skip(slen);
+                uint8_t mask = 0xAA;
+                for (uint32_t i = 0; i < slen; ++i, ++mask) {
+                    str_buf[i] = os[i] ^ u8key[i] ^ mask;
+                }
+                return add_string(str_buf, static_cast<strsize_t>(slen));
             }
-            if (valid) cur_key = key;
+            return 0;
         }
-        if (!cur_key) throw std::runtime_error {"Failed to identify the locale"};
-        in::skip(slen);
-    }
+        id_t read_prop_string(size_t offset) {
+            uint8_t a = in.read<uint8_t>();
+            size_t o, p;
+            id_t s;
+            switch (a) {
+            case 0x00:
+            case 0x73:
+                return read_enc_string();
+            case 0x01:
+            case 0x1B:
+                o = in.read<int32_t>() + offset;
+                p = in.tell();
+                in.seek(o);
+                s = read_enc_string();
+                in.seek(p);
+                return s;
+            default:
+                throw std::runtime_error("Unknown property string type: " + std::to_string(a));
+            }
+        }
+        void deduce_key() {
+            int8_t len = in.read<int8_t>();
+            if (len >= 0) throw std::runtime_error("I give up");
+            strsize_t slen = static_cast<strsize_t>(len == -128 ? in.read<int32_t>() : -len);
+            u8key = nullptr;
+            for (auto key : keys) {
+                char8_t const * os = reinterpret_cast<char8_t const *>(in.offset);
+                uint8_t mask = 0xAA;
+                char8_t const * k = reinterpret_cast<char8_t const *>(key);
+                bool valid = true;
+                for (int i = 0; i < slen; ++i, ++mask) {
+                    char8_t c = static_cast<char8_t>(os[i] ^ k[i] ^ mask);
+                    if (c < 0x20 || c >= 0x80) valid = false;
+                }
+                if (valid) {
+                    u8key = reinterpret_cast<char8_t const *>(key);
+                    u16key = reinterpret_cast<char16_t const *>(key);
+                }
+            }
+            if (!u8key) throw std::runtime_error("Failed to identify the locale");
+            in.skip(slen);
+        }
+    };
     void sort_nodes(id_t first, id_t count) {
         std::sort(nodes.begin() + first, nodes.begin() + first + count, [](node const & n1, node const & n2) {
             if (&n1 == &n2) return false;
@@ -543,7 +549,7 @@ namespace nl {
         sub_property(img_node, p);
         in::seek(p + size);
     }
-    void wztonx(std::string filename) {
+    void wztonxm(std::string filename) {
         in::open(filename);
         filename.erase(filename.find_last_of('.')).append(".nx");
         uint32_t magic {in::read<uint32_t>()};
@@ -614,8 +620,8 @@ namespace nl {
 }
 int main(int argc, char ** argv) {
     std::chrono::high_resolution_clock::time_point a {std::chrono::high_resolution_clock::now()};
-    if (argc > 1) nl::wztonx(argv[1]);
-    else nl::wztonx("Data.wz");
+    if (argc > 1) nl::wztonxm(argv[1]);
+    else nl::wztonxm("Data.wz");
     std::chrono::high_resolution_clock::time_point b {std::chrono::high_resolution_clock::now()};
     std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(b - a).count() << " ms" << std::endl;
 }

@@ -17,9 +17,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "nxfwd.hpp"
 
 namespace nl {
-    class node;
     namespace nx {
         //Pre-defined nodes to access standard MapleStory style data
         //Make sure you called load_all first

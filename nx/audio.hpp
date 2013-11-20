@@ -17,12 +17,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "nxfwd.hpp"
 #include <cstdint>
 #include <cstddef>
 
 namespace nl {
     class audio {
     public:
+        audio() = default;
+        audio(audio const &) = default;
+        audio & operator=(audio const &) = default;
         //Comparison operators, useful for containers
         bool operator==(audio const &) const;
         bool operator<(audio const &)const;
@@ -35,11 +39,10 @@ namespace nl {
         uint32_t length() const;
         //Returns a unique id, useful for keeping track of what audio you loaded
         size_t id() const;
-        //Internal variables
-        //They are only public so that the class may be Plain Old Data
-        void const * m_data;
-        uint32_t m_length;
     private:
-        friend class node;
+        audio(void const *, uint32_t);
+        void const * m_data = nullptr;
+        uint32_t m_length = 0;
+        friend node;
     };
 }

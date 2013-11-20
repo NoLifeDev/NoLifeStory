@@ -81,7 +81,7 @@ namespace nl {
         }
         void load() {
             //First set some runtime defaults
-            GLFWvidmode const * mode {glfwGetVideoMode(glfwGetPrimaryMonitor())};
+            GLFWvidmode const * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
             fullscreen_width = mode->width;
             fullscreen_height = mode->height;
             target_fps = mode->refreshRate;
