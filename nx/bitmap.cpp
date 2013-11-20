@@ -39,7 +39,7 @@ namespace nl {
         auto const l = length();
         if (l + 0x20 > buf.size())
             buf.resize(l + 0x20);
-        LZ4_decompress_fast(reinterpret_cast<char const *>(m_data) + 4,
+        ::LZ4_decompress_fast(reinterpret_cast<char const *>(m_data)+4,
                             buf.data(), static_cast<int>(l));
         return buf.data();
     }
