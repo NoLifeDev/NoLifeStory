@@ -42,10 +42,10 @@ namespace nl {
         uint64_t const * audio_table = nullptr;
         file::header const * header = nullptr;
 #ifdef _WIN32
-        void * file = nullptr;
+        void * file_handle = nullptr;
         void * map = nullptr;
 #else
-        int file = 0;
+        int file_handle = 0;
         size_t size = 0;
 #endif
     };
