@@ -35,26 +35,27 @@ namespace nl {
         cy = n["cy"];
         type = n["type"];
         flipped = n["f"].get_bool();
-        spr = nx::map["Back"][n["bS"] + ".img"][n["ani"].get_bool() ? "ani" : "back"][n["no"]];
+        spr = nx::map["Back"][n["bS"] + ".img"]
+            [n["ani"].get_bool() ? "ani" : "back"][n["no"]];
     }
     void background::load() {
         backgrounds.clear();
         foregrounds.clear();
-        node b = map::current["back"];
-        for (size_t i = 0; b[i]; ++i) {
-            node n = b[i];
-            if (n["front"].get_bool()) {
+        auto b = map::current["back"];
+        for (auto i = 0u; b[i]; ++i) {
+            auto n = b[i];
+            if (n["front"].get_bool())
                 foregrounds.emplace_back(n);
-            } else {
+            else
                 backgrounds.emplace_back(n);
-            }
         }
     }
     void background::render() {
-        int32_t dx = x + rx * view::x / 100 + view::width / 2;
-        int32_t dy = y + ry * view::y / 100 + view::height / 2;
-        sprite::flags flags = sprite::none;
-        if (flipped) flags |= sprite::flipped;
+        auto dx = x + rx * view::x / 100 + view::width / 2;
+        auto dy = y + ry * view::y / 100 + view::height / 2;
+        auto flags = sprite::none;
+        if (flipped)
+            flags |= sprite::flipped;
         switch (type) {
         case 0:
             break;

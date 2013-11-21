@@ -23,7 +23,8 @@
 
 namespace nl {
     std::vector<foothold> footholds;
-    foothold::foothold(node n, unsigned id, unsigned group, unsigned layer) : id(id), group(group), layer(layer) {
+    foothold::foothold(node n, unsigned id, unsigned group, unsigned layer)
+        : id(id), group(group), layer(layer) {
         x1 = n["x1"];
         x2 = n["x2"];
         y1 = n["y1"];
@@ -34,24 +35,28 @@ namespace nl {
         previd = n["prev"];
         cant_through = n["cantThrough"].get_bool();
         forbid_fall_down = n["forbidFallDown"].get_bool();
-        if (nextid < footholds.size()) next = &footholds[nextid];
-        if (previd < footholds.size()) prev = &footholds[previd];
+        if (nextid < footholds.size())
+            next = &footholds[nextid];
+        if (previd < footholds.size())
+            prev = &footholds[previd];
         initialized = true;
     }
     void foothold::load() {
         footholds.clear();
-        unsigned s = 0;
-        for (node layer : map::current["foothold"]) for (node group : layer) for (node id : group) {
+        auto s = 0u;
+        for (auto layer : map::current["foothold"])
+        for (auto group : layer)
+        for (auto id : group) {
             s = std::max(static_cast<unsigned>(std::stoi(id.name())), s);
         }
         footholds.resize(s + 1);
-        for (node layer : map::current["foothold"]) {
-            unsigned layern = static_cast<unsigned>(std::stoi(layer.name()));
-            for (node group : layer) {
-                unsigned groupn = static_cast<unsigned>(std::stoi(group.name()));
-                for (node id : group) {
-                    unsigned idn = static_cast<unsigned>(std::stoi(id.name()));
-                    footholds[idn] = foothold {id, idn, groupn, layern};
+        for (auto layer : map::current["foothold"]) {
+            auto layern = static_cast<unsigned>(std::stoi(layer.name()));
+            for (auto group : layer) {
+                auto groupn = static_cast<unsigned>(std::stoi(group.name()));
+                for (auto id : group) {
+                    auto idn = static_cast<unsigned>(std::stoi(id.name()));
+                    footholds[idn] = foothold(id, idn, groupn, layern);
                 }
             }
         }

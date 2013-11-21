@@ -35,10 +35,17 @@ namespace nl {
         std::vector<std::string> all_maps;
         node map_node;
         node current, next;
+        std::vector<std::pair<std::string, unsigned>> results;
         void load(std::string name, std::string portal) {
-            if (name.size() < 9) name.insert(0, name.size(), '0');
-            node m = map_node[std::string("Map") + name[0]][name + ".img"];
-            if (!m) return;
+            if (name.size() < 9)
+                name.insert(0, name.size(), '0');
+            auto m = map_node[std::string("Map") + name[0]][name + ".img"];
+            if (!m)
+                return;
+            if (m["info"]["link"]) {
+                load(m["info"]["link"], portal);
+                return;
+            }
             next = m;
         }
         void load_random() {
@@ -49,7 +56,7 @@ namespace nl {
         void load_now() {
             current = next;
             std::cout << "Loading map " << current.name() << std::endl;
-            //time::reset();
+            time::reset();
             sprite::cleanup();
             layer::load();
             background::load();
@@ -58,47 +65,29 @@ namespace nl {
         }
         void init() {
             map_node = nx::map["Map"];
-            for (int i = 0; i <= 9; ++i) {
-                for (node n : map_node["Map" + std::to_string(i)]) {
-                    std::string name = n.name();
-                    if (name.size() < 4) continue;//This shouldn't happen
-                    all_maps.emplace_back(name.substr(0, name.size() - 4));
-                }
+            for (auto i = 0u; i <= 9; ++i)
+            for (auto n : map_node["Map" + std::to_string(i)]) {
+                auto name = n.name();
+                if (name.size() < 4)
+                    continue;//This shouldn't happen
+                all_maps.emplace_back(name.substr(0, name.size() - 4));
             }
-            load("102000002", "sp");
+            load_random();
             load_now();
         }
         void update() {
-            if (next != current) {
+            if (next != current)
                 load_now();
-            }
         }
         void render() {
-            for (background & b : backgrounds) b.render();
+            for (background & b : backgrounds)
+                b.render();
             layer::render();
-            for (background & b : foregrounds) b.render();
+            for (background & b : foregrounds)
+                b.render();
             view::draw_edges();
         }
         /*
-        void Load(string name, string portal) {
-            if (Next) return;
-            name.insert(0, 9 - name.size(), '0');
-            if (Name == name || name == "999999999") {
-                Player::Respawn(portal);
-                return;
-            }
-            Node m = NXMap["Map"][string("Map") + name[0]][name + ".img"];
-            if (!m) {
-                Log::Write("Failed to load map " + name);
-                return;
-            }
-            if (m["info"]["link"]) {
-                Load(m["info"]["link"], portal);
-                return;
-            }
-            Next = m;
-            NextPortal = portal;
-        }
         void Render() {
             for (auto && b : Backgrounds) b.Render();
             Layer::RenderAll();
@@ -126,11 +115,6 @@ namespace nl {
                 glVertex2d(f.x2 + View::Width / 2 - View::X, f.y2 + View::Height / 2 - View::Y);
             }
             glEnd();
-        }
-        void Random() {
-            uniform_int_distribution<size_t> dist(0, Maps.size() - 1);
-            mt19937_64 engine(Time::TDelta * 1000);
-            Load(Maps[dist(engine)]);
         }
         */
     }

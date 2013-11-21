@@ -79,6 +79,8 @@ namespace nl {
         ::munmap(const_cast<void *>(m_data->base), m_data->size);
         ::close(m_data->file_handle);
 #endif
+        delete m_data;
+        m_data = nullptr;
     }
     node file::root() const {
         return {m_data->node_table, m_data};

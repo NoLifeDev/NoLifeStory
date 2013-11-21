@@ -36,10 +36,11 @@ namespace nl {
         spr = nx::map["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
     }
     void obj::render() {
-        sprite::flags flags = sprite::relative;
-        if (flip) flags |= sprite::flipped;
-        int dx = x;
-        int dy = y;
+        auto flags = sprite::relative;
+        if (flip)
+            flags |= sprite::flipped;
+        auto dx = x;
+        auto dy = y;
         if (flow & 1) {
             x += static_cast<int>(rx * 10 * time::delta_total);
             flags |= sprite::tilex;

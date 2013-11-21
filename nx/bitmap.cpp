@@ -32,16 +32,16 @@ namespace nl {
     bitmap::operator bool() const {
         return m_data ? true : false;
     }
-    std::vector<char> buf;
+    std::vector<char> bitmap_buf;
     void const * bitmap::data() const {
         if (!m_data)
             return nullptr;
         auto const l = length();
-        if (l + 0x20 > buf.size())
-            buf.resize(l + 0x20);
-        ::LZ4_decompress_fast(reinterpret_cast<char const *>(m_data)+4,
-                            buf.data(), static_cast<int>(l));
-        return buf.data();
+        if (l + 0x20 > bitmap_buf.size())
+            bitmap_buf.resize(l + 0x20);
+        ::LZ4_decompress_fast(4 + reinterpret_cast<char const *>(m_data),
+            bitmap_buf.data(), static_cast<int>(l));
+        return bitmap_buf.data();
     }
     uint16_t bitmap::width() const {
         return m_width;

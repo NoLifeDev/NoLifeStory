@@ -40,16 +40,14 @@ namespace nl {
         double tx = 0, ty = 0;
         template <typename T>
         void restrict(T & x, T & y) {
-            if (right - left <= width) {
+            if (right - left <= width)
                 x = (right + left) / 2;
-            } else {
+            else
                 x = std::max<T>(std::min<T>(x, right - width / 2), left + width / 2);
-            }
-            if (bottom - top <= height) {
+            if (bottom - top <= height)
                 y = (bottom + top) / 2;
-            } else {
+            else
                 y = std::max<T>(std::min<T>(y, bottom - height / 2), top + height / 2);
-            }
         }
         void resize(int w, int h) {
             width = w;
@@ -70,12 +68,12 @@ namespace nl {
                 left = map::current["info"]["VRleft"];
                 right = map::current["info"]["VRright"];
                 if (bottom - top < 600) {
-                    int d = (600 - bottom + top) / 2;
+                    auto d = (600 - bottom + top) / 2;
                     bottom += d;
                     top -= d;
                 }
                 if (right - left < 800) {
-                    int d = (800 - right + left) / 2;
+                    auto d = (800 - right + left) / 2;
                     right += d;
                     left -= d;
                 }
@@ -85,21 +83,29 @@ namespace nl {
                 top = std::numeric_limits<int>::max();
                 bottom = std::numeric_limits<int>::min();
                 for (foothold & f : footholds) {
-                    if (!f.initialized) continue;
-                    if (left > f.x1) left = f.x1;
-                    if (left > f.x2) left = f.x2;
-                    if (right < f.x1) right = f.x1;
-                    if (right < f.x2) right = f.x2;
-                    if (top > f.y1) top = f.y1;
-                    if (top > f.y2) top = f.y2;
-                    if (bottom < f.y1) bottom = f.y1;
-                    if (bottom < f.y2) bottom = f.y2;
+                    if (!f.initialized)
+                        continue;
+                    if (left > f.x1)
+                        left = f.x1;
+                    if (left > f.x2)
+                        left = f.x2;
+                    if (right < f.x1)
+                        right = f.x1;
+                    if (right < f.x2)
+                        right = f.x2;
+                    if (top > f.y1)
+                        top = f.y1;
+                    if (top > f.y2)
+                        top = f.y2;
+                    if (bottom < f.y1)
+                        bottom = f.y1;
+                    if (bottom < f.y2)
+                        bottom = f.y2;
                 }
                 top -= 100;
                 bottom += 100;
-                if (top > bottom - 600) {
+                if (top > bottom - 600)
                     top = bottom - 600;
-                }
             }
             fx = 0;
             fy = 0;
@@ -109,10 +115,12 @@ namespace nl {
         }
         void update() {
             restrict(tx, ty);
-            double sx = (tx - fx) * time::delta * 5;
-            double sy = (ty - fy) * time::delta * 5;
-            if (abs(sx) > abs(tx - fx)) sx = tx - fx;
-            if (abs(sy) > abs(ty - fy)) sy = ty - fy;
+            auto sx = (tx - fx) * time::delta * 5;
+            auto sy = (ty - fy) * time::delta * 5;
+            if (abs(sx) > abs(tx - fx))
+                sx = tx - fx;
+            if (abs(sy) > abs(ty - fy))
+                sy = ty - fy;
             fx += sx;
             fy += sy;
             restrict(fx, fy);
@@ -125,12 +133,15 @@ namespace nl {
                 std::uniform_int_distribution<int> dist(-10, 10);
                 x += dist(engine);
                 y += dist(engine);
-                gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
-                gluLookAt(width / 2, height / 2, 0 - height / 2, width / 2, height / 2, 0, 0, -1, 0);
-                double d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
-                double r(sin(d)), g(sin(d + pi * 2 / 3)), b(sin(d + pi * 4 / 3));
+                gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90,
+                    static_cast<double>(width) / height, 0.1, 10000);
+                gluLookAt(width / 2, height / 2, 0 - height / 2,
+                    width / 2, height / 2, 0, 0, -1, 0);
+                auto d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
+                auto r(sin(d)), g(sin(d + pi * 2 / 3)), b(sin(d + pi * 4 / 3));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                GLfloat c[] = {static_cast<GLfloat>(r), static_cast<GLfloat>(g), static_cast<GLfloat>(b), 1};
+                GLfloat c[] = {static_cast<GLfloat>(r),
+                    static_cast<GLfloat>(g), static_cast<GLfloat>(b), 1};
                 glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
                 glColor4d(1 - r, 1 - g, 1 - b, 1);
             } else {

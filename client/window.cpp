@@ -37,15 +37,12 @@ namespace nl {
         std::chrono::steady_clock::time_point last_title;
         //Callbacks for GLFW events
         namespace callback {
-            void position(GLFWwindow *, int, int) {
-            }
-            void resize(GLFWwindow *, int, int) {
-            }
+            void position(GLFWwindow *, int, int) {}
+            void resize(GLFWwindow *, int, int) {}
             void closed(GLFWwindow *) {
                 game::shut_down();
             }
-            void refresh(GLFWwindow *) {
-            }
+            void refresh(GLFWwindow *) {}
             void focus(GLFWwindow *, int) {
                 //GL_TRUE focused
                 //GL_FALSE unfocused
@@ -55,26 +52,20 @@ namespace nl {
                 //GL_FALSE restored
             }
             void framebuffer(GLFWwindow *, int width, int height) {
-                if (width && height) {
+                if (width && height)
                     view::resize(width, height);
-                }
             }
-            void mouse(GLFWwindow *, int, int, int) {
-            }
-            void cursorpos(GLFWwindow *, double, double) {
-            }
-            void cursorenter(GLFWwindow *, int) {
-            }
-            void scroll(GLFWwindow *, double, double) {
-            }
+            void mouse(GLFWwindow *, int, int, int) {}
+            void cursorpos(GLFWwindow *, double, double) {}
+            void cursorenter(GLFWwindow *, int) {}
+            void scroll(GLFWwindow *, double, double) {}
             void key(GLFWwindow *, int key, int, int action, int mod) {
                 switch (action) {
                 case GLFW_PRESS:
                     switch (key) {
                     case GLFW_KEY_ENTER:
-                        if (mod & GLFW_MOD_ALT) {
+                        if (mod & GLFW_MOD_ALT)
                             recreate(!config::fullscreen);
-                        }
                         break;
                     case GLFW_KEY_M:
                         map::load_random();
@@ -88,20 +79,20 @@ namespace nl {
                 default:;
                 }
             }
-            void character(GLFWwindow *, unsigned int) {
-            }
+            void character(GLFWwindow *, unsigned int) {}
         }
         //Once GLFW supports toggling fullscreen without recreating, change this method
         void recreate(bool fullscreen) {
-            if (window) {
+            if (window)
                 glfwDestroyWindow(window);
-            }
             config::fullscreen = fullscreen;
-            if (config::fullscreen) {
-                window = glfwCreateWindow(config::fullscreen_width, config::fullscreen_height, title.c_str(), glfwGetPrimaryMonitor(), context);
-            } else {
-                window = glfwCreateWindow(config::window_width, config::window_height, title.c_str(), nullptr, context);
-            }
+            if (config::fullscreen)
+                window = glfwCreateWindow(config::fullscreen_width,
+                config::fullscreen_height, title.c_str(),
+                glfwGetPrimaryMonitor(), context);
+            else
+                window = glfwCreateWindow(config::window_width,
+                config::window_height, title.c_str(), nullptr, context);
             glfwMakeContextCurrent(window);
             int w, h;
             glfwGetFramebufferSize(window, &w, &h);
@@ -119,9 +110,8 @@ namespace nl {
             sprite::reinit();
         }
         void init() {
-            if (glfwInit() != GL_TRUE) {
+            if (glfwInit() != GL_TRUE)
                 throw std::runtime_error("Failed to initialize GLFW");
-            }
             glfwWindowHint(GLFW_STENCIL_BITS, 0);
             glfwWindowHint(GLFW_DEPTH_BITS, 0);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
@@ -133,7 +123,7 @@ namespace nl {
             context = glfwCreateWindow(1, 1, "", nullptr, nullptr);
             glfwWindowHint(GLFW_VISIBLE, GL_TRUE);
             glfwMakeContextCurrent(context);
-            GLenum err = glewInit();
+            auto err = glewInit();
             switch (err) {
             case GLEW_OK:
                 break;
@@ -146,22 +136,21 @@ namespace nl {
             default:
                 throw std::runtime_error("Unknown GLEW error code: " + std::to_string(err));
             }
-            if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5) {
+            if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5)
                 throw std::runtime_error("Your OpenGL is out of date. Please update your drivers and/or buy a new GPU.");
-            }
             sprite::init();
         }
         void update() {
             //Certain platforms exhibit terrible performance when updating the title too quickly
             if (!config::fullscreen) {
-                std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+                auto now = std::chrono::steady_clock::now();
                 if (now - last_title > std::chrono::milliseconds(250)) {
                     last_title = now;
                     glfwSetWindowTitle(window, ("NoLifeStory {fps = " + std::to_string(time::fps) + ";};").c_str());
                 }
             }
             glfwSwapBuffers(window);
-            GLenum err = glGetError();
+            auto err = glGetError();
             switch (err) {
             case GL_NO_ERROR:
                 break;

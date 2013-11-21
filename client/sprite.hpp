@@ -29,7 +29,7 @@ namespace nl {
             tilex = 0x4,
             tiley = 0x8
         };
-        sprite();
+        sprite() = default;
         sprite(node);
         void draw(int x, int y, flags f, int cx = 0, int cy = 0);
         static void init();

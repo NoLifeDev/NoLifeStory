@@ -24,26 +24,32 @@
 namespace nl {
     std::array<layer, 8> layers;
     void layer::render() {
-        for (unsigned i = 0; i < 8; ++i) {
-            for (obj & o : layers[i].objs) o.render();
-            for (tile & t : layers[i].tiles) t.render();
+        for (auto i = 0u; i < 8; ++i) {
+            for (auto & o : layers[i].objs)
+                o.render();
+            for (auto & t : layers[i].tiles)
+                t.render();
             //if (Player::Pos.layer == i) Player::Render();
         }
     }
     void layer::load() {
-        node tile_node = nx::map["Tile"];
-        for (unsigned i = 0; i < 8; ++i) {
-            layer & l = layers[i];
-            node n = map::current[i];
-            node tn = tile_node[n["info"]["tS"] + ".img"];
+        auto tile_node = nx::map["Tile"];
+        for (auto i = 0u; i < 8; ++i) {
+            auto & l = layers[i];
+            auto n = map::current[i];
+            auto tn = tile_node[n["info"]["tS"] + ".img"];
             l.objs.clear();
-            for (node nn : n["obj"]) l.objs.emplace_back(nn);
-            sort(l.objs.begin(), l.objs.end(), [](obj const & a, obj const & b) {
+            for (auto nn : n["obj"])
+                l.objs.emplace_back(nn);
+            sort(l.objs.begin(), l.objs.end(),
+                [](obj const & a, obj const & b) {
                 return a.z < b.z;
             });
             l.tiles.clear();
-            for (node nn : n["tile"]) l.tiles.emplace_back(nn, tn);
-            std::sort(l.tiles.begin(), l.tiles.end(), [](tile const & a, tile const & b) {
+            for (auto nn : n["tile"])
+                l.tiles.emplace_back(nn, tn);
+            std::sort(l.tiles.begin(), l.tiles.end(),
+                [](tile const & a, tile const & b) {
                 return a.z < b.z;
             });
         }

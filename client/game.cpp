@@ -49,7 +49,8 @@ namespace nl {
         }
         void play() {
             init();
-            while (!over) loop();
+            while (!over)
+                loop();
             unload();
         }
         void shut_down() {

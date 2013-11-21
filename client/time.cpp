@@ -44,23 +44,30 @@ namespace nl {
             glEnd();
             glColor4f(1, 1, 1, 1);
             glBegin(GL_LINE_STRIP);
-            for (size_t i = 1; i < frames.size(); ++i) {
-                glVertex2i(static_cast<GLint>(i * 2), static_cast<GLint>(std::chrono::duration_cast<std::chrono::microseconds>(frames[i] - frames[i - 1]).count() / 400));
+            for (auto i = 1u; i < frames.size(); ++i) {
+                glVertex2i(static_cast<GLint>(i * 2),
+                    static_cast<GLint>(std::chrono::duration_cast<std::chrono::microseconds>(frames[i] - frames[i - 1]).count() / 400));
             }
             glEnd();
         }
         void update() {
-            clock::time_point last {frames.back()};
-            if (config::target_fps <= 0) config::target_fps = 1;//Because some people are idiots
-            clock::duration step_size = std::chrono::duration_cast<clock::duration>(std::chrono::seconds(1)) / config::target_fps;
-            if (config::limit_fps) std::this_thread::sleep_until(last + step_size - std::chrono::milliseconds(10));
-            clock::time_point now = clock::now();
-            if (config::limit_fps && now - last < step_size) now = last + step_size;
+            auto last = frames.back();
+            if (config::target_fps <= 0)
+                config::target_fps = 1;//Because some people are idiots
+            auto step_size = std::chrono::duration_cast<clock::duration>(std::chrono::seconds(1)) / config::target_fps;
+            if (config::limit_fps)
+                std::this_thread::sleep_until(last + step_size - std::chrono::milliseconds(10));
+            auto now = clock::now();
+            if (config::limit_fps && now - last < step_size)
+                now = last + step_size;
             delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - last).count();
-            if (delta < 0) delta = 0;
-            if (delta > 0.05) delta = 0.05;
+            if (delta < 0)
+                delta = 0;
+            if (delta > 0.05)
+                delta = 0.05;
             delta_total = std::chrono::duration_cast<std::chrono::duration<double>>(now - first).count();
-            while (!frames.empty() && now - frames.front() > std::chrono::seconds(1)) frames.pop_front();
+            while (!frames.empty() && now - frames.front() > std::chrono::seconds(1))
+                frames.pop_front();
             frames.push_back(now);
             fps = static_cast<unsigned>(frames.size());
             //draw();

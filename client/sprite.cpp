@@ -51,10 +51,12 @@ namespace nl {
     }
     void sprite::bind() {
         bitmap b = current;
-        if (b.id() == last_bound) return;
-        if (!last_bound) reinit();
+        if (b.id() == last_bound)
+            return;
+        if (!last_bound)
+            reinit();
         last_bound = b.id();
-        GLuint & t = textures[b.id()];
+        auto & t = textures[b.id()];
         if (!t) {
             glGenTextures(1, &t);
             glBindTexture(GL_TEXTURE_2D, t);
@@ -76,41 +78,39 @@ namespace nl {
     }
     void sprite::cleanup() {
         while (static_cast<int>(loaded_textures.size()) > config::max_textures) {
-            size_t s = loaded_textures.front();
+            auto s = loaded_textures.front();
             loaded_textures.pop_front();
             auto it = textures.find(s);
             glDeleteTextures(1, &it->second);
             textures.erase(it);
         }
     }
-    sprite::sprite() {}
     sprite::sprite(node o) : data(o) {
-        if (data.data_type() == node::type::bitmap) {
+        if (data.data_type() == node::type::bitmap)
             animated = false;
-        } else if (data["0"].data_type() == node::type::bitmap) {
+        else if (data["0"].data_type() == node::type::bitmap)
             animated = true;
-        } else {
+        else
             data = {};
-        }
         set_frame(0);
     }
     void sprite::set_frame(int f) {
-        if (!data) return;
+        if (!data)
+            return;
         frame = f;
         if (!animated) {
             current = data;
         } else {
             current = data[frame];
-            if (!current) {
+            if (!current)
                 current = data[frame = 0];
-            }
             delay = 0;
             next_delay = current["delay"].get_real(100);
         }
         bitmap b = current;
         width = b.width();
         height = b.height();
-        node o = current["origin"];
+        auto o = current["origin"];
         originx = o.x();
         originy = o.y();
         if (current["moveType"]) {
@@ -130,37 +130,48 @@ namespace nl {
         }
     }
     void sprite::draw(int x, int y, flags f, int cx, int cy) {
-        if (!data) return;
+        if (!data)
+            return;
         if (animated) {
             delay += time::delta * 1000;
-            if (delay > next_delay) {
+            if (delay > next_delay)
                 set_frame(frame + 1);
-            }
         }
         //cx and cy represent tiling distance
-        if (!cx) cx = width;
-        else if (cx < 0) cx = -cx;
-        if (!cy) cy = height;
-        else if (cy < 0) cy = -cy;
+        if (!cx)
+            cx = width;
+        else if (cx < 0)
+            cx = -cx;
+        if (!cy)
+            cy = height;
+        else if (cy < 0)
+            cy = -cy;
         //A bit of origin and view shifting
-        f & flipped ? x -= width - originx : x -= originx;
+        if (f & flipped)
+            x -= width - originx;
+        else
+            x -= originx;
         y -= originy;
         if (f & relative) {
             x -= view::xmin;
             y -= view::ymin;
         }
         //Handling movetypes
-        double angle = 0;
+        auto angle = 0.;
         switch (movetype) {
         case 0:
             break;
         case 1:
-            if (movep) x += static_cast<int>(movew * sin(time::delta_total * 1000 * 2 * pi / movep));
-            else x += static_cast<int>(movew * sin(time::delta_total));
+            if (movep)
+                x += static_cast<int>(movew * sin(time::delta_total * 1000 * 2 * pi / movep));
+            else
+                x += static_cast<int>(movew * sin(time::delta_total));
             break;
         case 2:
-            if (movep) y += static_cast<int>(moveh * sin(time::delta_total * 1000 * 2 * pi / movep));
-            else y += static_cast<int>(moveh * sin(time::delta_total));
+            if (movep)
+                y += static_cast<int>(moveh * sin(time::delta_total * 1000 * 2 * pi / movep));
+            else
+                y += static_cast<int>(moveh * sin(time::delta_total));
             break;
         case 3:
             angle = time::delta_total * 1000 * 180 / pi / mover;
@@ -168,39 +179,49 @@ namespace nl {
         default:
             std::cerr << "Unknown move type: " << movetype << std::endl;
         }
-        int xbegin = x;
-        int xend = x;
-        int ybegin = y;
-        int yend = y;
+        auto xbegin = x;
+        auto xend = x;
+        auto ybegin = y;
+        auto yend = y;
         if (f & tilex) {
             xbegin += width;
             xbegin %= cx;
-            if (xbegin <= 0) xbegin += cx;
+            if (xbegin <= 0)
+                xbegin += cx;
             xbegin -= width;
             xend -= view::width;
             xend %= cx;
-            if (xend >= 0) xend -= cx;
+            if (xend >= 0)
+                xend -= cx;
             xend += view::width;
-            if (xend < xbegin) return;
+            if (xend < xbegin)
+                return;
         }
         if (f & tiley) {
             ybegin += height;
             ybegin %= cy;
-            if (ybegin <= 0) ybegin += cy;
+            if (ybegin <= 0)
+                ybegin += cy;
             ybegin -= height;
             yend -= view::height;
             yend %= cy;
-            if (yend >= 0) yend -= cy;
+            if (yend >= 0)
+                yend -= cy;
             yend += view::height;
-            if (yend < ybegin) return;
+            if (yend < ybegin)
+                return;
         }
-        if (xend + width < 0) return;
-        if (xbegin > view::width) return;
-        if (yend + height < 0) return;
-        if (ybegin > view::height) return;
-        if (config::rave) {
-        } else if (animated) {
-            double dif = delay / next_delay;
+        if (xend + width < 0)
+            return;
+        if (xbegin > view::width)
+            return;
+        if (yend + height < 0)
+            return;
+        if (ybegin > view::height)
+            return;
+        if (!config::rave)
+        if (animated) {
+            auto dif = delay / next_delay;
             glColor4d(1, 1, 1, dif * a1 + (1 - dif) * a0);
         } else {
             glColor4d(1, 1, 1, 1);
@@ -210,8 +231,8 @@ namespace nl {
             if (f & tiley && cy == height) {
                 xend += cx;
                 yend += cy;
-                int xm = (xend - xbegin) / cx;
-                int ym = (yend - ybegin) / cy;
+                auto xm = (xend - xbegin) / cx;
+                auto ym = (yend - ybegin) / cy;
                 glLoadIdentity();
                 glBegin(GL_QUADS);
                 glTexCoord2i(0, 0);
@@ -225,7 +246,7 @@ namespace nl {
                 glEnd();
             } else {
                 xend += cx;
-                int xm = (xend - xbegin) / cx;
+                auto xm = (xend - xbegin) / cx;
                 glLoadIdentity();
                 glBegin(GL_QUADS);
                 for (y = ybegin; y <= yend; y += cy) {
@@ -242,7 +263,7 @@ namespace nl {
             }
         } else if (f & tiley && cy == height) {
             yend += cy;
-            int ym = (yend - ybegin) / cy;
+            auto ym = (yend - ybegin) / cy;
             glLoadIdentity();
             glBegin(GL_QUADS);
             for (x = xbegin; x <= xend; x += cx) {
@@ -256,7 +277,8 @@ namespace nl {
                 glVertex2i(x, yend);
             }
             glEnd();
-        } else for (x = xbegin; x <= xend; x += cx) for (y = ybegin; y <= yend; y += cy) {
+        } else for (x = xbegin; x <= xend; x += cx)
+        for (y = ybegin; y <= yend; y += cy) {
             glLoadIdentity();
             glTranslated(x + originx, y + originy, 0);
             glRotated(angle, 0, 0, 1);
@@ -266,10 +288,9 @@ namespace nl {
         }
     }
     sprite::flags & operator|=(sprite::flags & a, sprite::flags b) {
-        a = static_cast<sprite::flags>(static_cast<int>(a) | static_cast<int>(b));
-        return a;
+        return a = static_cast<sprite::flags>(static_cast<unsigned>(a) | static_cast<unsigned>(b));
     }
     sprite::flags operator|(sprite::flags a, sprite::flags b) {
-        return static_cast<sprite::flags>(static_cast<int>(a) | static_cast<int>(b));
+        return static_cast<sprite::flags>(static_cast<unsigned>(a) | static_cast<unsigned>(b));
     }
 }

@@ -72,16 +72,16 @@ namespace nl {
         }
         void save() {
             //Write the variables to their configs
-            for (auto const & m : mappings) m.second.save();
+            for (auto const & m : mappings)
+                m.second.save();
             //Then save the config itself
             std::ofstream file("NoLifeClient.cfg");
-            for (auto const & c : configs) {
+            for (auto const & c : configs)
                 file << c.first << " = " << c.second << '\n';
-            }
         }
         void load() {
             //First set some runtime defaults
-            GLFWvidmode const * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+            auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
             fullscreen_width = mode->width;
             fullscreen_height = mode->height;
             target_fps = mode->refreshRate;
@@ -97,21 +97,27 @@ namespace nl {
             map_int("fullwidth", fullscreen_width);
             map_int("fullheight", fullscreen_height);
             //First we save the defaults in case the config file doesn't have them
-            for (auto const & m : mappings) m.second.save();
+            for (auto const & m : mappings)
+                m.second.save();
             //Now we load the config itself
             std::ifstream file("NoLifeClient.cfg");
-            std::regex reg("[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*", std::regex_constants::optimize);
+            std::regex reg("[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*",
+                std::regex_constants::optimize);
             std::string line;
-            if (file.is_open()) while (!file.eof()) {
+            if (file.is_open())
+            while (!file.eof()) {
                 getline(file, line);
-                transform(line.cbegin(), line.cend(), line.begin(), [](char const & c) {
+                transform(line.cbegin(), line.cend(), line.begin(),
+                    [](char const & c) {
                     return std::tolower(c, std::locale::classic());
                 });
                 std::smatch m;
-                if (!std::regex_match(line, m, reg)) continue;
+                if (!std::regex_match(line, m, reg))
+                    continue;
                 configs[m[1]] = m[2];
             }
-            for (auto const & m : mappings) m.second.load();
+            for (auto const & m : mappings)
+                m.second.load();
             //And then we save the config back
             save();
         }
