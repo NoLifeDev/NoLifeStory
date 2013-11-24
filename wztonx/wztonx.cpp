@@ -38,14 +38,14 @@
 #include <unordered_map>
 #include <algorithm>
 #include <chrono>
+#include <numeric>
 
 namespace nl {
     //Some typedefs
-    typedef uint16_t strsize_t;
     typedef char char8_t;
     typedef uint32_t id_t;
-    typedef uint32_t hash_t;
     typedef uint8_t key_t;
+    typedef int32_t int_t;
     //The keys
     //TODO - Use AES to generate these keys at runtime
     extern key_t key_bms[65536];
@@ -58,24 +58,6 @@ namespace nl {
             return v;
         }
     };
-    //Memory allocation
-    namespace alloc {
-        char * buffer {nullptr};
-        size_t remain {0};
-        size_t const default_size {0x1000000};
-        char * big(size_t size) {
-            return new char[size];
-        }
-        void * small(size_t size) {
-            if (size > remain) {
-                buffer = big(default_size);
-                remain = default_size;
-            }
-            char * r {buffer};
-            buffer += size, remain -= size;
-            return r;
-        }
-    }
     //Input memory mapped file
     struct imapfile {
         char const * base = nullptr;
@@ -85,11 +67,14 @@ namespace nl {
         void * map_handle = nullptr;
         void open(std::string p) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
-            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error("Failed to open file " + p);
+            if (file_handle == INVALID_HANDLE_VALUE)
+                throw std::runtime_error("Failed to open file " + p);
             map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
-            if (map_handle == nullptr) throw std::runtime_error("Failed to create file mapping of file " + p);
+            if (map_handle == nullptr)
+                throw std::runtime_error("Failed to create file mapping of file " + p);
             base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_READ, 0, 0, 0));
-            if (base == nullptr) throw std::runtime_error("Failed to map view of file " + p);
+            if (base == nullptr)
+                throw std::runtime_error("Failed to map view of file " + p);
             offset = base;
         }
         ~imapfile() {
@@ -102,12 +87,15 @@ namespace nl {
         size_t file_size = 0;
         void open(std::string p) {
             file_handle = ::open(p.c_str(), O_RDONLY);
-            if (file_handle == -1) throw std::runtime_error("Failed to open file " + p);
+            if (file_handle == -1)
+                throw std::runtime_error("Failed to open file " + p);
             struct stat finfo;
-            if (fstat(file_handle, &finfo) == -1) throw std::runtime_error("Failed to obtain file information of file " + p);
+            if (fstat(file_handle, &finfo) == -1)
+                throw std::runtime_error("Failed to obtain file information of file " + p);
             file_size = finfo.st_size;
             base = reinterpret_cast<char const *>(mmap(nullptr, file_size, PROT_READ, MAP_SHARED, file_handle, 0));
-            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error("Failed to create memory mapping of file " + p);
+            if (reinterpret_cast<intptr_t>(base) == -1)
+                throw std::runtime_error("Failed to create memory mapping of file " + p);
             offset = base;
         }
         ~imapfile() {
@@ -143,11 +131,14 @@ namespace nl {
         void * map_handle = nullptr;
         void open(std::string p, size_t size) {
             file_handle = CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
-            if (file_handle == INVALID_HANDLE_VALUE) throw std::runtime_error("Failed to open file " + p);
+            if (file_handle == INVALID_HANDLE_VALUE)
+                throw std::runtime_error("Failed to open file " + p);
             map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READWRITE, size >> 32, size & 0xffffffff, nullptr);
-            if (map_handle == nullptr) throw std::runtime_error("Failed to create file mapping of file " + p);
+            if (map_handle == nullptr)
+                throw std::runtime_error("Failed to create file mapping of file " + p);
             base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_ALL_ACCESS, 0, 0, 0));
-            if (base == nullptr) throw std::runtime_error("Failed to map view of file " + p);
+            if (base == nullptr)
+                throw std::runtime_error("Failed to map view of file " + p);
             offset = base;
         }
         ~omapfile() {
@@ -160,12 +151,16 @@ namespace nl {
         size_t file_size = 0;
         void open(std::string p, uint64_t size) {
             file_handle = ::open(p.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            if (file_handle == -1) throw std::runtime_error("Failed to open file " + p);
+            if (file_handle == -1)
+                throw std::runtime_error("Failed to open file " + p);
             file_size = size;
-            if (lseek(file_handle, file_size - 1, SEEK_SET) == -1) throw std::runtime_error("Error calling lseek() to 'stretch' file " + p);
-            if (write(file_handle, "", 1) != 1) throw std::runtime_error("Error writing last byte of file " + p);
+            if (lseek(file_handle, file_size - 1, SEEK_SET) == -1)
+                throw std::runtime_error("Error calling lseek() to 'stretch' file " + p);
+            if (write(file_handle, "", 1) != 1)
+                throw std::runtime_error("Error writing last byte of file " + p);
             base = reinterpret_cast<char *>(mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0));
-            if (reinterpret_cast<intptr_t>(base) == -1) throw std::runtime_error("Failed to create memory mapping of file " + p);
+            if (reinterpret_cast<intptr_t>(base) == -1)
+                throw std::runtime_error("Failed to create memory mapping of file " + p);
             offset = base;
         }
         void close() {
@@ -186,7 +181,7 @@ namespace nl {
             *reinterpret_cast<T *>(offset) = v;
             offset += sizeof(T);
         }
-        void write(void * buf, size_t size) {
+        void write(void const * buf, size_t size) {
             memcpy(offset, buf, size);
             offset += size;
         }
@@ -225,13 +220,6 @@ namespace nl {
         } data;
     };
 #pragma pack(pop)
-    //The string class
-    struct string {
-        char8_t * data;
-        strsize_t size;
-    };
-    char16_t wstr_buf[0x8000] = {};
-    char8_t str_buf[0x10000] = {};
     //The main class itself
     struct wztonx {
         //Variables
@@ -239,9 +227,11 @@ namespace nl {
         omapfile out;
         std::vector<node> nodes = {{node()}};
         std::vector<std::pair<id_t, id_t>> nodes_to_sort;
-        std::unordered_map<hash_t, id_t, identity<hash_t>> string_map;
-        std::vector<string> strings;
-        std::codecvt_utf8<char16_t> convert;
+        std::unordered_map<uint32_t, id_t, identity<uint32_t>> string_map;
+        std::vector<std::string> strings;
+        std::string str_buf;
+        std::u16string wstr_buf;
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
         char8_t const * u8key = nullptr;
         char16_t const * u16key = nullptr;
         std::vector<std::pair<id_t, int32_t>> imgs;
@@ -251,48 +241,42 @@ namespace nl {
         std::vector<uint64_t> bitmaps;
         std::vector<uint64_t> sounds;
         //Methods
-        id_t add_string(char8_t const * data, strsize_t size) {
-            hash_t hash = 2166136261u;
-            for (auto i = 0u; i < size; ++i) {
-                hash ^= static_cast<hash_t>(data[i]);
+        id_t add_string(std::string str) {
+            if (str.length() > std::numeric_limits<uint16_t>::max())
+                throw std::runtime_error("String is too long!");
+            uint32_t hash = 2166136261u;
+            for (auto c : str) {
+                hash ^= c;
                 hash *= 16777619u;
             }
             auto & id = string_map[hash];
             if (id != 0)
                 return id;
             id = static_cast<id_t>(strings.size());
-            //TODO - Use vectors instead of allocations
-            strings.push_back({static_cast<char8_t *>(alloc::small(size)), size});
-            memcpy(strings.back().data, data, size);
+            strings.push_back(std::move(str));
             return id;
         }
         id_t read_enc_string() {
             auto len = in.read<int8_t>();
             if (len > 0) {
                 auto slen = len == 127 ? in.read<uint32_t>() : len;
-                if (slen * 2 > std::numeric_limits<strsize_t>::max())
-                    throw std::runtime_error("String is too long!");
                 auto ows = reinterpret_cast<char16_t const *>(in.offset);
                 in.skip(slen * 2u);
-                uint16_t mask = 0xAAAA;
+                auto mask = 0xAAAAu;
+                wstr_buf.resize(slen);
                 for (auto i = 0u; i < slen; ++i, ++mask)
                     wstr_buf[i] = static_cast<char16_t>(ows[i] ^ u16key[i] ^ mask);
-                mbstate_t state;
-                char16_t const * fnext;
-                char8_t * tnext;
-                convert.out(state, wstr_buf, wstr_buf + slen, fnext, str_buf, str_buf + 0x10000, tnext);
-                return add_string(str_buf, static_cast<strsize_t>(tnext - str_buf));
+                return add_string(convert.to_bytes(wstr_buf));
             }
             if (len < 0) {
                 auto slen = len == -128 ? in.read<uint32_t>() : -len;
-                if (slen > std::numeric_limits<strsize_t>::max())
-                    throw std::runtime_error("String is too long!");
                 auto os = reinterpret_cast<char8_t const *>(in.offset);
                 in.skip(slen);
-                uint8_t mask = 0xAA;
+                auto mask = 0xAAu;
+                str_buf.resize(slen);
                 for (auto i = 0u; i < slen; ++i, ++mask)
-                    str_buf[i] = os[i] ^ u8key[i] ^ mask;
-                return add_string(str_buf, static_cast<strsize_t>(slen));
+                    str_buf[i] = static_cast<char8_t>(os[i] ^ u8key[i] ^ mask);
+                return add_string(str_buf);
             }
             return 0;
         }
@@ -319,7 +303,7 @@ namespace nl {
             auto len = in.read<int8_t>();
             if (len >= 0)
                 throw std::runtime_error("I give up");
-            auto slen = static_cast<strsize_t>(len == -128 ? in.read<int32_t>() : -len);
+            auto slen = len == -128 ? in.read<uint32_t>() : -len;
             u8key = nullptr;
             for (auto key : keys) {
                 auto os = reinterpret_cast<char8_t const *>(in.offset);
@@ -343,20 +327,7 @@ namespace nl {
         void sort_nodes(id_t first, id_t count) {
             std::sort(nodes.begin() + first, nodes.begin() + first + count,
                 [this](node & n1, node & n2) {
-                if (&n1 == &n2)
-                    return false;
-                auto & s1 = strings[n1.name];
-                auto & s2 = strings[n2.name];
-                auto n = strncmp(s1.data, s2.data, std::min(s1.size, s2.size));
-                if (n < 0)
-                    return true;
-                if (n > 0)
-                    return false;
-                if (s1.size < s2.size)
-                    return true;
-                if (s1.size > s2.size)
-                    return false;
-                throw std::runtime_error("Identical strings. This is baaaaaaaaaaaaaad");
+                return strings[n1.name] < strings[n2.name];
             });
         }
         void find_uols(id_t uol_node) {
@@ -372,16 +343,14 @@ namespace nl {
                 uol_path.pop_back();
             }
         }
-        id_t get_child(id_t parent_node, string str) {
+        id_t get_child(id_t parent_node, std::string const & str) {
             if (parent_node == 0)
                 return 0;
             auto & n = nodes[parent_node];
             auto it = std::lower_bound(nodes.begin() + n.children,
                 nodes.begin() + n.children + n.num, str,
-                [this](node const & n, string s) {
-                auto & sn = strings[n.name];
-                auto r = strncmp(sn.data, s.data, std::min(sn.size, s.size));
-                return r < 0 || r == 0 && sn.size < s.size;
+                [this](node const & n, std::string const & s) {
+                return strings[n.name] < s;
             });
             if (it == nodes.begin() + n.children + n.num)
                 return 0;
@@ -394,15 +363,15 @@ namespace nl {
                 throw std::runtime_error("Welp. I failed.");
             auto & s = strings[n.data.string];
             auto b = 0u;
-            for (auto i = 0u; i < s.size; ++i)
-            if (s.data[i] == '/') {
-                if (i - b == 2 && strncmp(s.data + b, "..", 2) == 0)
+            for (auto i = 0u; i < s.size(); ++i)
+            if (s[i] == '/') {
+                if (i - b == 2 && s[b] == '.' && s[b + 1] == '.')
                     uol.pop_back();
                 else
-                    uol.push_back(get_child(uol.back(), {s.data + b, static_cast<strsize_t>(i - b)}));
+                    uol.push_back(get_child(uol.back(), s.substr(b, i - b)));
                 b = ++i;
             }
-            uol.push_back(get_child(uol.back(), {s.data + b, static_cast<strsize_t>(s.size - b)}));
+            uol.push_back(get_child(uol.back(), s.substr(b)));
             if (uol.back() == 0)
                 return false;
             auto & nr = nodes[uol.back()];
@@ -415,6 +384,7 @@ namespace nl {
             return true;
         }
         void uol_fail(std::vector<id_t> & uol) {
+            //If we failed to resolve any uols, just turn them into useless empty nodes
             nodes[uol.back()].data_type = node::type::none;
         }
         void directory(id_t dir_node) {
@@ -466,10 +436,10 @@ namespace nl {
         void extended_property(id_t prop_node, size_t offset) {
             auto & n = nodes[prop_node];
             auto & st = strings[read_prop_string(offset)];
-            if (!strncmp(st.data, "Property", st.size)) {
+            if (st == "Property") {
                 in.skip(2);
                 sub_property(prop_node, offset);
-            } else if (!strncmp(st.data, "Canvas", st.size)) {
+            } else if (st == "Canvas") {
                 in.skip(1);
                 if (in.read<uint8_t>() == 1) {
                     in.skip(2);
@@ -483,11 +453,11 @@ namespace nl {
                 bitmaps.push_back(in.tell());
                 n.data.bitmap.width = static_cast<uint16_t>(in.read_cint());
                 n.data.bitmap.height = static_cast<uint16_t>(in.read_cint());
-            } else if (!strncmp(st.data, "Shape2D#Vector2D", st.size)) {
+            } else if (st == "Shape2D#Vector2D") {
                 n.data_type = node::type::vector;
                 n.data.vector[0] = in.read_cint();
                 n.data.vector[1] = in.read_cint();
-            } else if (!strncmp(st.data, "Shape2D#Convex2D", st.size)) {
+            } else if (st == "Shape2D#Convex2D") {
                 auto count = static_cast<id_t>(in.read_cint());
                 auto ni = static_cast<id_t>(nodes.size());
                 n.num = static_cast<uint16_t>(count);
@@ -496,21 +466,21 @@ namespace nl {
                 for (auto i = 0u; i < count; ++i) {
                     auto & nn = nodes[ni + i];
                     auto es = std::to_string(i);
-                    nn.name = add_string(es.c_str(), static_cast<strsize_t>(es.size()));
+                    nn.name = add_string(std::move(es));
                     extended_property(ni, offset);
                 }
                 nodes_to_sort.emplace_back(ni, count);
-            } else if (!strncmp(st.data, "Sound_DX8", st.size)) {
+            } else if (st == "Sound_DX8") {
                 n.data_type = node::type::audio;
                 n.data.audio.id = static_cast<uint32_t>(sounds.size());
                 sounds.push_back(in.tell());
                 in.skip(1);//Always 0
                 n.data.audio.length = static_cast<uint32_t>(in.read_cint());
-            } else if (!strncmp(st.data, "UOL", st.size)) {
+            } else if (st == "UOL") {
                 in.skip(1);
                 n.data_type = node::type::uol;
                 n.data.string = read_prop_string(offset);
-            } else throw std::runtime_error {"Unknown sub property type: " + std::string {st.data, st.size}};
+            } else throw std::runtime_error("Unknown sub property type: " + st);
         }
         void sub_property(id_t prop_node, size_t offset) {
             auto & n = nodes[prop_node];
@@ -583,7 +553,7 @@ namespace nl {
             in.skip(1);
             deduce_key();
             in.seek(file_start + 2);
-            add_string("", 0);
+            add_string({});
             std::cout << "Opened file" << std::endl;
             directory(0);
             std::cout << "Parsed directories" << std::endl;
@@ -605,17 +575,37 @@ namespace nl {
             for (auto & it : uols)
                 uol_fail(it);
             std::cout << "Node cleanup finished" << std::endl;
-            auto node_offset = 52UL;
-            node_offset += 0x10 - (node_offset & 0xf);
-            auto string_table_offset = node_offset + nodes.size() * 20;
-            string_table_offset += 0x10 - (string_table_offset & 0xf);
-            auto string_offset = string_table_offset + strings.size() * 8;
-            string_offset += 0x10 - (string_offset & 0xf);
-            auto bitmap_table_offset = string_offset + strings.size() * 2;
-            for (auto const & s : strings)
-                bitmap_table_offset += s.size;
-            bitmap_table_offset += 0x10 - (bitmap_table_offset & 0xf);
-            out.open(filename, bitmap_table_offset);
+            uint64_t offset = 0;
+            offset += 52;
+            offset += 0x10 - (offset & 0xf);
+            auto node_offset = offset;
+            offset += nodes.size() * 20;
+            offset += 0x10 - (offset & 0xf);
+            auto string_table_offset = offset;
+            offset += strings.size() * 2;
+            offset += 0x10 - (offset & 0xf);
+            auto audio_table_offset = offset;
+            offset += sounds.size() * 8;
+            offset += 0x10 - (offset & 0xf);
+            auto bitmap_table_offset = offset;
+            offset += bitmaps.size() * 8;
+            offset += 0x10 - (offset & 0xf);
+            auto string_offset = offset;
+            offset += std::accumulate(strings.begin(), strings.end(), size_t(), [](uint64_t n, std::string const & s) {
+                return n + s.size() + 2;
+            });
+            offset += 0x10 - (offset & 0xf);
+            auto audio_offset = offset;
+            offset += std::accumulate(sounds.begin(), sounds.end(), size_t(), [](uint64_t n, uint64_t) {
+                return n;
+            });
+            offset += 0x10 - (offset & 0xf);
+            auto bitmap_offset = offset;
+            offset += std::accumulate(bitmaps.begin(), bitmaps.end(), size_t(), [](uint64_t n, uint64_t) {
+                return n;
+            });
+            offset += 0x10 - (offset & 0xf);
+            out.open(filename, offset);
             out.seek(0);
             out.write<uint32_t>(0x34474B50);
             out.write<uint32_t>(static_cast<uint32_t>(nodes.size()));
@@ -624,10 +614,10 @@ namespace nl {
             out.write<uint64_t>(string_table_offset);
             //No bitmap or audio support yet
             out.write<uint32_t>(0);
-            out.write<uint64_t>(0);
+            out.write<uint64_t>(bitmap_table_offset);
             out.write<uint32_t>(0);
-            out.write<uint64_t>(0);
-            std::cout << "Opened output" << std::endl;
+            out.write<uint64_t>(audio_table_offset);
+            std::cout << "Opened output" << std::endl ;
             out.seek(node_offset);
             out.write(nodes.data(), nodes.size() * 20);
             std::cout << "Wrote nodes" << std::endl;
@@ -635,12 +625,12 @@ namespace nl {
             auto next_str = string_offset;
             for (auto const & s : strings) {
                 out.write<uint64_t>(next_str);
-                next_str += s.size + 2;
+                next_str += s.size() + 2;
             }
             out.seek(string_offset);
             for (auto const & s : strings) {
-                out.write<uint16_t>(s.size);
-                out.write(s.data, s.size);
+                out.write<uint16_t>(static_cast<uint16_t>(s.size()));
+                out.write(s.data(), s.size());
             }
             std::cout << "Wrote strings" << std::endl;
             std::cout << "Done" << std::endl;
@@ -649,7 +639,18 @@ namespace nl {
 }
 int main(int argc, char ** argv) {
     auto a = std::chrono::high_resolution_clock::now();
-    nl::wztonx(argc > 1 ? argv[1] : "Data.wz");
+    if (argc > 1) {
+        nl::wztonx lel(argv[1]);
+    } else {
+        auto names = {"Base", "Character", "Data", "Effect", "Etc", "Item", "Map", "Mob", "Morph", "Npc", "Quest", "Reactor", "Skill", "Sound", "String", "TamingMob", "UI"};
+        for (std::string n : names) {
+            try {
+                nl::wztonx lel(n + ".wz");
+            } catch (std::exception const & e) {
+                std::cerr << e.what() << std::endl;
+            }
+        }
+    }
     auto b = std::chrono::high_resolution_clock::now();
     std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(b - a).count() << " ms" << std::endl;
 }

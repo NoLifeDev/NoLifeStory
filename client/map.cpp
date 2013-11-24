@@ -40,13 +40,23 @@ namespace nl {
             if (name.size() < 9)
                 name.insert(0, name.size(), '0');
             auto m = map_node[std::string("Map") + name[0]][name + ".img"];
+            //If the map is invalid just ignore it
             if (!m)
                 return;
-            if (m["info"]["link"]) {
-                load(m["info"]["link"], portal);
-                return;
-            }
+            //Some maps link to other maps. I have no idea why.
+            if (m["info"]["link"])
+                return load(m["info"]["link"], portal);
             next = m;
+        }
+        void init_random() {
+            for (auto i = 0u; i <= 9; ++i)
+            for (auto n : map_node["Map" + std::to_string(i)]) {
+                auto name = n.name();
+                //Ignore anything which isn't obviously a map
+                if (name.size() != 13)
+                    continue;
+                all_maps.emplace_back(name.substr(0, name.size() - 4));
+            }
         }
         void load_random() {
             std::random_device rand;
@@ -65,13 +75,7 @@ namespace nl {
         }
         void init() {
             map_node = nx::map["Map"];
-            for (auto i = 0u; i <= 9; ++i)
-            for (auto n : map_node["Map" + std::to_string(i)]) {
-                auto name = n.name();
-                if (name.size() < 4)
-                    continue;//This shouldn't happen
-                all_maps.emplace_back(name.substr(0, name.size() - 4));
-            }
+            init_random();
             load_random();
             load_now();
         }
@@ -80,42 +84,12 @@ namespace nl {
                 load_now();
         }
         void render() {
-            for (background & b : backgrounds)
+            for (auto & b : backgrounds)
                 b.render();
             layer::render();
-            for (background & b : foregrounds)
+            for (auto & b : foregrounds)
                 b.render();
             view::draw_edges();
         }
-        /*
-        void Render() {
-            for (auto && b : Backgrounds) b.Render();
-            Layer::RenderAll();
-            for (auto && p : NL::Portals) p.Render();
-            for (auto && b : Foregrounds) b.Render();
-            View::DrawEdges();
-            if (Shade > 0) {
-                glColor4f(0, 0, 0, pow(Shade, 2));
-                Graphics::DrawRect(0, 0, View::Width, View::Height, false);
-            }
-            if (Shade < 0) Shade = 0;
-            if (Next) {
-                Shade += Time::Delta * 10;
-                if (Shade > 1) {
-                    Map::LoadNow();
-                    Shade = 1.5;
-                }
-            } else if (Shade > 0) Shade -= Time::Delta * 5;
-            Sprite::Unbind();
-            double c = sin(Time::TDelta * 10) * 0.5 + 0.5;
-            glColor4d(sin(Time::TDelta * 2 * M_PI) * 0.5 + 0.5, sin(Time::TDelta * 2 * M_PI + M_PI * 2 / 3) * 0.5 + 0.5, sin(Time::TDelta * 2 * M_PI + M_PI * 4 / 3) * 0.5 + 0.5, 1);
-            glBegin(GL_LINES);
-            for (Foothold & f : Footholds) {
-                glVertex2d(f.x1 + View::Width / 2 - View::X, f.y1 + View::Height / 2 - View::Y);
-                glVertex2d(f.x2 + View::Width / 2 - View::X, f.y2 + View::Height / 2 - View::Y);
-            }
-            glEnd();
-        }
-        */
     }
 }
