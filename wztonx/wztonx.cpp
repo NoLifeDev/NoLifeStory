@@ -639,18 +639,29 @@ namespace nl {
 }
 int main(int argc, char ** argv) {
     auto a = std::chrono::high_resolution_clock::now();
-    if (argc > 1) {
-        nl::wztonx lel(argv[1]);
-    } else {
-        auto names = {"Base", "Character", "Data", "Effect", "Etc", "Item", "Map", "Mob", "Morph", "Npc", "Quest", "Reactor", "Skill", "Sound", "String", "TamingMob", "UI"};
-        for (std::string n : names) {
-            try {
-                nl::wztonx lel(n + ".wz");
-            } catch (std::exception const & e) {
-                std::cerr << e.what() << std::endl;
-            }
+    std::cout << R"rawraw(
+NoLifeWzToNx
+Copyright © 2013 Peter Atashian
+Licensed under GNU Affero General Public License
+Converts WZ files into NX files
+
+NoLifeWzToNx.exe [-client] [Firstfile.wz [Secondfile.wz [...]]]
+
+-client: Specifies that bitmaps and audio should be included in the resulting nx file.
+
+If no files are specified, this program will automatically scan for all WZ files in the working directory.
+)rawraw" << std::endl;
+    std::vector<std::string> args = {argv + 1, argv + argc};
+    if (args.empty())
+        args = {"Base.wz", "Character.wz", "Data.wz", "Effect.wz", "Etc.wz", "Item.wz", "Map.wz", "Mob.wz", "Morph.wz", "Npc.wz", "Quest.wz", "Reactor.wz", "Skill.wz", "Sound.wz", "String.wz", "TamingMob.wz", "UI.wz"};
+    bool client = std::find(args.begin(), args.end(), "-client") != args.end();
+    for (std::string n : args) {
+        try {
+            nl::wztonx lel(n);
+        } catch (std::exception const & e) {
+            std::cerr << e.what() << std::endl;
         }
     }
     auto b = std::chrono::high_resolution_clock::now();
-    std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(b - a).count() << " ms" << std::endl;
+    std::cout << "Took " << std::chrono::duration_cast<std::chrono::seconds>(b - a).count() << " seconds" << std::endl;
 }
