@@ -591,7 +591,7 @@ namespace nl {
             offset += nodes.size() * 20;
             offset += 0x10 - (offset & 0xf);
             auto string_table_offset = offset;
-            offset += strings.size() * 2;
+            offset += strings.size() * 8;
             offset += 0x10 - (offset & 0xf);
             auto audio_table_offset = offset;
             offset += sounds.size() * 8;
