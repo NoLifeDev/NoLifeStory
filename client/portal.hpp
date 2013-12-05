@@ -17,20 +17,26 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    class Portal {
+#include "sprite.hpp"
+#include <nx/node.hpp>
+#include <vector>
+#include <string>
+
+namespace nl {
+    class portal {
     public:
-		Portal(Node);
-        static void Load();
-		void Render();
-		int32_t pt, tm, delay;
-		int32_t x, y;
-        int32_t horizontalImpact, verticalImpact;
-        string script, pn, tn;
-        Sprite spr;
-        bool onlyOnce, hideTooltip;
+		portal(node);
+        static void load();
+		void render();
+		int pt, tm, delay;
+        int x, y;
+        int horizontal_impact, vertical_impact;
+        std::string script, pn, tn;
+        sprite spr;
+        bool only_once, hide_tooltip;
     private:
     };
-    extern vector<Portal> Portals;
+    extern std::vector<portal> portals;
 }

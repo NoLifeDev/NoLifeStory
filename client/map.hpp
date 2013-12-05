@@ -26,7 +26,7 @@ namespace nl {
         void init();
         void random();
         void load_random();
-        void load(std::string name, std::string portal);
+        void load(std::string name, std::string port);
         void update();
         void render();
     }

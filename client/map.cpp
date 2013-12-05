@@ -22,6 +22,7 @@
 #include "foothold.hpp"
 #include "background.hpp"
 #include "time.hpp"
+#include "portal.hpp"
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
 #include <vector>
@@ -37,7 +38,7 @@ namespace nl {
         node current, next;
         std::vector<std::pair<std::string, unsigned>> results;
         bool old_style;
-        void load(std::string name, std::string portal) {
+        void load(std::string name, std::string port) {
             if (name.size() < 9)
                 name.insert(0, name.size(), '0');
             auto m = old_style ? map_node[name + ".img"] :
@@ -47,7 +48,7 @@ namespace nl {
                 return;
             //Some maps link to other maps. I have no idea why.
             if (m["info"]["link"])
-                return load(m["info"]["link"], portal);
+                return load(m["info"]["link"], port);
             next = m;
         }
         void add_random(node n) {
@@ -79,6 +80,7 @@ namespace nl {
             layer::load();
             background::load();
             foothold::load();
+            portal::load();
             view::reset();
         }
         void init() {
@@ -96,6 +98,8 @@ namespace nl {
             for (auto & b : backgrounds)
                 b.render();
             layer::render();
+            for (auto & p : portals)
+                p.render();
             for (auto & b : foregrounds)
                 b.render();
             view::draw_edges();
