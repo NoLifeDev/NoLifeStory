@@ -525,6 +525,15 @@ namespace nl {
                               in.seek(p);
                               break;
                 }
+                case 0x14:{
+                              int size = 5;
+                              if (in.offset[0] == (char)0x80 && in.offset[1] == (char)0xD0)
+                                  size = 9;
+                              if (in.offset[0] == (char)0x05)
+                                  size = 1;
+                              in.skip(size);
+                              break;
+                }
                 default:
                     throw std::runtime_error("Unknown sub property type: " + std::to_string(type));
                 }
