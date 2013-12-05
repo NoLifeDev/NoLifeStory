@@ -657,6 +657,8 @@ If no files are specified, this program will automatically scan for all WZ files
     bool client = std::find(args.begin(), args.end(), "-client") != args.end();
     for (std::string n : args) {
         try {
+            if (n.at(0) == '-')
+                continue;
             nl::wztonx lel(n);
         } catch (std::exception const & e) {
             std::cerr << e.what() << std::endl;

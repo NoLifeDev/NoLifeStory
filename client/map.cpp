@@ -36,10 +36,12 @@ namespace nl {
         node map_node;
         node current, next;
         std::vector<std::pair<std::string, unsigned>> results;
+        bool old_style;
         void load(std::string name, std::string portal) {
             if (name.size() < 9)
                 name.insert(0, name.size(), '0');
-            auto m = map_node[std::string("Map") + name[0]][name + ".img"];
+            auto m = old_style ? map_node[name + ".img"] :
+                map_node[std::string("Map") + name[0]][name + ".img"];
             //If the map is invalid just ignore it
             if (!m)
                 return;
@@ -48,19 +50,25 @@ namespace nl {
                 return load(m["info"]["link"], portal);
             next = m;
         }
+        void add_random(node n) {
+            auto name = n.name();
+            //Ignore anything which isn't obviously a map
+            if (name.size() != 13)
+                return;
+            all_maps.emplace_back(name.substr(0, name.size() - 4));
+        }
         void init_random() {
+            if (old_style)
+            for (auto n : map_node)
+                add_random(n);
+            else
             for (auto i = 0u; i <= 9; ++i)
-            for (auto n : map_node["Map" + std::to_string(i)]) {
-                auto name = n.name();
-                //Ignore anything which isn't obviously a map
-                if (name.size() != 13)
-                    continue;
-                all_maps.emplace_back(name.substr(0, name.size() - 4));
-            }
+            for (auto n : map_node["Map" + std::to_string(i)])
+                add_random(n);
         }
         void load_random() {
             std::random_device rand;
-            std::uniform_int_distribution<size_t> dist(0, all_maps.size());
+            std::uniform_int_distribution<size_t> dist(0, all_maps.size() - 1);
             load(all_maps[dist(rand)], "sp");
         }
         void load_now() {
@@ -75,6 +83,7 @@ namespace nl {
         }
         void init() {
             map_node = nx::map["Map"];
+            old_style = !map_node["Map0"];
             init_random();
             load_random();
             load_now();
