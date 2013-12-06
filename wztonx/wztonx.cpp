@@ -229,7 +229,7 @@ namespace nl {
         //Variables
         imapfile in;
         omapfile out;
-        std::vector<node> nodes = {{{}}};
+        std::vector<node> nodes = {{node()}};
         std::vector<std::pair<id_t, id_t>> nodes_to_sort;
         std::unordered_map<uint32_t, id_t, identity<uint32_t>> string_map;
         std::vector<std::string> strings;
@@ -315,7 +315,7 @@ namespace nl {
                 auto k = reinterpret_cast<char8_t const *>(key);
                 bool valid = true;
                 for (auto i = 0u; i < slen; ++i, ++mask) {
-                    auto c = static_cast<char8_t>(os[i] ^ k[i] ^ mask);
+                    auto c = static_cast<uint8_t>(os[i] ^ k[i] ^ mask);
                     if (c < 0x20 || c >= 0x80)
                         valid = false;
                 }
