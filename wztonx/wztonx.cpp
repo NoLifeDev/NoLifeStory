@@ -220,12 +220,16 @@ namespace nl {
         } data;
     };
 #pragma pack(pop)
+    struct audio {
+        uint32_t length;
+        uint64_t data;
+    };
     //The main class itself
     struct wztonx {
         //Variables
         imapfile in;
         omapfile out;
-        std::vector<node> nodes = {{node()}};
+        std::vector<node> nodes = {{{}}};
         std::vector<std::pair<id_t, id_t>> nodes_to_sort;
         std::unordered_map<uint32_t, id_t, identity<uint32_t>> string_map;
         std::vector<std::string> strings;
@@ -239,7 +243,7 @@ namespace nl {
         std::vector<id_t> uol_path;
         std::vector<std::vector<id_t>> uols;
         std::vector<uint64_t> bitmaps;
-        std::vector<uint64_t> sounds;
+        std::vector<audio> audios;
         //Methods
         id_t add_string(std::string str) {
             if (str.length() > std::numeric_limits<uint16_t>::max())
@@ -472,10 +476,14 @@ namespace nl {
                 nodes_to_sort.emplace_back(ni, count);
             } else if (st == "Sound_DX8") {
                 n.data_type = node::type::audio;
-                n.data.audio.id = static_cast<uint32_t>(sounds.size());
-                sounds.push_back(in.tell());
+                n.data.audio.id = static_cast<uint32_t>(audios.size());
+                audio a;
                 in.skip(1);//Always 0
-                n.data.audio.length = static_cast<uint32_t>(in.read_cint());
+                a.length = static_cast<uint32_t>(in.read_cint()) + 82u;
+                n.data.audio.length = a.length;
+                in.read_cint();
+                a.data = in.tell();
+                audios.push_back(a);
             } else if (st == "UOL") {
                 in.skip(1);
                 n.data_type = node::type::uol;
@@ -526,11 +534,11 @@ namespace nl {
                               break;
                 }
                 case 0x14:{
-                              int size = 5;
-                              if (in.offset[0] == (char)0x80 && in.offset[1] == (char)0xD0)
-                                  size = 9;
-                              if (in.offset[0] == (char)0x05)
-                                  size = 1;
+                              auto size = 5u;
+                              if ((unsigned char)in.offset[0] == 0x80u && (unsigned char)in.offset[1] == 0xD0u)
+                                  size = 9u;
+                              if ((unsigned char)in.offset[0] == 0x05u)
+                                  size = 1u;
                               in.skip(size);
                               break;
                 }
@@ -548,7 +556,7 @@ namespace nl {
             sub_property(img_node, p);
             in.seek(p + size);
         }
-        wztonx(std::string filename) {
+        wztonx(std::string filename, bool client) {
             in.open(filename);
             filename.erase(filename.find_last_of('.')).append(".nx");
             auto magic = in.read<uint32_t>();
@@ -584,7 +592,7 @@ namespace nl {
             for (auto & it : uols)
                 uol_fail(it);
             std::cout << "Node cleanup finished" << std::endl;
-            uint64_t offset = 0;
+            auto offset = 0ull;
             offset += 52;
             offset += 0x10 - (offset & 0xf);
             auto node_offset = offset;
@@ -593,27 +601,35 @@ namespace nl {
             auto string_table_offset = offset;
             offset += strings.size() * 8;
             offset += 0x10 - (offset & 0xf);
-            auto audio_table_offset = offset;
-            offset += sounds.size() * 8;
-            offset += 0x10 - (offset & 0xf);
-            auto bitmap_table_offset = offset;
-            offset += bitmaps.size() * 8;
-            offset += 0x10 - (offset & 0xf);
             auto string_offset = offset;
-            offset += std::accumulate(strings.begin(), strings.end(), size_t(), [](uint64_t n, std::string const & s) {
+            offset += std::accumulate(strings.begin(), strings.end(), 0ull, [](uint64_t n, std::string const & s) {
                 return n + s.size() + 2;
             });
             offset += 0x10 - (offset & 0xf);
+            auto audio_table_offset = offset;
+            if (client) {
+                offset += audios.size() * 8;
+                offset += 0x10 - (offset & 0xf);
+            }
+            auto bitmap_table_offset = offset;
+            if (client) {
+                offset += bitmaps.size() * 8;
+                offset += 0x10 - (offset & 0xf);
+            }
             auto audio_offset = offset;
-            offset += std::accumulate(sounds.begin(), sounds.end(), size_t(), [](uint64_t n, uint64_t) {
-                return n;
-            });
-            offset += 0x10 - (offset & 0xf);
+            if (client) {
+                offset += std::accumulate(audios.begin(), audios.end(), 0ull, [](uint64_t n, audio const & a) {
+                    return n + a.length;
+                });
+                offset += 0x10 - (offset & 0xf);
+            }
             auto bitmap_offset = offset;
-            offset += std::accumulate(bitmaps.begin(), bitmaps.end(), size_t(), [](uint64_t n, uint64_t) {
-                return n;
-            });
-            offset += 0x10 - (offset & 0xf);
+            if (client) {
+                offset += std::accumulate(bitmaps.begin(), bitmaps.end(), 0ull, [](uint64_t n, uint64_t) {
+                    return n;
+                });
+                offset += 0x10 - (offset & 0xf);
+            }
             out.open(filename, offset);
             out.seek(0);
             out.write<uint32_t>(0x34474B50);
@@ -621,11 +637,17 @@ namespace nl {
             out.write<uint64_t>(node_offset);
             out.write<uint32_t>(static_cast<uint32_t>(strings.size()));
             out.write<uint64_t>(string_table_offset);
-            //No bitmap or audio support yet
-            out.write<uint32_t>(0);
-            out.write<uint64_t>(bitmap_table_offset);
-            out.write<uint32_t>(0);
-            out.write<uint64_t>(audio_table_offset);
+            if (client) {
+                out.write<uint32_t>(static_cast<uint32_t>(bitmaps.size()));
+                out.write<uint64_t>(bitmap_table_offset);
+                out.write<uint32_t>(static_cast<uint32_t>(audios.size()));
+                out.write<uint64_t>(audio_table_offset);
+            } else {
+                out.write<uint32_t>(0);
+                out.write<uint64_t>(0);
+                out.write<uint32_t>(0);
+                out.write<uint64_t>(0);
+            }
             std::cout << "Opened output" << std::endl ;
             out.seek(node_offset);
             out.write(nodes.data(), nodes.size() * 20);
@@ -642,6 +664,19 @@ namespace nl {
                 out.write(s.data(), s.size());
             }
             std::cout << "Wrote strings" << std::endl;
+            if (client) {
+                out.seek(audio_table_offset);
+                auto audio_off = audio_offset;
+                for (auto & a : audios) {
+                    out.write<uint64_t>(audio_off);
+                    audio_off += a.length;
+                }
+                out.seek(audio_offset);
+                for (auto & a : audios) {
+                    out.write(in.base + a.data, a.length);
+                }
+                std::cout << "Wrote audio" << std::endl;
+            }
             std::cout << "Done" << std::endl;
         }
     };
@@ -668,11 +703,13 @@ If no files are specified, this program will automatically scan for all WZ files
         try {
             if (n.at(0) == '-')
                 continue;
-            nl::wztonx lel(n);
+            nl::wztonx lel(n, client);
         } catch (std::exception const & e) {
             std::cerr << e.what() << std::endl;
         }
     }
     auto b = std::chrono::high_resolution_clock::now();
     std::cout << "Took " << std::chrono::duration_cast<std::chrono::seconds>(b - a).count() << " seconds" << std::endl;
+    std::cout << "Press any key to continue..." << std::endl;
+    std::cin.get();
 }

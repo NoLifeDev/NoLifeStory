@@ -35,6 +35,7 @@ namespace nl {
         int x = 0, y = 0;
         int width = 0, height = 0;
         double fx = 0, fy = 0;
+        double rx = 0, ry = 0;
         int left = 0, right = 0, top = 0, bottom = 0;
         int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
         double tx = 0, ty = 0;
@@ -114,7 +115,6 @@ namespace nl {
             update();
         }
         void update() {
-            restrict(tx, ty);
             auto sx = (tx - fx) * time::delta * 5;
             auto sy = (ty - fy) * time::delta * 5;
             if (abs(sx) > abs(tx - fx))
@@ -124,24 +124,26 @@ namespace nl {
             fx += sx;
             fy += sy;
             restrict(fx, fy);
-            x = static_cast<int>(fx);
-            y = static_cast<int>(fy);
+            if (config::rave) {
+                std::random_device engine;
+                auto n1 = {-4, -2, 0, 2, 4}, n2 = {0, 1, 8, 1, 0};
+                std::piecewise_linear_distribution<double> dist(n1.begin(), n1.end(), n2.begin());
+                rx += dist(engine);
+                ry += dist(engine);
+            }
+            rx *= 0.95;
+            ry *= 0.95;
+            x = static_cast<int>(fx + rx);
+            y = static_cast<int>(fy + ry);
             glMatrixMode(GL_PROJECTION);
             glLoadIdentity();
             if (config::rave) {
-                std::mt19937_64 engine(static_cast<uint64_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-                std::uniform_int_distribution<int> dist(-10, 10);
-                x += dist(engine);
-                y += dist(engine);
-                gluPerspective(-10 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90,
-                    static_cast<double>(width) / height, 0.1, 10000);
-                gluLookAt(width / 2, height / 2, 0 - height / 2,
-                    width / 2, height / 2, 0, 0, -1, 0);
+                gluPerspective(-5 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
+                gluLookAt(width / 2, height / 2, 0 - height / 2, width / 2, height / 2, 0, 0, -1, 0);
                 auto d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
-                auto r(sin(d)), g(sin(d + pi * 2 / 3)), b(sin(d + pi * 4 / 3));
+                auto r = sin(d), g = sin(d + 2 / 3. * pi), b = sin(d + 4 / 3. * pi);
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                GLfloat c[] = {static_cast<GLfloat>(r),
-                    static_cast<GLfloat>(g), static_cast<GLfloat>(b), 1};
+                GLfloat c[] = {static_cast<GLfloat>(r), static_cast<GLfloat>(g), static_cast<GLfloat>(b), 1};
                 glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
                 glColor4d(1 - r, 1 - g, 1 - b, 1);
             } else {
