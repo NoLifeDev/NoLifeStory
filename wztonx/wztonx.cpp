@@ -130,21 +130,21 @@ namespace nl {
         void * file_handle = nullptr;
         void * map_handle = nullptr;
         void open(std::string p, size_t size) {
-            file_handle = CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
+            file_handle = ::CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
             if (file_handle == INVALID_HANDLE_VALUE)
                 throw std::runtime_error("Failed to open file " + p);
-            map_handle = CreateFileMappingA(file_handle, nullptr, PAGE_READWRITE, size >> 32, size & 0xffffffff, nullptr);
+            map_handle = ::CreateFileMappingA(file_handle, nullptr, PAGE_READWRITE, size >> 32, size & 0xffffffff, nullptr);
             if (map_handle == nullptr)
                 throw std::runtime_error("Failed to create file mapping of file " + p);
-            base = reinterpret_cast<char *>(MapViewOfFile(map_handle, FILE_MAP_ALL_ACCESS, 0, 0, 0));
+            base = reinterpret_cast<char *>(::MapViewOfFile(map_handle, FILE_MAP_ALL_ACCESS, 0, 0, 0));
             if (base == nullptr)
                 throw std::runtime_error("Failed to map view of file " + p);
             offset = base;
         }
         ~omapfile() {
-            UnmapViewOfFile(base);
-            CloseHandle(map_handle);
-            CloseHandle(file_handle);
+            ::UnmapViewOfFile(base);
+            ::CloseHandle(map_handle);
+            ::CloseHandle(file_handle);
         }
 #else
         int file_handle = 0;
@@ -154,17 +154,17 @@ namespace nl {
             if (file_handle == -1)
                 throw std::runtime_error("Failed to open file " + p);
             file_size = size;
-            if (lseek(file_handle, file_size - 1, SEEK_SET) == -1)
+            if (::lseek(file_handle, file_size - 1, SEEK_SET) == -1)
                 throw std::runtime_error("Error calling lseek() to 'stretch' file " + p);
-            if (write(file_handle, "", 1) != 1)
+            if (::write(file_handle, "", 1) != 1)
                 throw std::runtime_error("Error writing last byte of file " + p);
-            base = reinterpret_cast<char *>(mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0));
+            base = reinterpret_cast<char *>(::mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_handle, 0));
             if (reinterpret_cast<intptr_t>(base) == -1)
                 throw std::runtime_error("Failed to create memory mapping of file " + p);
             offset = base;
         }
         void close() {
-            munmap(const_cast<char *>(base), file_size);
+            ::munmap(const_cast<char *>(base), file_size);
             ::close(file_handle);
         }
 #endif
@@ -696,13 +696,14 @@ NoLifeWzToNx.exe [-client] [Firstfile.wz [Secondfile.wz [...]]]
 If no files are specified, this program will automatically scan for all WZ files in the working directory.
 )rawraw" << std::endl;
     std::vector<std::string> args = {argv + 1, argv + argc};
+    bool client = std::find(args.begin(), args.end(), "-client") != args.end();
+    args.erase(std::remove_if(args.begin(), args.end(), [](std::string const & s) {
+        return s[0] == '-';
+    }), args.end());
     if (args.empty())
         args = {"Base.wz", "Character.wz", "Data.wz", "Effect.wz", "Etc.wz", "Item.wz", "Map.wz", "Mob.wz", "Morph.wz", "Npc.wz", "Quest.wz", "Reactor.wz", "Skill.wz", "Sound.wz", "String.wz", "TamingMob.wz", "UI.wz"};
-    bool client = std::find(args.begin(), args.end(), "-client") != args.end();
     for (std::string n : args) {
         try {
-            if (n.at(0) == '-')
-                continue;
             nl::wztonx lel(n, client);
         } catch (std::exception const & e) {
             std::cerr << e.what() << std::endl;
@@ -710,6 +711,6 @@ If no files are specified, this program will automatically scan for all WZ files
     }
     auto b = std::chrono::high_resolution_clock::now();
     std::cout << "Took " << std::chrono::duration_cast<std::chrono::seconds>(b - a).count() << " seconds" << std::endl;
-    std::cout << "Press any key to continue..." << std::endl;
+    std::cout << "Press enter to continue..." << std::endl;
     std::cin.get();
 }
