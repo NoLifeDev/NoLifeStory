@@ -130,7 +130,7 @@ namespace nl {
         void * file_handle = nullptr;
         void * map_handle = nullptr;
         void open(std::string p, size_t size) {
-            file_handle = ::CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
+            file_handle = ::CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, 0, nullptr);
             if (file_handle == INVALID_HANDLE_VALUE)
                 throw std::runtime_error("Failed to open file " + p);
             map_handle = ::CreateFileMappingA(file_handle, nullptr, PAGE_READWRITE, size >> 32, size & 0xffffffff, nullptr);
@@ -501,6 +501,8 @@ namespace nl {
                 auto & nn = nodes[ni + i];
                 nn.name = read_prop_string(offset);
                 auto type = in.read<uint8_t>();
+                uint8_t num;
+                size_t p;
                 switch (type) {
                 case 0x00://Turning null nodes into integers with an id. Useful for zmap.img
                     nn.data_type = node::type::integer;
@@ -517,7 +519,11 @@ namespace nl {
                     break;
                 case 0x04:
                     nn.data_type = node::type::real;
-                    nn.data.real = in.read<uint8_t>() == 0x80 ? in.read<float>() : 0.;
+                    num = in.read<uint8_t>();
+                    if (num == 0x80)
+                        nn.data.real = in.read<float>();
+                    else
+                        nn.data.real = static_cast<int8_t>(num);
                     break;
                 case 0x05:
                     nn.data_type = node::type::real;
@@ -527,21 +533,19 @@ namespace nl {
                     nn.data_type = node::type::string;
                     nn.data.string = read_prop_string(offset);
                     break;
-                case 0x09:{
-                              auto p = in.read<int32_t>() + in.tell();
-                              extended_property(ni + i, offset);
-                              in.seek(p);
-                              break;
-                }
-                case 0x14:{
-                              auto size = 5u;
-                              if ((unsigned char)in.offset[0] == 0x80u && (unsigned char)in.offset[1] == 0xD0u)
-                                  size = 9u;
-                              if ((unsigned char)in.offset[0] == 0x05u)
-                                  size = 1u;
-                              in.skip(size);
-                              break;
-                }
+                case 0x09:
+                    p = in.read<int32_t>() + in.tell();
+                    extended_property(ni + i, offset);
+                    in.seek(p);
+                    break;
+                case 0x14:
+                    nn.data_type = node::type::integer;
+                    num = in.read<uint8_t>();
+                    if (num == 0x80)
+                        nn.data.integer = in.read<int64_t>();
+                    else
+                        nn.data.integer = static_cast<int8_t>(num);
+                    break;
                 default:
                     throw std::runtime_error("Unknown sub property type: " + std::to_string(type));
                 }
