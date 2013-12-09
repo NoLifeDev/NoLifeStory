@@ -20,7 +20,7 @@ map.cpp
 obj.cpp
 #physics.cpp
 #player.cpp
-#portal.cpp
+portal.cpp
 #sound.cpp
 sprite.cpp
 tile.cpp
