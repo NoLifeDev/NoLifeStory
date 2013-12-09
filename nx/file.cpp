@@ -19,7 +19,11 @@
 #include "file_impl.hpp"
 #include "node_impl.hpp"
 #ifdef _WIN32
+#ifdef __MINGW32__
+#  include <windows.h>
+#else
 #  include <Windows.h>
+#endif // __MINGW32__
 #else
 #  include <sys/types.h>
 #  include <sys/stat.h>
