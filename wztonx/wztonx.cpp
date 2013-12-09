@@ -570,7 +570,6 @@ namespace nl {
         }
         wztonx(std::string filename, bool client, bool hc) {
             in.open(filename);
-            filename.erase(filename.find_last_of('.')).append(".nx");
             auto magic = in.read<uint32_t>();
             if (magic != 0x31474B50)
                 throw std::runtime_error("Not a valid WZ file");
@@ -583,7 +582,8 @@ namespace nl {
             deduce_key();
             in.seek(file_start + 2);
             add_string({});
-            std::cout << "Opened file" << std::endl;
+            std::cout << "Opened file: " << filename << std::endl;
+            filename.erase(filename.find_last_of('.')).append(".nx");
             directory(0);
             std::cout << "Parsed directories" << std::endl;
             for (auto & it : imgs)
@@ -726,9 +726,7 @@ namespace nl {
                     inflateInit(&strm);
                     strm.next_out = output.data();
                     strm.avail_out = static_cast<unsigned>(output.size());
-                    auto err = inflate(&strm, Z_FINISH);
-                    if (err != Z_BUF_ERROR)
-                        throw std::runtime_error("Zlib failed");
+                    inflate(&strm, Z_FINISH);
                     inflateEnd(&strm);
                     auto pixels = width * height;
                     struct color4444 {
