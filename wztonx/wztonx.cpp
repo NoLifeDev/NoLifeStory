@@ -568,7 +568,7 @@ namespace nl {
             sub_property(img_node, p);
             in.seek(p + size);
         }
-        wztonx(std::string filename, bool client) {
+        wztonx(std::string filename, bool client, bool hc) {
             in.open(filename);
             filename.erase(filename.find_last_of('.')).append(".nx");
             auto magic = in.read<uint32_t>();
@@ -683,8 +683,7 @@ namespace nl {
                 }
                 std::cout << "Wrote audio" << std::endl;
                 out.seek(bitmap_table_offset);
-                std::ofstream file("filename", std::ios::app);
-                z_stream strm = {};
+                std::ofstream file(filename, std::ios::app | std::ios::binary);
                 std::vector<uint8_t> input;
                 std::vector<uint8_t> output;
                 std::vector<uint8_t> fixed_output;
@@ -721,12 +720,13 @@ namespace nl {
                         }
                         length = p;
                     }
+                    z_stream strm = {};
                     strm.next_in = input.data();
                     strm.avail_in = length;
                     inflateInit(&strm);
                     strm.next_out = output.data();
                     strm.avail_out = static_cast<unsigned>(output.size());
-                    int err = inflate(&strm, Z_FINISH);
+                    auto err = inflate(&strm, Z_FINISH);
                     if (err != Z_BUF_ERROR)
                         throw std::runtime_error("Zlib failed");
                     inflateEnd(&strm);
@@ -759,7 +759,7 @@ namespace nl {
                     case 1:
                         for (auto i = 0; i < pixels; ++i) {
                             auto p = pixels4444[i];
-                            pixelsout[i] = {p.b, p.g, p.r, p.a};
+                            pixelsout[i] = {p.b << 4, p.g << 4, p.r << 4, p.a << 4};
                         }
                         break;
                     case 2:
@@ -770,13 +770,13 @@ namespace nl {
                     case 513:
                         for (auto i = 0; i < pixels; ++i) {
                             auto p = pixels565[i];
-                            pixelsout[i] = {p.b, p.g, p.r, 255};
+                            pixelsout[i] = {p.b << 3, p.g << 2, p.r << 3, 255};
                         }
                         break;
                     case 517:
                         for (auto i = 0; i < pixels; i += 256) {
-                            auto p = pixels565[i];
-                            color8888 c = {p.b, p.g, p.r, 255};
+                            auto p = pixels565[i >> 8];
+                            color8888 c = {p.b << 3, p.g << 2, p.r << 3, 255};
                             for (auto j = 0; j < 256; ++j) {
                                 pixelsout[i + j] = c;
                             }
@@ -786,7 +786,11 @@ namespace nl {
                         throw std::runtime_error("Unknown image type!");
                     }
                     final_output.resize(static_cast<size_t>(LZ4_compressBound(size)));
-                    uint32_t final_size = static_cast<uint32_t>(LZ4_compress(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
+                    uint32_t final_size;
+                    if (hc)
+                        final_size = static_cast<uint32_t>(LZ4_compressHC(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
+                    else
+                        final_size = static_cast<uint32_t>(LZ4_compress(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
                     bitmap_offset += final_size + 4;
                     file.write(reinterpret_cast<char const *>(&final_size), 4);
                     file.write(reinterpret_cast<char const *>(final_output.data()), final_size);
@@ -806,13 +810,15 @@ Converts WZ files into NX files
 
 NoLifeWzToNx.exe [-client] [Firstfile.wz [Secondfile.wz [...]]]
 
--client: Specifies that bitmaps and audio should be included in the resulting nx file.
+-client : Specifies that bitmaps and audio should be included in the resulting nx file.
+-hc : Use high quality LZ4 compression. Takes forever but makes smaller files.
 
 If no files are specified, this program will automatically scan for all WZ files in the working directory.
 
 )rawraw";
     std::vector<std::string> args = {argv + 1, argv + argc};
     bool client = std::find(args.begin(), args.end(), "-client") != args.end();
+    bool hc = std::find(args.begin(), args.end(), "-hc") != args.end();
     args.erase(std::remove_if(args.begin(), args.end(), [](std::string const & s) {
         return s[0] == '-';
     }), args.end());
@@ -820,7 +826,7 @@ If no files are specified, this program will automatically scan for all WZ files
         args = {"Base.wz", "Character.wz", "Data.wz", "Effect.wz", "Etc.wz", "Item.wz", "Map.wz", "Mob.wz", "Morph.wz", "Npc.wz", "Quest.wz", "Reactor.wz", "Skill.wz", "Sound.wz", "String.wz", "TamingMob.wz", "UI.wz"};
     for (std::string n : args) {
         try {
-            nl::wztonx lel(n, client);
+            nl::wztonx lel(n, client, hc);
         } catch (std::exception const & e) {
             std::cerr << e.what() << std::endl;
         }
