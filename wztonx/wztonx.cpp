@@ -256,6 +256,9 @@ namespace nl {
         std::vector<std::vector<id_t>> uols;
         std::vector<bitmap> bitmaps;
         std::vector<audio> audios;
+        size_t offset, node_offset, string_offset, string_table_offset, bitmap_offset, bitmap_table_offset, audio_offset, audio_table_offset;
+        bool client, hc;
+        std::string wzfilename, nxfilename;
         //Methods
         id_t add_string(std::string str) {
             if (str.length() > std::numeric_limits<uint16_t>::max())
@@ -572,8 +575,9 @@ namespace nl {
             sub_property(img_node, p);
             in.seek(p + size);
         }
-        wztonx(std::string filename, bool client, bool hc) {
-            in.open(filename);
+        void parse_file() {
+            std::cout << "Parsing input.......";
+            in.open(wzfilename);
             auto magic = in.read<uint32_t>();
             if (magic != 0x31474B50)
                 throw std::runtime_error("Not a valid WZ file");
@@ -586,13 +590,9 @@ namespace nl {
             deduce_key();
             in.seek(file_start + 2);
             add_string({});
-            std::cout << "Opened file: " << filename << std::endl;
-            filename.erase(filename.find_last_of('.')).append(".nx");
             directory(0);
-            std::cout << "Parsed directories" << std::endl;
             for (auto & it : imgs)
                 img(it.first, it.second);
-            std::cout << "Parsed images" << std::endl;
             for (auto const & n : nodes_to_sort)
                 sort_nodes(n.first, n.second);
             find_uols(0);
@@ -607,40 +607,46 @@ namespace nl {
             }
             for (auto & it : uols)
                 uol_fail(it);
-            std::cout << "Node cleanup finished" << std::endl;
-            auto offset = 0ull;
+            std::cout << "Done!" << std::endl;
+        }
+        void calculate_offsets() {
+            offset = 0;
             offset += 52;
             offset += 0x10 - (offset & 0xf);
-            auto node_offset = offset;
+            node_offset = offset;
             offset += nodes.size() * 20;
             offset += 0x10 - (offset & 0xf);
-            auto string_table_offset = offset;
+            string_table_offset = offset;
             offset += strings.size() * 8;
             offset += 0x10 - (offset & 0xf);
-            auto string_offset = offset;
-            offset += std::accumulate(strings.begin(), strings.end(), 0ull, [](uint64_t n, std::string const & s) {
+            string_offset = offset;
+            offset += std::accumulate(strings.begin(), strings.end(), 0ull, [](size_t n, std::string const & s) {
                 return n + s.size() + 2;
             });
             offset += 0x10 - (offset & 0xf);
-            auto audio_table_offset = offset;
+            audio_table_offset = offset;
             if (client) {
                 offset += audios.size() * 8;
                 offset += 0x10 - (offset & 0xf);
             }
-            auto bitmap_table_offset = offset;
+            bitmap_table_offset = offset;
             if (client) {
                 offset += bitmaps.size() * 8;
                 offset += 0x10 - (offset & 0xf);
             }
-            auto audio_offset = offset;
+            audio_offset = offset;
             if (client) {
-                offset += std::accumulate(audios.begin(), audios.end(), 0ull, [](uint64_t n, audio const & a) {
+                offset += std::accumulate(audios.begin(), audios.end(), 0ull, [](size_t n, audio const & a) {
                     return n + a.length;
                 });
                 offset += 0x10 - (offset & 0xf);
             }
-            auto bitmap_offset = offset;
-            out.open(filename, offset);
+            bitmap_offset = offset;
+        }
+        void open_output() {
+            std::cout << "Opening output......";
+            calculate_offsets();
+            out.open(nxfilename, offset);
             out.seek(0);
             out.write<uint32_t>(0x34474B50);
             out.write<uint32_t>(static_cast<uint32_t>(nodes.size()));
@@ -658,10 +664,16 @@ namespace nl {
                 out.write<uint32_t>(0);
                 out.write<uint64_t>(0);
             }
-            std::cout << "Opened output" << std::endl ;
+            std::cout << "Done!" << std::endl;
+        }
+        void write_nodes() {
+            std::cout << "Writing nodes.......";
             out.seek(node_offset);
             out.write(nodes.data(), nodes.size() * 20);
-            std::cout << "Wrote nodes" << std::endl;
+            std::cout << "Done!" << std::endl;
+        }
+        void write_strings() {
+            std::cout << "Writing strings.....";
             out.seek(string_table_offset);
             auto next_str = string_offset;
             for (auto const & s : strings) {
@@ -673,134 +685,154 @@ namespace nl {
                 out.write<uint16_t>(static_cast<uint16_t>(s.size()));
                 out.write(s.data(), s.size());
             }
-            std::cout << "Wrote strings" << std::endl;
-            if (client) {
-                out.seek(audio_table_offset);
-                auto audio_off = audio_offset;
-                for (auto & a : audios) {
-                    out.write<uint64_t>(audio_off);
-                    audio_off += a.length;
-                }
-                out.seek(audio_offset);
-                for (auto & a : audios) {
-                    out.write(in.base + a.data, a.length);
-                }
-                std::cout << "Wrote audio" << std::endl;
-                out.seek(bitmap_table_offset);
-                std::ofstream file(filename, std::ios::app | std::ios::binary);
-                std::vector<uint8_t> input;
-                std::vector<uint8_t> output;
-                std::vector<uint8_t> fixed_output;
-                std::vector<uint8_t> final_output;
-                for (auto & b : bitmaps) {
-                    out.write<uint64_t>(bitmap_offset);
-                    in.seek(b.data);
-                    auto width = in.read_cint();
-                    auto height = in.read_cint();
-                    auto format = in.read_cint();
-                    format += in.read<uint8_t>();
-                    in.skip(4);
-                    auto length = in.read<uint32_t>();
-                    in.skip(1);
-                    input.resize(length);
-                    auto size = width * height * 4;
-                    output.resize(static_cast<size_t>(size));
-                    fixed_output.resize(static_cast<size_t>(size));
-                    auto original = reinterpret_cast<uint8_t const *>(in.offset);
-                    auto key = b.key;
-                    if (original[0] == 0x78) {
-                        if (original[1] != 0x9C)
-                            std::cout << "0x" << std::hex << (unsigned)original[1] << std::endl;
-                        std::copy(original, original + length, input.begin());
-                    } else {
-                        auto p = 0u;
-                        for (auto i = 0u; i <= length - 4;) {
-                            auto blen = *reinterpret_cast<uint32_t const *>(original + i);
-                            i += 4;
-                            if (i + blen > length)
-                                throw std::runtime_error("Failure with decrypting bitmap");
-                            for (auto j = 0u; j < blen; ++j)
-                                input[p + j] = static_cast<uint8_t>(original[i + j] ^ key[j]);
-                            i += blen;
-                            p += blen;
-                        }
-                        length = p;
-                    }
-                    z_stream strm = {};
-                    strm.next_in = input.data();
-                    strm.avail_in = length;
-                    inflateInit(&strm);
-                    strm.next_out = output.data();
-                    strm.avail_out = static_cast<unsigned>(output.size());
-                    inflate(&strm, Z_FINISH);
-                    inflateEnd(&strm);
-                    auto pixels = width * height;
-                    struct color4444 {
-                        uint8_t b : 4;
-                        uint8_t g : 4;
-                        uint8_t r : 4;
-                        uint8_t a : 4;
-                    };
-                    static_assert(sizeof(color4444) == 2, "Your bitpacking sucks");
-                    struct color8888 {
-                        uint8_t b;
-                        uint8_t g;
-                        uint8_t r;
-                        uint8_t a;
-                    };
-                    static_assert(sizeof(color8888) == 4, "Your bitpacking sucks");
-                    struct color565 {
-                        uint16_t b : 5;
-                        uint16_t g : 6;
-                        uint16_t r : 5;
-                    };
-                    static_assert(sizeof(color565) == 2, "Your bitpacking sucks");
-                    auto pixels4444 = reinterpret_cast<color4444 *>(output.data());
-                    auto pixels8888 = reinterpret_cast<color8888 *>(output.data());
-                    auto pixels565 = reinterpret_cast<color565 *>(output.data());
-                    auto pixelsout = reinterpret_cast<color8888 *>(fixed_output.data());
-                    switch (format) {
-                    case 1:
-                        for (auto i = 0; i < pixels; ++i) {
-                            auto p = pixels4444[i];
-                            pixelsout[i] = {table4[p.b], table4[p.g], table4[p.r], table4[p.a]};
-                        }
-                        break;
-                    case 2:
-                        for (auto i = 0; i < pixels; ++i) {
-                            pixelsout[i] = pixels8888[i];
-                        }
-                        break;
-                    case 513:
-                        for (auto i = 0; i < pixels; ++i) {
-                            auto p = pixels565[i];
-                            pixelsout[i] = {table5[p.b], table6[p.g], table5[p.r], 255};
-                        }
-                        break;
-                    case 517:
-                        for (auto i = 0; i < pixels; i += 256) {
-                            auto p = pixels565[i >> 8];
-                            color8888 c = {table5[p.b], table6[p.g], table5[p.r], 255};
-                            for (auto j = 0; j < 256; ++j) {
-                                pixelsout[i + j] = c;
-                            }
-                        }
-                        break;
-                    default:
-                        throw std::runtime_error("Unknown image type!");
-                    }
-                    final_output.resize(static_cast<size_t>(LZ4_compressBound(size)));
-                    uint32_t final_size;
-                    if (hc)
-                        final_size = static_cast<uint32_t>(LZ4_compressHC(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
-                    else
-                        final_size = static_cast<uint32_t>(LZ4_compress(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
-                    bitmap_offset += final_size + 4;
-                    file.write(reinterpret_cast<char const *>(&final_size), 4);
-                    file.write(reinterpret_cast<char const *>(final_output.data()), final_size);
-                }
+            std::cout << "Done!" << std::endl;
+        }
+        void write_audio() {
+            std::cout << "Writing audio.......";
+            out.seek(audio_table_offset);
+            auto audio_off = audio_offset;
+            for (auto & a : audios) {
+                out.write<uint64_t>(audio_off);
+                audio_off += a.length;
             }
-            std::cout << "Done" << std::endl;
+            out.seek(audio_offset);
+            for (auto & a : audios) {
+                out.write(in.base + a.data, a.length);
+            }
+            std::cout << "Done!" << std::endl;
+        }
+        void write_bitmaps() {
+            std::cout << "Writing bitmaps.....";
+            out.seek(bitmap_table_offset);
+            std::ofstream file(nxfilename, std::ios::app | std::ios::binary);
+            std::vector<uint8_t> input;
+            std::vector<uint8_t> output;
+            std::vector<uint8_t> fixed_output;
+            std::vector<uint8_t> final_output;
+            for (auto & b : bitmaps) {
+                out.write<uint64_t>(bitmap_offset);
+                in.seek(b.data);
+                auto width = in.read_cint();
+                auto height = in.read_cint();
+                auto format = in.read_cint();
+                format += in.read<uint8_t>();
+                in.skip(4);
+                auto length = in.read<uint32_t>();
+                in.skip(1);
+                input.resize(length);
+                auto size = width * height * 4;
+                output.resize(static_cast<size_t>(size));
+                fixed_output.resize(static_cast<size_t>(size));
+                auto original = reinterpret_cast<uint8_t const *>(in.offset);
+                auto key = b.key;
+                if (original[0] == 0x78) {
+                    if (original[1] != 0x9C)
+                        std::cout << "0x" << std::hex << (unsigned)original[1] << std::endl;
+                    std::copy(original, original + length, input.begin());
+                } else {
+                    auto p = 0u;
+                    for (auto i = 0u; i <= length - 4;) {
+                        auto blen = *reinterpret_cast<uint32_t const *>(original + i);
+                        i += 4;
+                        if (i + blen > length)
+                            throw std::runtime_error("Failure with decrypting bitmap");
+                        for (auto j = 0u; j < blen; ++j)
+                            input[p + j] = static_cast<uint8_t>(original[i + j] ^ key[j]);
+                        i += blen;
+                        p += blen;
+                    }
+                    length = p;
+                }
+                z_stream strm = {};
+                strm.next_in = input.data();
+                strm.avail_in = length;
+                inflateInit(&strm);
+                strm.next_out = output.data();
+                strm.avail_out = static_cast<unsigned>(output.size());
+                inflate(&strm, Z_FINISH);
+                inflateEnd(&strm);
+                auto pixels = width * height;
+                struct color4444 {
+                    uint8_t b : 4;
+                    uint8_t g : 4;
+                    uint8_t r : 4;
+                    uint8_t a : 4;
+                };
+                static_assert(sizeof(color4444) == 2, "Your bitpacking sucks");
+                struct color8888 {
+                    uint8_t b;
+                    uint8_t g;
+                    uint8_t r;
+                    uint8_t a;
+                };
+                static_assert(sizeof(color8888) == 4, "Your bitpacking sucks");
+                struct color565 {
+                    uint16_t b : 5;
+                    uint16_t g : 6;
+                    uint16_t r : 5;
+                };
+                static_assert(sizeof(color565) == 2, "Your bitpacking sucks");
+                auto pixels4444 = reinterpret_cast<color4444 *>(output.data());
+                auto pixels8888 = reinterpret_cast<color8888 *>(output.data());
+                auto pixels565 = reinterpret_cast<color565 *>(output.data());
+                auto pixelsout = reinterpret_cast<color8888 *>(fixed_output.data());
+                switch (format) {
+                case 1:
+                    for (auto i = 0; i < pixels; ++i) {
+                        auto p = pixels4444[i];
+                        pixelsout[i] = {table4[p.b], table4[p.g], table4[p.r], table4[p.a]};
+                    }
+                    break;
+                case 2:
+                    for (auto i = 0; i < pixels; ++i) {
+                        pixelsout[i] = pixels8888[i];
+                    }
+                    break;
+                case 513:
+                    for (auto i = 0; i < pixels; ++i) {
+                        auto p = pixels565[i];
+                        pixelsout[i] = {table5[p.b], table6[p.g], table5[p.r], 255};
+                    }
+                    break;
+                case 517:
+                    for (auto i = 0; i < pixels; i += 256) {
+                        auto p = pixels565[i >> 8];
+                        color8888 c = {table5[p.b], table6[p.g], table5[p.r], 255};
+                        for (auto j = 0; j < 256; ++j) {
+                            pixelsout[i + j] = c;
+                        }
+                    }
+                    break;
+                default:
+                    throw std::runtime_error("Unknown image type!");
+                }
+                final_output.resize(static_cast<size_t>(LZ4_compressBound(size)));
+                uint32_t final_size;
+                if (hc)
+                    final_size = static_cast<uint32_t>(LZ4_compressHC(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
+                else
+                    final_size = static_cast<uint32_t>(LZ4_compress(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
+                bitmap_offset += final_size + 4;
+                file.write(reinterpret_cast<char const *>(&final_size), 4);
+                file.write(reinterpret_cast<char const *>(final_output.data()), final_size);
+            }
+            std::cout << "Done!" << std::endl;
+        }
+        wztonx(std::string filename, bool client, bool hc) : client(client), hc(hc) {
+            wzfilename = filename;
+            filename.erase(filename.find_last_of('.')).append(".nx");
+            nxfilename = filename;
+            if (!std::ifstream(wzfilename).is_open())
+                return;
+            std::cout << wzfilename << " -> " << nxfilename << std::endl;
+            parse_file();
+            open_output();
+            write_nodes();
+            write_strings();
+            if (client) {
+                write_audio();
+                write_bitmaps();
+            }
         }
     };
 }
@@ -837,6 +869,5 @@ If no files are specified, this program will automatically scan for all WZ files
     }
     auto b = std::chrono::high_resolution_clock::now();
     std::cout << "Took " << std::chrono::duration_cast<std::chrono::seconds>(b - a).count() << " seconds" << std::endl;
-    std::cout << "Press enter to continue..." << std::endl;
-    std::cin.get();
+    std::system("pause");
 }
