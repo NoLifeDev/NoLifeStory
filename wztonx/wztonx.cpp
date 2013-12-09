@@ -43,6 +43,7 @@
 #include <algorithm>
 #include <chrono>
 #include <numeric>
+#include <iomanip>
 
 namespace nl {
     //Some typedefs
@@ -716,43 +717,55 @@ namespace nl {
                 auto height = in.read_cint();
                 auto format = in.read_cint();
                 format += in.read<uint8_t>();
-                in.skip(4);
+                auto n1 = in.read<uint32_t>();
+                if (n1)
+                    std::clog << "0x" << std::setfill('0') << std::setw(8) << std::hex << n1;
                 auto length = in.read<uint32_t>();
-                in.skip(1);
+                auto n2 = in.read<uint8_t>();
+                if (n2)
+                    std::clog << " 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)n2 << std::endl;
                 input.resize(length);
                 auto size = width * height * 4;
                 output.resize(static_cast<size_t>(size));
                 fixed_output.resize(static_cast<size_t>(size));
                 auto original = reinterpret_cast<uint8_t const *>(in.offset);
                 auto key = b.key;
-                if (original[0] == 0x78) {
-                    if (original[1] != 0x9C)
-                        std::cout << "0x" << std::hex << (unsigned)original[1] << std::endl;
-                    std::copy(original, original + length, input.begin());
-                } else {
+                auto decompress = [&] {
+                    z_stream strm = {};
+                    strm.next_in = input.data();
+                    strm.avail_in = length;
+                    inflateInit(&strm);
+                    strm.next_out = output.data();
+                    strm.avail_out = static_cast<unsigned>(output.size());
+                    auto err = inflate(&strm, Z_FINISH);
+                    if (err != Z_BUF_ERROR) {
+                        std::clog << "Zlib error " << err << ": 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)original[0] << " 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)original[1] << std::endl;
+                        return false;
+                    }
+                    inflateEnd(&strm);
+                    return true;
+                };
+                auto decrypt = [&] {
                     auto p = 0u;
                     for (auto i = 0u; i <= length - 4;) {
                         auto blen = *reinterpret_cast<uint32_t const *>(original + i);
                         i += 4;
-                        if (i + blen > length)
-                            throw std::runtime_error("Failure with decrypting bitmap");
+                        if (i + blen > length) {
+                            std::clog << "Even decryption fails" << std::endl;
+                            return;
+                        }
                         for (auto j = 0u; j < blen; ++j)
                             input[p + j] = static_cast<uint8_t>(original[i + j] ^ key[j]);
                         i += blen;
                         p += blen;
                     }
                     length = p;
+                };
+                std::copy(original, original + length, input.begin());
+                if (!decompress()) {
+                    decrypt();
+                    decompress();
                 }
-                z_stream strm = {};
-                strm.next_in = input.data();
-                strm.avail_in = length;
-                inflateInit(&strm);
-                strm.next_out = output.data();
-                strm.avail_out = static_cast<unsigned>(output.size());
-                auto err = inflate(&strm, Z_FINISH);
-                if (err != Z_BUF_ERROR)
-                    std::cout << "Zlib: " << err << std::endl;
-                inflateEnd(&strm);
                 auto pixels = width * height;
                 struct color4444 {
                     uint8_t b : 4;
@@ -839,6 +852,9 @@ namespace nl {
     };
 }
 int main(int argc, char ** argv) {
+    std::filebuf file;
+    file.open("NoLifeWzToNx.log", std::ios::out);
+    std::clog.rdbuf(&file);
     auto a = std::chrono::high_resolution_clock::now();
     std::cout << R"rawraw(
 NoLifeWzToNx
@@ -846,7 +862,7 @@ Copyright © 2013 Peter Atashian
 Licensed under GNU Affero General Public License
 Converts WZ files into NX files
 
-NoLifeWzToNx.exe [-client] [Firstfile.wz [Secondfile.wz [...]]]
+NoLifeWzToNx.exe [-client] [-hc] [Firstfile.wz [Secondfile.wz [...]]]
 
 -client : Specifies that bitmaps and audio should be included in the resulting nx file.
 -hc : Use high quality LZ4 compression. Takes forever but makes smaller files.
