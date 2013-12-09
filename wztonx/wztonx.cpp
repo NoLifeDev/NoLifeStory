@@ -739,7 +739,7 @@ namespace nl {
                     strm.avail_out = static_cast<unsigned>(output.size());
                     auto err = inflate(&strm, Z_FINISH);
                     if (err != Z_BUF_ERROR) {
-                        std::clog << "Zlib error " << err << ": 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)original[0] << " 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)original[1] << std::endl;
+                        std::clog << "Zlib error " << std::dec << err << ": 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)original[0] << " 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)original[1] << std::endl;
                         return false;
                     }
                     inflateEnd(&strm);
@@ -752,7 +752,7 @@ namespace nl {
                         i += 4;
                         if (i + blen > length) {
                             std::clog << "Even decryption fails" << std::endl;
-                            return;
+                            return false;
                         }
                         for (auto j = 0u; j < blen; ++j)
                             input[p + j] = static_cast<uint8_t>(original[i + j] ^ key[j]);
@@ -760,12 +760,12 @@ namespace nl {
                         p += blen;
                     }
                     length = p;
+                    return true;
                 };
                 std::copy(original, original + length, input.begin());
-                if (!decompress()) {
-                    decrypt();
+                if (!decompress())
+                if (decrypt())
                     decompress();
-                }
                 auto pixels = width * height;
                 struct color4444 {
                     uint8_t b : 4;
