@@ -5,6 +5,8 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
+find_package(glfw REQUIRED)
+include_directories(${GLFW_INCLUDE_DIR})
 
 #aux_source_directory(. NOLIFECLIENT_SOURCES)
 
@@ -29,4 +31,4 @@ view.cpp
 window.cpp
 )
 
-target_link_libraries(NoLifeClient NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123 glfw)
+target_link_libraries(NoLifeClient NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123 ${GLFW_LIBRARY})
