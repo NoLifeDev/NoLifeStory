@@ -56,6 +56,10 @@ namespace nl {
     extern key_t key_gms[65536];
     extern key_t key_kms[65536];
     key_t const * keys[3] = {key_bms, key_gms, key_kms};
+    //Tables for color lookups
+    uint8_t table4[] = {0x0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
+    uint8_t table5[] = {0x0, 0x8, 0x10, 0x19, 0x21, 0x29, 0x31, 0x3A, 0x42, 0x4A, 0x52, 0x5A, 0x63, 0x6B, 0x73, 0x7B, 0x84, 0x8C, 0x94, 0x9C, 0xA5, 0xAD, 0xB5, 0xBD, 0xC5, 0xCE, 0xD6, 0xDE, 0xE6, 0xEF, 0xF7, 0xFF};
+    uint8_t table6[] = {0x0, 0x4, 0x8, 0xC, 0x10, 0x14, 0x18, 0x1C, 0x20, 0x24, 0x28, 0x2D, 0x31, 0x35, 0x39, 0x3D, 0x41, 0x45, 0x49, 0x4D, 0x51, 0x55, 0x59, 0x5D, 0x61, 0x65, 0x69, 0x6D, 0x71, 0x75, 0x79, 0x7D, 0x82, 0x86, 0x8A, 0x8E, 0x92, 0x96, 0x9A, 0x9E, 0xA2, 0xA6, 0xAA, 0xAE, 0xB2, 0xB6, 0xBA, 0xBE, 0xC2, 0xC6, 0xCA, 0xCE, 0xD2, 0xD7, 0xDB, 0xDF, 0xE3, 0xE7, 0xEB, 0xEF, 0xF3, 0xF7, 0xFB, 0xFF};
     //Identity operation because C++ doesn't have such a template. Surprising, I know.
     template <typename T> struct identity {
         T const & operator()(T const & v) const {
@@ -704,11 +708,13 @@ namespace nl {
                     fixed_output.resize(static_cast<size_t>(size));
                     auto original = reinterpret_cast<uint8_t const *>(in.offset);
                     auto key = b.key;
-                    if (original[0] == 0x78 && (original[1] == 0x9C || original[1] == 0xDA || original[1] == 0x01)) {
+                    if (original[0] == 0x78) {
+                        if (original[1] != 0x9C)
+                            std::cout << "0x" << std::hex << (unsigned)original[1] << std::endl;
                         std::copy(original, original + length, input.begin());
                     } else {
                         auto p = 0u;
-                        for (auto i = 0u; i < length - 1;) {
+                        for (auto i = 0u; i <= length - 4;) {
                             auto blen = *reinterpret_cast<uint32_t const *>(original + i);
                             i += 4;
                             if (i + blen > length)
@@ -757,7 +763,7 @@ namespace nl {
                     case 1:
                         for (auto i = 0; i < pixels; ++i) {
                             auto p = pixels4444[i];
-                            pixelsout[i] = {p.b << 4, p.g << 4, p.r << 4, p.a << 4};
+                            pixelsout[i] = {table4[p.b], table4[p.g], table4[p.r], table4[p.a]};
                         }
                         break;
                     case 2:
@@ -768,13 +774,13 @@ namespace nl {
                     case 513:
                         for (auto i = 0; i < pixels; ++i) {
                             auto p = pixels565[i];
-                            pixelsout[i] = {p.b << 3, p.g << 2, p.r << 3, 255};
+                            pixelsout[i] = {table5[p.b], table6[p.g], table5[p.r], 255};
                         }
                         break;
                     case 517:
                         for (auto i = 0; i < pixels; i += 256) {
                             auto p = pixels565[i >> 8];
-                            color8888 c = {p.b << 3, p.g << 2, p.r << 3, 255};
+                            color8888 c = {table5[p.b], table6[p.g], table5[p.r], 255};
                             for (auto j = 0; j < 256; ++j) {
                                 pixelsout[i + j] = c;
                             }
