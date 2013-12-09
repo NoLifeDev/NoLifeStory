@@ -19,12 +19,14 @@
 #include <nx/node.hpp>
 #include <nx/file.hpp>
 #include <nx/bitmap.hpp>
+#include <nx/audio.hpp>
 #include <cstdio>
 #include <vector>
 #include <algorithm>
 #include <numeric>
 #include <cstddef>
 #include <functional>
+#include <fstream>
 #ifdef _WIN32
 #  include <Windows.h>
 #else
@@ -113,6 +115,15 @@ namespace nl {
         test("LR", recurse_load, 0x40);
         test("SA", recurse_search, 0x40);
         //test("De", recurse_decompress, 0x10);
+    }
+    void dump_music() {
+        file soundfile("Sound.nx");
+        node sounds = soundfile;
+        for (auto n : sounds)
+        if (n.name().find("Bgm") != std::string::npos)
+        for (auto nn : n)
+        if (nn.data_type() == node::type::audio)
+            std::ofstream(n.name() + "." + nn.name() + ".mp3", std::ios::binary).write(reinterpret_cast<char const *>(nn.get_audio().data()) + 82, nn.get_audio().length() - 82);
     }
 }
 int main() {

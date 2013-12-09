@@ -29,6 +29,10 @@
 #  include <unistd.h>
 #endif
 
+#include <zlib.h>
+#include <lz4.h>
+#include <lz4hc.h>
+
 #include <iostream>
 #include <fstream>
 #include <codecvt>
@@ -54,7 +58,7 @@ namespace nl {
     key_t const * keys[3] = {key_bms, key_gms, key_kms};
     //Identity operation because C++ doesn't have such a template. Surprising, I know.
     template <typename T> struct identity {
-        T operator()(T const & v) const {
+        T const & operator()(T const & v) const {
             return v;
         }
     };
@@ -224,6 +228,10 @@ namespace nl {
         uint32_t length;
         uint64_t data;
     };
+    struct bitmap {
+        uint64_t data;
+        uint8_t const * key;
+    };
     //The main class itself
     struct wztonx {
         //Variables
@@ -242,7 +250,7 @@ namespace nl {
         size_t file_start = 0;
         std::vector<id_t> uol_path;
         std::vector<std::vector<id_t>> uols;
-        std::vector<uint64_t> bitmaps;
+        std::vector<bitmap> bitmaps;
         std::vector<audio> audios;
         //Methods
         id_t add_string(std::string str) {
@@ -454,7 +462,7 @@ namespace nl {
                 auto & n = nodes[prop_node];
                 n.data_type = node::type::bitmap;
                 n.data.bitmap.id = static_cast<uint32_t>(bitmaps.size());
-                bitmaps.push_back(in.tell());
+                bitmaps.push_back({in.tell(), reinterpret_cast<uint8_t const *>(u8key)});
                 n.data.bitmap.width = static_cast<uint16_t>(in.read_cint());
                 n.data.bitmap.height = static_cast<uint16_t>(in.read_cint());
             } else if (st == "Shape2D#Vector2D") {
@@ -628,12 +636,6 @@ namespace nl {
                 offset += 0x10 - (offset & 0xf);
             }
             auto bitmap_offset = offset;
-            if (client) {
-                offset += std::accumulate(bitmaps.begin(), bitmaps.end(), 0ull, [](uint64_t n, uint64_t) {
-                    return n;
-                });
-                offset += 0x10 - (offset & 0xf);
-            }
             out.open(filename, offset);
             out.seek(0);
             out.write<uint32_t>(0x34474B50);
@@ -680,6 +682,115 @@ namespace nl {
                     out.write(in.base + a.data, a.length);
                 }
                 std::cout << "Wrote audio" << std::endl;
+                out.seek(bitmap_table_offset);
+                std::ofstream file("filename", std::ios::app);
+                z_stream strm = {};
+                std::vector<uint8_t> input;
+                std::vector<uint8_t> output;
+                std::vector<uint8_t> fixed_output;
+                std::vector<uint8_t> final_output;
+                for (auto & b : bitmaps) {
+                    out.write<uint64_t>(bitmap_offset);
+                    in.seek(b.data);
+                    auto width = in.read_cint();
+                    auto height = in.read_cint();
+                    auto format = in.read_cint();
+                    format += in.read<uint8_t>();
+                    in.skip(4);
+                    auto length = in.read<uint32_t>();
+                    in.skip(1);
+                    input.resize(length);
+                    auto size = width * height * 4;
+                    output.resize(static_cast<size_t>(size));
+                    fixed_output.resize(static_cast<size_t>(size));
+                    auto original = reinterpret_cast<uint8_t const *>(in.offset);
+                    auto key = b.key;
+                    if (original[0] == 0x78 && (original[1] == 0x9C || original[1] == 0xDA || original[1] == 0x01)) {
+                        std::copy(original, original + length, input.begin());
+                    } else {
+                        auto p = 0u;
+                        for (auto i = 0u; i < length - 1;) {
+                            auto blen = *reinterpret_cast<uint32_t const *>(original + i);
+                            i += 4;
+                            if (i + blen > length)
+                                throw std::runtime_error("Failure with decrypting bitmap");
+                            for (auto j = 0u; j < blen; ++j)
+                                input[p + j] = static_cast<uint8_t>(original[i + j] ^ key[j]);
+                            i += blen;
+                            p += blen;
+                        }
+                        length = p;
+                    }
+                    strm.next_in = input.data();
+                    strm.avail_in = length;
+                    inflateInit(&strm);
+                    strm.next_out = output.data();
+                    strm.avail_out = static_cast<unsigned>(output.size());
+                    int err = inflate(&strm, Z_FINISH);
+                    if (err != Z_BUF_ERROR)
+                        throw std::runtime_error("Zlib failed");
+                    inflateEnd(&strm);
+                    auto pixels = width * height;
+                    struct color4444 {
+                        uint8_t b : 4;
+                        uint8_t g : 4;
+                        uint8_t r : 4;
+                        uint8_t a : 4;
+                    };
+                    static_assert(sizeof(color4444) == 2, "Your bitpacking sucks");
+                    struct color8888 {
+                        uint8_t b;
+                        uint8_t g;
+                        uint8_t r;
+                        uint8_t a;
+                    };
+                    static_assert(sizeof(color8888) == 4, "Your bitpacking sucks");
+                    struct color565 {
+                        uint16_t b : 5;
+                        uint16_t g : 6;
+                        uint16_t r : 5;
+                    };
+                    static_assert(sizeof(color565) == 2, "Your bitpacking sucks");
+                    auto pixels4444 = reinterpret_cast<color4444 *>(output.data());
+                    auto pixels8888 = reinterpret_cast<color8888 *>(output.data());
+                    auto pixels565 = reinterpret_cast<color565 *>(output.data());
+                    auto pixelsout = reinterpret_cast<color8888 *>(fixed_output.data());
+                    switch (format) {
+                    case 1:
+                        for (auto i = 0; i < pixels; ++i) {
+                            auto p = pixels4444[i];
+                            pixelsout[i] = {p.b, p.g, p.r, p.a};
+                        }
+                        break;
+                    case 2:
+                        for (auto i = 0; i < pixels; ++i) {
+                            pixelsout[i] = pixels8888[i];
+                        }
+                        break;
+                    case 513:
+                        for (auto i = 0; i < pixels; ++i) {
+                            auto p = pixels565[i];
+                            pixelsout[i] = {p.b, p.g, p.r, 255};
+                        }
+                        break;
+                    case 517:
+                        for (auto i = 0; i < pixels; i += 256) {
+                            auto p = pixels565[i];
+                            color8888 c = {p.b, p.g, p.r, 255};
+                            for (auto j = 0; j < 256; ++j) {
+                                pixelsout[i + j] = c;
+                            }
+                        }
+                        break;
+                    default:
+                        throw std::runtime_error("Unknown image type!");
+                    }
+                    final_output.resize(static_cast<size_t>(LZ4_compressBound(size)));
+                    uint32_t final_size = static_cast<uint32_t>(LZ4_compress(reinterpret_cast<char const *>(fixed_output.data()), reinterpret_cast<char *>(final_output.data()), size));
+                    bitmap_offset += final_size + 4;
+                    file.write(reinterpret_cast<char const *>(&final_size), 4);
+                    file.write(reinterpret_cast<char const *>(final_output.data()), final_size);
+                }
             }
             std::cout << "Done" << std::endl;
         }
@@ -698,7 +809,8 @@ NoLifeWzToNx.exe [-client] [Firstfile.wz [Secondfile.wz [...]]]
 -client: Specifies that bitmaps and audio should be included in the resulting nx file.
 
 If no files are specified, this program will automatically scan for all WZ files in the working directory.
-)rawraw" << std::endl;
+
+)rawraw";
     std::vector<std::string> args = {argv + 1, argv + argc};
     bool client = std::find(args.begin(), args.end(), "-client") != args.end();
     args.erase(std::remove_if(args.begin(), args.end(), [](std::string const & s) {

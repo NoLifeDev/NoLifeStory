@@ -107,9 +107,11 @@ namespace nl {
             delay = 0;
             next_delay = current["delay"].get_real(100);
         }
-        if (current.data_type() != node::type::bitmap)
-            return;
         bitmap b = current;
+        if (!b) {//Something went horribly wrong
+            data = {};
+            return;
+        }
         width = b.width();
         height = b.height();
         auto o = current["origin"];
@@ -138,8 +140,6 @@ namespace nl {
             delay += time::delta * 1000;
             if (delay > next_delay)
                 set_frame(frame + 1);
-            if (current.data_type() != node::type::bitmap)
-                return;
         }
         //cx and cy represent tiling distance
         if (!cx)
