@@ -749,7 +749,9 @@ namespace nl {
                 inflateInit(&strm);
                 strm.next_out = output.data();
                 strm.avail_out = static_cast<unsigned>(output.size());
-                inflate(&strm, Z_FINISH);
+                auto err = inflate(&strm, Z_FINISH);
+                if (err != Z_BUF_ERROR)
+                    std::cout << "Zlib: " << err << std::endl;
                 inflateEnd(&strm);
                 auto pixels = width * height;
                 struct color4444 {
