@@ -111,6 +111,10 @@ namespace nl {
         size_t size() const;
         //Gets the type of data contained within the node
         type data_type() const;
+        //Returns the root node of the file this node was derived from
+        node root() const;
+        //Takes a '/' separated string, and resolves the given path
+        node resolve(std::string) const;
     private:
         node(data const *, _file_data const *);
         node get_child(char const *, uint16_t) const;

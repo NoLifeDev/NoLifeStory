@@ -18,6 +18,7 @@
 
 #pragma once
 #include <nx/node.hpp>
+#include <nx/bitmap.hpp>
 
 namespace nl {
     class sprite {
@@ -40,6 +41,7 @@ namespace nl {
         void set_frame(int f);
         void bind();
         node data, current;
+        bitmap curbit;
         double delay, next_delay;
         double movew, moveh, movep, mover;
         double a0, a1;

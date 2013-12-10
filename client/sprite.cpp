@@ -50,22 +50,21 @@ namespace nl {
         glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
     }
     void sprite::bind() {
-        bitmap b = current;
-        if (b.id() == last_bound)
+        if (curbit.id() == last_bound)
             return;
         if (!last_bound)
             reinit();
-        last_bound = b.id();
-        auto & t = textures[b.id()];
+        last_bound = curbit.id();
+        auto & t = textures[curbit.id()];
         if (!t) {
             glGenTextures(1, &t);
             glBindTexture(GL_TEXTURE_2D, t);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b.width(), b.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, b.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, curbit.width(), curbit.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, curbit.data());
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            loaded_textures.push_back(b.id());
+            loaded_textures.push_back(curbit.id());
         } else {
             glBindTexture(GL_TEXTURE_2D, t);
         }
@@ -107,13 +106,18 @@ namespace nl {
             delay = 0;
             next_delay = current["delay"].get_real(100);
         }
-        bitmap b = current;
-        if (!b) {//Something went horribly wrong
+        if (current["source"]) {
+            std::string str = current["source"];
+            curbit = current.root().resolve(str.substr(str.find_first_of('/') + 1));
+        } else {
+            curbit = current;
+        }
+        if (!curbit) {//Something went horribly wrong
             data = {};
             return;
         }
-        width = b.width();
-        height = b.height();
+        width = curbit.width();
+        height = curbit.height();
         auto o = current["origin"];
         originx = o.x();
         originy = o.y();

@@ -20,6 +20,12 @@
 #include <nx/file.hpp>
 #include <nx/bitmap.hpp>
 #include <nx/audio.hpp>
+#include <nx/nx.hpp>
+#ifdef _WIN32
+#  include <Windows.h>
+#else
+#  include <ctime>
+#endif
 #include <cstdio>
 #include <vector>
 #include <algorithm>
@@ -27,11 +33,7 @@
 #include <cstddef>
 #include <functional>
 #include <fstream>
-#ifdef _WIN32
-#  include <Windows.h>
-#else
-#  include <ctime>
-#endif
+#include <iostream>
 
 namespace nl {
     std::string const filename = "Data.nx";

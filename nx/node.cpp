@@ -22,6 +22,8 @@
 #include "audio.hpp"
 #include <cstring>
 #include <stdexcept>
+#include <vector>
+#include <sstream>
 
 namespace nl {
     node::node(node const & o) :
@@ -307,5 +309,20 @@ namespace nl {
         return {reinterpret_cast<char const *>(m_file->base)
             + m_file->audio_table[m_data->audio.index],
             m_data->audio.length};
+    }
+    node node::root() const {
+        return {m_file->node_table, m_file};
+    }
+    node node::resolve(std::string path) const {
+        std::istringstream stream(path);
+        std::vector<std::string> parts;
+        std::string segment;
+        while (std::getline(stream, segment, '/'))
+            parts.push_back(segment);
+        auto n = *this;
+        for (auto & part : parts) {
+            n = n[part];
+        }
+        return n;
     }
 }
