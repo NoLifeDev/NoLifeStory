@@ -35,6 +35,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <iomanip>
 #include <set>
 
 namespace nl {
@@ -134,32 +135,49 @@ namespace nl {
         if (nn.data_type() == node::type::audio)
             std::ofstream(n.name() + "." + nn.name() + ".mp3", std::ios::binary).write(reinterpret_cast<char const *>(nn.get_audio().data()) + 82, nn.get_audio().length() - 82);
     }
-    std::set<std::tuple<std::string, std::string>> stuff;
+    std::set<std::string> children;
+    std::map<std::string, size_t> values;
     std::ofstream dump("NoLifeNxBench.log");
-    void gather_node_dump_recursive(node n, std::string s) {
-        stuff.emplace(s, n);
-        s.push_back('/');
-        for (node nn : n)
-            gather_node_dump_recursive(nn, s + nn.name());
-    }
-    void dump_node_recursive(node n) {
-        for (node nn : n) {
-            gather_node_dump_recursive(nn, nn.name());
+    std::string get_value(node n) {
+        auto s = n.name() + '.';
+        switch (n.data_type()) {
+        case node::type::audio:
+            return s + "audio";
+        case node::type::bitmap:
+            return s + "bitmap";
+        case node::type::integer:
+            return s + "integer=" + n.get_string();
+        case node::type::none:
+            return s + "none";
+        case node::type::real:
+            return s + "real=" + n.get_string();
+        case node::type::string:
+            return s + "string=" + n.get_string();
+        case node::type::vector:
+            return s + "vector=" + std::to_string(n.x()) + "," + std::to_string(n.y());
+        default:
+            throw std::runtime_error("Wat");
         }
     }
     void gather_node_dump(node n, std::string s) {
-        stuff.emplace(s, n);
+        children.emplace(s);
     }
     void dump_node(node n) {
+        ++values[get_value(n)];
         for (node nn : n) {
             gather_node_dump(nn, nn.name());
         }
     }
     void dump_stuff() {
         nx::load_all();
-        dump_node(nx::character);
-        for (auto & s : stuff)
-            dump << std::get<0>(s) << ": " << std::get<1>(s) << std::endl;
+        for (auto n1 : nx::map.root()["Back"])
+        for (auto n2 : n1["ani"])
+        for (auto n3 : n2)
+            dump_node(n3);
+        for (auto & s : values)
+            dump << std::setw(4) << std::right << s.second << "x " << s.first << std::endl;
+        for (auto & s : children)
+            dump << "* [[/" << s << "|" << s << "]]" << std::endl;
     }
 }
 int main() {

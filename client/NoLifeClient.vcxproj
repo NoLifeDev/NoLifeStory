@@ -49,6 +49,7 @@
     <Link>
       <AdditionalDependencies>lz4.lib;glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;glfw.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">

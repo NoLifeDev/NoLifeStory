@@ -24,7 +24,7 @@ void terminated() {
     std::abort();
 }
 
-int main(int, char **) {
+int main() {
     try {
         std::set_terminate(terminated);
         std::freopen("NoLifeClient.log", "a", stderr);
@@ -41,3 +41,8 @@ int main(int, char **) {
         return EXIT_FAILURE;
     }
 }
+#ifdef _MSC_VER
+int wWinMain(void *, void *, wchar_t *, int) {
+    main();
+}
+#endif
