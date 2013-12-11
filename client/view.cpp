@@ -115,8 +115,8 @@ namespace nl {
             update();
         }
         void update() {
-            auto sx = (tx - fx) * time::delta * 5;
-            auto sy = (ty - fy) * time::delta * 5;
+            auto sx = (tx - fx) * time::delta * 3;
+            auto sy = (ty - fy) * time::delta * 3;
             if (abs(sx) > abs(tx - fx))
                 sx = tx - fx;
             if (abs(sy) > abs(ty - fy))

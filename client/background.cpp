@@ -51,41 +51,53 @@ namespace nl {
         }
     }
     void background::render() {
-        auto dx = x + rx * view::x / 100 + view::width / 2;
-        auto dy = y + ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
+        auto dx = x;
+        auto dy = y;
         auto flags = sprite::none;
         if (flipped)
             flags |= sprite::flipped;
         switch (type) {
         case 0:
+            dx += rx * view::x / 100 + view::width / 2;
+            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 1:
             flags |= sprite::tilex;
+            dx += rx * view::x / 100 + view::width / 2;
+            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 2:
             flags |= sprite::tiley;
+            dx += rx * view::x / 100 + view::width / 2;
+            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 3:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
+            dx += rx * view::x / 100 + view::width / 2;
+            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 4:
             flags |= sprite::tilex;
-            dx += static_cast<int>(time::delta_total * rx * 10);
+            dx += static_cast<int>(time::delta_total * rx * 10) - view::x;
+            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 5:
             flags |= sprite::tiley;
-            dy += static_cast<int>(time::delta_total * ry * 10);
+            dx += rx * view::x / 100 + view::width / 2;
+            dy += static_cast<int>(time::delta_total * ry * 10) - view::y;
             break;
         case 6:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
-            dx += static_cast<int>(time::delta_total * rx * 10);
+            dx += static_cast<int>(time::delta_total * rx * 10) - view::x;
+            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 7:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
-            dy += static_cast<int>(time::delta_total * ry * 10);
+            dx += rx * view::x / 100 + view::width / 2;
+            dy += static_cast<int>(time::delta_total * ry * 10) - view::y;
             break;
         }
         spr.draw(dx, dy, flags, cx, cy);
