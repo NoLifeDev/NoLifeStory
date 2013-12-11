@@ -159,7 +159,7 @@ namespace nl {
         }
         void draw_edges() {
             sprite::unbind();
-            glColor4d(0, 0, 0, 0.2);
+            glColor4d(1, 0, 0, 0.2);
             glBegin(GL_QUADS);
             glVertex2i(0, 0);
             glVertex2i(right - xmin, 0);

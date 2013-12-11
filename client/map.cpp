@@ -90,7 +90,7 @@ namespace nl {
             old_style = !map_node["Map0"];
             init_random();
             //load_random();
-            load("104020100", "sp");
+            load("104000000", "sp");
             load_now();
         }
         void update() {

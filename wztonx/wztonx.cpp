@@ -865,7 +865,7 @@ Converts WZ files into NX files
 NoLifeWzToNx.exe [-client] [-hc] [Firstfile.wz [Secondfile.wz [...]]]
 
 -client : Specifies that bitmaps and audio should be included in the resulting nx file.
--hc : Use high quality LZ4 compression. Takes forever but makes smaller files.
+-hc : Use high quality LZ4 compression. Creates smaller files, but takes more time.
 
 If no files are specified, this program will automatically scan for all WZ files in the working directory.
 
