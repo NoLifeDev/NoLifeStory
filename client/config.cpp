@@ -101,14 +101,12 @@ namespace nl {
                 m.second.save();
             //Now we load the config itself
             std::ifstream file("NoLifeClient.cfg");
-            std::regex reg("[ \t]*(.*?)[ \t]*=[ \t]*(.*?)[ \t]*",
-                std::regex_constants::optimize);
+            std::regex reg("[ \t]*([a-z0-9.-]+)[ \t]*=[ \t]*([a-z0-9.-]+)[ \t]*", std::regex_constants::extended | std::regex_constants::optimize);
             std::string line;
             if (file.is_open())
             while (!file.eof()) {
                 getline(file, line);
-                transform(line.cbegin(), line.cend(), line.begin(),
-                    [](char const & c) {
+                transform(line.cbegin(), line.cend(), line.begin(), [](char const & c) {
                     return std::tolower(c, std::locale::classic());
                 });
                 std::smatch m;
