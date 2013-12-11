@@ -1,3 +1,6 @@
 aux_source_directory(. NOLIFENX_SOURCES)
 add_library(NoLifeNx ${NOLIFENX_SOURCES})
+if(USE_LIBCPP)
+    set_target_properties(NoLifeNx PROPERTIES LINK_FLAGS "-stdlib=libc++ -lc++ -lc++abi")
+endif()
 target_link_libraries(NoLifeNx lz4)
