@@ -63,11 +63,11 @@ namespace nl {
             }
         }
         void reset() {
-            if (map::current["info"]["VRtop"]) {
-                top = map::current["info"]["VRtop"];
-                bottom = map::current["info"]["VRbottom"];
-                left = map::current["info"]["VRleft"];
-                right = map::current["info"]["VRright"];
+            if (map::current["info"]["VRTop"]) {
+                top = map::current["info"]["VRTop"];
+                bottom = map::current["info"]["VRBottom"];
+                left = map::current["info"]["VRLeft"];
+                right = map::current["info"]["VRRight"];
                 if (bottom - top < 600) {
                     auto d = (600 - bottom + top) / 2;
                     bottom += d;
@@ -159,7 +159,7 @@ namespace nl {
         }
         void draw_edges() {
             sprite::unbind();
-            glColor4d(0, 0, 0, 1);
+            glColor4d(0, 0, 0, 0.2);
             glBegin(GL_QUADS);
             glVertex2i(0, 0);
             glVertex2i(right - xmin, 0);

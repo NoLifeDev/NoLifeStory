@@ -75,6 +75,8 @@ namespace nl {
         void load_now() {
             current = next;
             std::cout << "Loading map " << current.name() << std::endl;
+            for (auto n : current["info"])
+                std::cout << n.name() << ": " << n.get_string() << std::endl;
             time::reset();
             sprite::cleanup();
             layer::load();
@@ -87,7 +89,8 @@ namespace nl {
             map_node = nx::map["Map"];
             old_style = !map_node["Map0"];
             init_random();
-            load_random();
+            //load_random();
+            load("104020100", "sp");
             load_now();
         }
         void update() {
