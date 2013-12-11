@@ -11,15 +11,20 @@ else()
 endif()
 
 option(BUILD_WZTONX "Build WzToNx (Experimental, only Clang with libstdc++ supported)")
+if(USING_CLANG)
+    option(USE_LIBCPP "Use Clang's libc++ instead of libstdc++")
+endif()
 
 # For GCC and Clang, enable C++11 support and add some other flags
 if(USING_GCC OR USING_CLANG)
   add_compile_options(-std=c++11 -pedantic -Wno-switch)
 endif()
 
-# Disable Clang warnings about nested anon types
 if(USING_CLANG)
-  add_compile_options(-Wno-nested-anon-types)
+    add_compile_options(-Wno-nested-anon-types)
+    if(USE_LIBCPP)
+        add_compile_options(-stdlib=libc++)
+    endif()
 endif()
 
 add_subdirectory(nx)
