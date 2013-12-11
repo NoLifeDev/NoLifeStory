@@ -34,4 +34,4 @@ window.cpp
 if(USE_LIBCPP)
     set_target_properties(NoLifeClient PROPERTIES LINK_FLAGS "-stdlib=libc++ -lc++ -lc++abi")
 endif()
-target_link_libraries(NoLifeClient NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} mpg123 ${GLFW_LIBRARY})
+target_link_libraries(NoLifeClient NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY})
