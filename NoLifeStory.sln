@@ -18,6 +18,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNxBench", "nxbench\No
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeIRC", "irc\NoLifeIRC.vcxproj", "{22099478-16A2-419F-AB73-FF981CFC1BF5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,8 +73,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
