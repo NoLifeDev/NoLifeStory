@@ -37,6 +37,7 @@
 #include <map>
 #include <iomanip>
 #include <set>
+#include <regex>
 
 namespace nl {
     class bench {
@@ -135,52 +136,95 @@ namespace nl {
         if (nn.data_type() == node::type::audio)
             std::ofstream(n.name() + "." + nn.name() + ".mp3", std::ios::binary).write(reinterpret_cast<char const *>(nn.get_audio().data()) + 82, nn.get_audio().length() - 82);
     }
-    std::set<std::string> children;
-    std::map<std::string, size_t> values;
-    std::ofstream dump("NoLifeNxBench.log");
-    std::string get_value(node n) {
-        auto s = n.name() + '.';
-        switch (n.data_type()) {
-        case node::type::audio:
-            return s + "audio";
-        case node::type::bitmap:
-            return s + "bitmap";
-        case node::type::integer:
-            return s + "integer=" + n.get_string();
-        case node::type::none:
-            return s + "none";
-        case node::type::real:
-            return s + "real=" + n.get_string();
-        case node::type::string:
-            return s + "string=" + n.get_string();
-        case node::type::vector:
-            return s + "vector=" + std::to_string(n.x()) + "," + std::to_string(n.y());
-        default:
-            throw std::runtime_error("Wat");
+    struct dump {
+        struct info {
+            node n;
+            std::string path;
+            info(node n, std::string path) : n(n), path(path) {}
+        };
+        std::vector<info> nodes;
+        dump(node n) {
+            nodes.emplace_back(n, n.name());
         }
-    }
-    void gather_node_dump(node n, std::string s) {
-        children.emplace(s);
-    }
-    void dump_node(node n) {
-        ++values[get_value(n)];
-        for (node nn : n) {
-            gather_node_dump(nn, nn.name());
+        dump & name(std::string s) {
+            std::vector<info> new_nodes;
+            for (auto it : nodes) {
+                auto n = it.n[s];
+                if (n)
+                    new_nodes.emplace_back(n, it.path + '/' + n.name());
+            }
+            nodes.swap(new_nodes);
+            return *this;
         }
-    }
-    void dump_stuff() {
-        nx::load_all();
-        for (auto n1 : nx::map.root()["Back"])
-        for (auto n2 : n1["ani"])
-        for (auto n3 : n2)
-            dump_node(n3);
-        for (auto & s : values)
-            dump << std::setw(4) << std::right << s.second << "x " << s.first << std::endl;
-        for (auto & s : children)
-            dump << "* [[/" << s << "|" << s << "]]" << std::endl;
-    }
+        dump & all() {
+            std::vector<info> new_nodes;
+            for (auto it : nodes)
+            for (auto n : it.n)
+                new_nodes.emplace_back(n, it.path + '/' + n.name());
+            nodes.swap(new_nodes);
+            return *this;
+        }
+        dump & regex(std::string s) {
+            std::vector<info> new_nodes;
+            std::regex reg(s, std::regex_constants::optimize | std::regex_constants::extended);
+            for (auto it : nodes)
+            for (auto n : it.n)
+            if (std::regex_match(n.name(), reg))
+                new_nodes.emplace_back(n, it.path + '/' + n.name());
+            nodes.swap(new_nodes);
+            return *this;
+        }
+        std::string get_value(node n) {
+            auto s = n.name() + '.';
+            switch (n.data_type()) {
+            case node::type::audio:
+                return s + "audio";
+            case node::type::bitmap:
+                return s + "bitmap";
+            case node::type::integer:
+                return s + "integer=" + n.get_string();
+            case node::type::none:
+                return s + "none";
+            case node::type::real:
+                return s + "real=" + n.get_string();
+            case node::type::string:
+                return s + "string=" + n.get_string();
+            case node::type::vector:
+                return s + "vector=" + std::to_string(n.x()) + "," + std::to_string(n.y());
+            default:
+                throw std::runtime_error("Wat");
+            }
+        }
+        std::string make_line(std::string s) {
+            auto a = 20 - s.size() / 2;
+            auto b = 40 - s.size() - a;
+            return std::string(a, '=') + s + std::string(b, '=');
+        }
+        void write() {
+            std::ofstream file("NoLifeNxBench.log");
+            std::map<std::string, size_t> values;
+            std::set<std::string> children;
+            std::set<std::string> paths;
+            for (auto it : nodes) {
+                ++values[get_value(it.n)];
+                paths.emplace(it.path);
+                for (auto n : it.n)
+                    children.emplace(n.name());
+            }
+            file << make_line("Values") << std::endl;
+            for (auto & s : values)
+                file << std::setw(4) << std::right << s.second << "x " << s.first << std::endl;
+            file << make_line("Children") << std::endl;
+            for (auto & s : children)
+                file << "* [[/" << s << "|" << s << "]]" << std::endl;
+            file << make_line("Paths") << std::endl;
+            for (auto & s : paths)
+                file << s << std::endl;
+        }
+    };
 }
 int main() {
-    nl::dump_stuff();
+    nl::nx::load_all();
+    nl::dump(nl::nx::map).name("Back").all().name("ani").all().name("blend").write();
     //nl::bench();
 }
