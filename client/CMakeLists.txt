@@ -1,4 +1,8 @@
+project(NoLifeClient)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include_directories(..)
+include(../cmake/common.cmake)
+enable_cxx11()
 
 # Find packages
 find_package(OpenGL REQUIRED)
@@ -8,30 +12,16 @@ include_directories(${GLEW_INCLUDE_DIRS})
 find_package(glfw REQUIRED)
 include_directories(${GLFW_INCLUDE_DIR})
 
-#aux_source_directory(. NOLIFECLIENT_SOURCES)
+FILE(GLOB NOLIFE_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 
-add_executable(NoLifeClient 
-#ClassicUI.cpp
-background.cpp
-config.cpp
-foothold.cpp
-game.cpp
-layer.cpp
-main.cpp
-map.cpp
-obj.cpp
-#physics.cpp
-#player.cpp
-portal.cpp
-#sound.cpp
-sprite.cpp
-tile.cpp
-time.cpp
-view.cpp
-window.cpp
-)
+list(REMOVE_ITEM NOLIFE_SOURCES
+  ClassicUI.cpp
+  physics.cpp
+  player.cpp
+  sound.cpp)
 
-if(USE_LIBCPP)
-    set_target_properties(NoLifeClient PROPERTIES LINK_FLAGS "-stdlib=libc++ -lc++ -lc++abi")
-endif()
-target_link_libraries(NoLifeClient NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY})
+add_executable(NoLifeClient ${NOLIFE_SOURCES})
+
+simple_find_library(NX_LIB NoLifeNx ../nx)
+
+target_link_libraries(NoLifeClient lz4 ${NX_LIB} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY})
