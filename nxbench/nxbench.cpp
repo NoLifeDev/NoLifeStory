@@ -143,8 +143,44 @@ namespace nl {
             info(node n, std::string path) : n(n), path(path) {}
         };
         std::vector<info> nodes;
-        dump(node n) {
-            nodes.emplace_back(n, n.name());
+        dump() {
+            nx::load_all();
+        }
+        dump & root(std::string s) {
+            nodes.clear();
+            if (s == "Base")
+                nodes.emplace_back(nx::base, "Base");
+            else if(s == "Character")
+                nodes.emplace_back(nx::character, "Base/Character");
+            else if (s == "Effect")
+                nodes.emplace_back(nx::effect, "Base/Effect");
+            else if (s == "Etc")
+                nodes.emplace_back(nx::etc, "Base/Etc");
+            else if (s == "Item")
+                nodes.emplace_back(nx::item, "Base/Item");
+            else if (s == "Map")
+                nodes.emplace_back(nx::map, "Base/Map");
+            else if (s == "Mob")
+                nodes.emplace_back(nx::mob, "Base/Mob");
+            else if (s == "Morph")
+                nodes.emplace_back(nx::morph, "Base/Morph");
+            else if (s == "Npc")
+                nodes.emplace_back(nx::npc, "Base/Npc");
+            else if (s == "Quest")
+                nodes.emplace_back(nx::quest, "Base/Quest");
+            else if (s == "Reactor")
+                nodes.emplace_back(nx::reactor, "Base/Reactor");
+            else if (s == "Skill")
+                nodes.emplace_back(nx::skill, "Base/Skill");
+            else if (s == "Sound")
+                nodes.emplace_back(nx::sound, "Base/Sound");
+            else if (s == "String")
+                nodes.emplace_back(nx::string, "Base/String");
+            else if (s == "TamingMob")
+                nodes.emplace_back(nx::tamingmob, "Base/TamingMob");
+            else if (s == "UI")
+                nodes.emplace_back(nx::ui, "Base/UI");
+            return *this;
         }
         dump & name(std::string s) {
             std::vector<info> new_nodes;
@@ -172,6 +208,27 @@ namespace nl {
             if (std::regex_match(n.name(), reg))
                 new_nodes.emplace_back(n, it.path + '/' + n.name());
             nodes.swap(new_nodes);
+            return *this;
+        }
+        dump & filter_type(node::type t) {
+            auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info & i) {
+                return t != i.n.data_type();
+            });
+            nodes.erase(it, nodes.end());
+            return *this;
+        }
+        dump & has_child(std::string s) {
+            auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info & i) {
+                return !i.n[s];
+            });
+            nodes.erase(it, nodes.end());
+            return *this;
+        }
+        dump & not_has_child(std::string s) {
+            auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info & i) {
+                return i.n[s];
+            });
+            nodes.erase(it, nodes.end());
             return *this;
         }
         std::string get_value(node n) {
@@ -219,12 +276,11 @@ namespace nl {
                 file << "* [[/" << s << "|" << s << "]]" << std::endl;
             file << make_line("Paths") << std::endl;
             for (auto & s : paths)
-                file << s << std::endl;
+                file << "* " << s << std::endl;
         }
     };
 }
 int main() {
-    nl::nx::load_all();
-    nl::dump(nl::nx::map).name("Back").all().name("ani").all().name("blend").write();
+    nl::dump().root("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP").write();
     //nl::bench();
 }

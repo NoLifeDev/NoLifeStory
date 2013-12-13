@@ -106,16 +106,15 @@ namespace nl {
             delay = 0;
             next_delay = current["delay"].get_real(100);
         }
+        curbit = current;
         if (current["source"]) {
             std::string str = current["source"];
-            curbit = current.root().resolve(str.substr(str.find_first_of('/') + 1));
-        } else {
-            curbit = current;
+            auto n = current.root().resolve(str.substr(str.find_first_of('/') + 1));
+            if (n.data_type() == node::type::bitmap)
+                curbit = n;
         }
-        if (!curbit) {//Something went horribly wrong
-            data = {};
+        if (!curbit)
             return;
-        }
         width = curbit.width();
         height = curbit.height();
         auto o = current["origin"];
@@ -125,7 +124,7 @@ namespace nl {
             movetype = current["moveType"];
             movew = current["moveW"];
             moveh = current["moveH"];
-            movep = current["moveP"];
+            movep = current["moveP"].get_real(1000);
             mover = current["moveR"];
         }
         repeat = current["repeat"].get_bool();
@@ -145,6 +144,8 @@ namespace nl {
             if (delay > next_delay)
                 set_frame(frame + 1);
         }
+        if (!curbit)
+            return;
         //cx and cy represent tiling distance
         if (!cx)
             cx = width;
@@ -170,19 +171,13 @@ namespace nl {
         case 0:
             break;
         case 1:
-            if (movep)
-                x += static_cast<int>(movew * sin(time::delta_total * 1000 * 2 * pi / movep));
-            else
-                x += static_cast<int>(movew * sin(time::delta_total));
+            x += static_cast<int>(movew * sin(2 * pi * 1000 * time::delta_total / movep));
             break;
         case 2:
-            if (movep)
-                y += static_cast<int>(moveh * sin(time::delta_total * 1000 * 2 * pi / movep));
-            else
-                y += static_cast<int>(moveh * sin(time::delta_total));
+            y += static_cast<int>(moveh * sin(2 * pi * 1000 * time::delta_total / movep));
             break;
         case 3:
-            angle = time::delta_total * 1000 * 180 / pi / mover;
+            angle = 180 / pi * 2 * pi * 1000 * time::delta_total / mover;
             break;
         default:
             std::cerr << "Unknown move type: " << movetype << std::endl;

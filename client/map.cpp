@@ -89,8 +89,8 @@ namespace nl {
             map_node = nx::map["Map"];
             old_style = !map_node["Map0"];
             init_random();
-            load_random();
-            //load("104000000", "sp");
+            //load_random();
+            load("220060400", "sp");
             load_now();
         }
         void update() {

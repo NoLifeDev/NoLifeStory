@@ -79,25 +79,25 @@ namespace nl {
             break;
         case 4:
             flags |= sprite::tilex;
-            dx += static_cast<int>(time::delta_total * rx * 10) - view::x;
+            dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
             dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 5:
             flags |= sprite::tiley;
             dx += rx * view::x / 100 + view::width / 2;
-            dy += static_cast<int>(time::delta_total * ry * 10) - view::y;
+            dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
             break;
         case 6:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
-            dx += static_cast<int>(time::delta_total * rx * 10) - view::x;
+            dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
             dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
             break;
         case 7:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
             dx += rx * view::x / 100 + view::width / 2;
-            dy += static_cast<int>(time::delta_total * ry * 10) - view::y;
+            dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
             break;
         }
         spr.draw(dx, dy, flags, cx, cy);

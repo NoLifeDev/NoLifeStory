@@ -42,11 +42,11 @@ namespace nl {
         auto dx = x;
         auto dy = y;
         if (flow & 1) {
-            dx += static_cast<int>(rx * 10 * time::delta_total);
+            dx += static_cast<int>(rx * 5 * time::delta_total);
             flags |= sprite::tilex;
         }
         if (flow & 2) {
-            dy += static_cast<int>(ry * 10 * time::delta_total);
+            dy += static_cast<int>(ry * 5 * time::delta_total);
             flags |= sprite::tiley;
         }
         spr.draw(dx, dy, flags, cx, cy);
