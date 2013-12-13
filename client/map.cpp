@@ -84,13 +84,15 @@ namespace nl {
             foothold::load();
             portal::load();
             view::reset();
+            if (!(current["info"]["LBSide"] || current["info"]["LBTop"] || current["info"]["LBBottom"]))
+                load_random();
         }
         void init() {
             map_node = nx::map["Map"];
             old_style = !map_node["Map0"];
             init_random();
             //load_random();
-            load("220060400", "sp");
+            load("910029500", "sp");
             load_now();
         }
         void update() {

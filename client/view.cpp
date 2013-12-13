@@ -37,7 +37,9 @@ namespace nl {
         double fx = 0, fy = 0;
         double rx = 0, ry = 0;
         int left = 0, right = 0, top = 0, bottom = 0;
+        int cleft = 0, cright = 0, ctop = 0, cbottom = 0;
         int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
+        bool cliprelative = true;
         double tx = 0, ty = 0;
         template <typename T>
         void restrict(T & x, T & y) {
@@ -63,11 +65,12 @@ namespace nl {
             }
         }
         void reset() {
-            if (map::current["info"]["VRTop"]) {
-                top = map::current["info"]["VRTop"];
-                bottom = map::current["info"]["VRBottom"];
-                left = map::current["info"]["VRLeft"];
-                right = map::current["info"]["VRRight"];
+            auto info = map::current["info"];
+            if (info["VRTop"]) {
+                top = info["VRTop"];
+                bottom = info["VRBottom"];
+                left = info["VRLeft"];
+                right = info["VRRight"];
                 if (bottom - top < 600) {
                     auto d = (600 - bottom + top) / 2;
                     bottom += d;
@@ -103,11 +106,19 @@ namespace nl {
                     if (bottom < f.y2)
                         bottom = f.y2;
                 }
-                top -= 100;
+                top -= 200;
                 bottom += 100;
                 if (top > bottom - 600)
                     top = bottom - 600;
             }
+            int cliptop = info["LBTop"];
+            int clipbottom = info["LBBottom"];
+            int clipside = info["LBSide"];
+            ctop = cliptop;
+            cbottom = clipbottom;
+            cleft = clipside;
+            cright = clipside;
+            cliprelative = !(info["LBSide"] || info["LBTop"] || info["LBBottom"]);
             fx = 0;
             fy = 0;
             tx = 0;
@@ -159,25 +170,59 @@ namespace nl {
         }
         void draw_edges() {
             sprite::unbind();
-            glColor4d(1, 0, 0, 0.2);
-            glBegin(GL_QUADS);
-            glVertex2i(0, 0);
-            glVertex2i(right - xmin, 0);
-            glVertex2i(right - xmin, top - ymin);
-            glVertex2i(0, top - ymin);
-            glVertex2i(right - xmin, 0);
-            glVertex2i(width, 0);
-            glVertex2i(width, bottom - ymin);
-            glVertex2i(right - xmin, bottom - ymin);
-            glVertex2i(left - xmin, bottom - ymin);
-            glVertex2i(width, bottom - ymin);
-            glVertex2i(width, height);
-            glVertex2i(left - xmin, height);
-            glVertex2i(0, top - ymin);
-            glVertex2i(left - xmin, top - ymin);
-            glVertex2i(left - xmin, height);
-            glVertex2i(0, height);
-            glEnd();
+            auto math = [](double t) {
+                return 0.5 * sin(time::delta_total * 10 + t) + 0.5;
+            };
+            auto rright = right - xmin;
+            auto rleft = left - xmin;
+            auto rtop = top - ymin;
+            auto rbottom = bottom - ymin;
+            auto itop = height / 2 - 384 + ctop;
+            auto ibottom = height / 2 + 320 - cbottom;
+            auto ileft = width / 2 - 512 + cleft;
+            auto iright = width / 2 + 512 - cright;
+            //if (cliprelative) {
+                glColor4d(0, 0, 1, math(3));
+                glBegin(GL_QUADS);
+                glVertex2i(0, 0);
+                glVertex2i(rright, 0);
+                glVertex2i(rright, rtop);
+                glVertex2i(0, rtop);
+                glVertex2i(rright, 0);
+                glVertex2i(width, 0);
+                glVertex2i(width, rbottom);
+                glVertex2i(rright, rbottom);
+                glVertex2i(rleft, rbottom);
+                glVertex2i(width, rbottom);
+                glVertex2i(width, height);
+                glVertex2i(rleft, height);
+                glVertex2i(0, rtop);
+                glVertex2i(rleft, rtop);
+                glVertex2i(rleft, height);
+                glVertex2i(0, height);
+                glEnd();
+            //} else {
+            if (!cliprelative) {
+                glColor4d(1, 0, 0, math(0));
+                glBegin(GL_QUADS);
+                glVertex2i(0, 0);
+                glVertex2i(width, 0);
+                glVertex2i(width, itop);
+                glVertex2i(0, itop);
+                glVertex2i(0, height);
+                glVertex2i(width, height);
+                glVertex2i(width, ibottom);
+                glVertex2i(0, ibottom);
+                glVertex2i(0, 0);
+                glVertex2i(0, height);
+                glVertex2i(ileft, height);
+                glVertex2i(ileft, 0);
+                glVertex2i(width, 0);
+                glVertex2i(width, height);
+                glVertex2i(iright, height);
+                glVertex2i(iright, 0);
+                glEnd();
+            }
         }
     }
 }
