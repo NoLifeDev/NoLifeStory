@@ -1,10 +1,7 @@
-
 *
 !**/
 !.gitignore
 !.gitattributes
-!**/CMakeLists.txt
-!*.cmake
 !*.md
 !*.sln
 !*.cpp
@@ -14,3 +11,7 @@
 sdk/*
 !sdk/README.md
 !client/bgm.mp3
+!common.cmake
+!*.cmake
+CMakeFiles/
+cmake_install.cmake
