@@ -1,7 +1,7 @@
 PROJECT(NoLifeNx CXX)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include(../cmake/common.cmake)
-enable_cxx11()
+enable_cxx11(CXX11_FLAGS)
 
 aux_source_directory(. NOLIFENX_SOURCES)
 
@@ -15,6 +15,4 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 add_library(NoLifeNx STATIC ${NOLIFENX_SOURCES})
-if(BUILD_NX)
-  target_link_libraries(NoLifeNx lz4)
-endif()
+target_link_libraries(NoLifeNx lz4 ${CXX11_FLAGS})
