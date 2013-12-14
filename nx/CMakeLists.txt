@@ -15,4 +15,6 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 add_library(NoLifeNx STATIC ${NOLIFENX_SOURCES})
-target_link_libraries(NoLifeNx lz4)
+if(BUILD_NX)
+  target_link_libraries(NoLifeNx lz4)
+endif()

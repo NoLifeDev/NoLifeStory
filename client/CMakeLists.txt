@@ -22,6 +22,4 @@ list(REMOVE_ITEM NOLIFE_SOURCES
 
 add_executable(NoLifeClient ${NOLIFE_SOURCES})
 
-simple_find_library(NX_LIB NoLifeNx ../nx)
-
-target_link_libraries(NoLifeClient lz4 ${NX_LIB} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY})
+target_link_libraries(NoLifeClient lz4 NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY})
