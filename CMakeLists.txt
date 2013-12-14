@@ -2,6 +2,12 @@ project(NoLifeStory)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include(cmake/common.cmake)
 
+# Modular building of subprojects:
+#   To disable any of the builds in the following subprojects use
+#     cmake -DBUILD_PROJECTNAME=OFF .
+#   This option only needs to be run once for every CMakeCache
+#   By default all subprojects will be built
+
 option(BUILD_NX "Choose to build nx library" ON)
 if(BUILD_NX)
   message(STATUS "Adding nx to build")
