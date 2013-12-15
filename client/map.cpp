@@ -84,8 +84,6 @@ namespace nl {
             foothold::load();
             portal::load();
             view::reset();
-            if (!(current["info"]["LBSide"] || current["info"]["LBTop"] || current["info"]["LBBottom"]))
-                load_random();
         }
         void init() {
             map_node = nx::map["Map"];

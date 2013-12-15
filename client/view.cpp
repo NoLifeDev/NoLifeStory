@@ -136,20 +136,10 @@ namespace nl {
             restrict(fx, fy);
             if (config::rave) {
                 std::random_device engine;
-                auto n1 = {-4, -2, 0, 2, 4}, n2 = {0, 1, 8, 1, 0};
-                std::piecewise_linear_distribution<double> dist(n1.begin(), n1.end(), n2.begin());
+                auto num = std::pow(std::sin(time::delta_total * 2.088 * 2 * pi) * 0.5 + 0.5, 4) * 8;
+                std::uniform_real_distribution<double> dist(-num, num);
                 rx += dist(engine);
                 ry += dist(engine);
-            }
-            rx *= 0.95;
-            ry *= 0.95;
-            x = static_cast<int>(fx + rx);
-            y = static_cast<int>(fy + ry);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            if (config::rave) {
-                gluPerspective(-5 * std::pow(0.5 * std::sin(time::delta_total * 2.088 * 2 * pi) + 0.5, 9) + 90, static_cast<double>(width) / height, 0.1, 10000);
-                gluLookAt(width / 2, height / 2, 0 - height / 2, width / 2, height / 2, 0, 0, -1, 0);
                 auto d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
                 auto r = sin(d), g = sin(d + 2 / 3. * pi), b = sin(d + 4 / 3. * pi);
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
@@ -157,15 +147,21 @@ namespace nl {
                 glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
                 glColor4d(1 - r, 1 - g, 1 - b, 1);
             } else {
-                glOrtho(0, width, height, 0, -1, 1);
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             }
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
+            rx *= 0.90;
+            ry *= 0.90;
+            x = static_cast<int>(fx + rx);
+            y = static_cast<int>(fy + ry);
             xmin = x - width / 2;
             xmax = x + width / 2;
             ymin = y - height / 2;
             ymax = y + height / 2;
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(0, width, height, 0, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
         }
         void draw_edges() {
             sprite::unbind();
@@ -178,7 +174,7 @@ namespace nl {
             auto nleft = doside ? xmid - 512 + cleft : left - xmin;
             auto ntop = dotop ? ymid - 384 + ctop : top - ymin;
             auto nbottom = dobottom ? ymid + 320 - cbottom : bottom - ymin;
-            glColor4d(0.5, 0, 0, sin(time::delta_total * 5) * 0.5 + 0.5);
+            glColor4d(0, 0, 0, 1);
             glBegin(GL_QUADS);
             glVertex2i(0, 0);
             glVertex2i(width, 0);
