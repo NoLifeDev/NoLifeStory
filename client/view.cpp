@@ -38,13 +38,13 @@ namespace nl {
         double rx = 0, ry = 0;
         int left = 0, right = 0, top = 0, bottom = 0;
         int cleft = 0, cright = 0, ctop = 0, cbottom = 0;
+        bool doside = false, dotop = false, dobottom = false;
         int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
-        bool cliprelative = true;
         double tx = 0, ty = 0;
         template <typename T>
         void restrict(T & x, T & y) {
             if (right - left <= width)
-                x = (right + left) / 2;
+            x = (right + left) / 2;
             else
                 x = std::max<T>(std::min<T>(x, right - width / 2), left + width / 2);
             if (bottom - top <= height)
@@ -106,19 +106,18 @@ namespace nl {
                     if (bottom < f.y2)
                         bottom = f.y2;
                 }
-                top -= 200;
-                bottom += 100;
+                top -= 256;
+                bottom += 64;
                 if (top > bottom - 600)
                     top = bottom - 600;
             }
-            int cliptop = info["LBTop"];
-            int clipbottom = info["LBBottom"];
-            int clipside = info["LBSide"];
-            ctop = cliptop;
-            cbottom = clipbottom;
-            cleft = clipside;
-            cright = clipside;
-            cliprelative = !(info["LBSide"] || info["LBTop"] || info["LBBottom"]);
+            ctop = info["LBTop"];
+            cbottom = info["LBBottom"];
+            cleft = info["LBSide"];
+            cright = info["LBSide"];
+            doside = !!info["LBSide"];
+            dobottom = !!info["LBBottom"];
+            dotop = !!info["LBTop"];
             fx = 0;
             fy = 0;
             tx = 0;
@@ -173,56 +172,31 @@ namespace nl {
             auto math = [](double t) {
                 return 0.5 * sin(time::delta_total * 10 + t) + 0.5;
             };
-            auto rright = right - xmin;
-            auto rleft = left - xmin;
-            auto rtop = top - ymin;
-            auto rbottom = bottom - ymin;
-            auto itop = height / 2 - 384 + ctop;
-            auto ibottom = height / 2 + 320 - cbottom;
-            auto ileft = width / 2 - 512 + cleft;
-            auto iright = width / 2 + 512 - cright;
-            //if (cliprelative) {
-                glColor4d(0, 0, 1, math(3));
-                glBegin(GL_QUADS);
-                glVertex2i(0, 0);
-                glVertex2i(rright, 0);
-                glVertex2i(rright, rtop);
-                glVertex2i(0, rtop);
-                glVertex2i(rright, 0);
-                glVertex2i(width, 0);
-                glVertex2i(width, rbottom);
-                glVertex2i(rright, rbottom);
-                glVertex2i(rleft, rbottom);
-                glVertex2i(width, rbottom);
-                glVertex2i(width, height);
-                glVertex2i(rleft, height);
-                glVertex2i(0, rtop);
-                glVertex2i(rleft, rtop);
-                glVertex2i(rleft, height);
-                glVertex2i(0, height);
-                glEnd();
-            //} else {
-            if (!cliprelative) {
-                glColor4d(1, 0, 0, math(0));
-                glBegin(GL_QUADS);
-                glVertex2i(0, 0);
-                glVertex2i(width, 0);
-                glVertex2i(width, itop);
-                glVertex2i(0, itop);
-                glVertex2i(0, height);
-                glVertex2i(width, height);
-                glVertex2i(width, ibottom);
-                glVertex2i(0, ibottom);
-                glVertex2i(0, 0);
-                glVertex2i(0, height);
-                glVertex2i(ileft, height);
-                glVertex2i(ileft, 0);
-                glVertex2i(width, 0);
-                glVertex2i(width, height);
-                glVertex2i(iright, height);
-                glVertex2i(iright, 0);
-                glEnd();
-            }
+            auto xmid = (right + left) / 2 - xmin;
+            auto ymid = (top + bottom) / 2 - ymin;
+            auto nright = doside ? xmid + 512 - cright : right - xmin;
+            auto nleft = doside ? xmid - 512 + cleft : left - xmin;
+            auto ntop = dotop ? ymid - 384 + ctop : top - ymin;
+            auto nbottom = dobottom ? ymid + 320 - cbottom : bottom - ymin;
+            glColor4d(0.5, 0, 0, sin(time::delta_total * 5) * 0.5 + 0.5);
+            glBegin(GL_QUADS);
+            glVertex2i(0, 0);
+            glVertex2i(width, 0);
+            glVertex2i(width, ntop);
+            glVertex2i(0, ntop);
+            glVertex2i(0, height);
+            glVertex2i(width, height);
+            glVertex2i(width, nbottom);
+            glVertex2i(0, nbottom);
+            glVertex2i(0, 0);
+            glVertex2i(0, height);
+            glVertex2i(nleft, height);
+            glVertex2i(nleft, 0);
+            glVertex2i(width, 0);
+            glVertex2i(width, height);
+            glVertex2i(nright, height);
+            glVertex2i(nright, 0);
+            glEnd();
         }
     }
 }
