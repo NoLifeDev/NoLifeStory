@@ -70,7 +70,6 @@ namespace nl {
                 frames.pop_front();
             frames.push_back(now);
             fps = static_cast<unsigned>(frames.size());
-            //draw();
         }
     }
 }

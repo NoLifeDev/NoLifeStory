@@ -26,6 +26,11 @@ namespace nl {
     typedef std::pair<int32_t, int32_t> vector;
     class node {
     public:
+        using difference_type = ptrdiff_t;
+        using value_type = node;
+        using pointer = node;
+        using reference = node &;
+        using iterator_category = std::random_access_iterator_tag;
         struct data;
         //Type of node data
         enum class type : uint16_t {
@@ -49,6 +54,7 @@ namespace nl {
         node operator++(int);
         bool operator==(node const &) const;
         bool operator!=(node const &) const;
+        bool operator<(node const &) const;
         //This checks whether or not the node points to an actual node
         //Even if the node ends up being a null node, you can still use it safely
         //It'll just fall back to returning default values and more null nodes

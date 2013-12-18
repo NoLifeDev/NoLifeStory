@@ -56,6 +56,9 @@ namespace nl {
     bool node::operator!=(node const & o) const {
         return m_data != o.m_data;
     }
+    bool node::operator<(node const & o) const {
+        return m_data < o.m_data;
+    }
     std::string operator+(std::string s, node n) {
         return s + n.get_string();
     }
