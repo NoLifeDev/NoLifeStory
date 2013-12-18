@@ -146,7 +146,7 @@ namespace nl {
                 auto now = std::chrono::steady_clock::now();
                 if (now - last_title > std::chrono::milliseconds(250)) {
                     last_title = now;
-                    glfwSetWindowTitle(window, ("NoLifeStory {fps = " + std::to_string(time::fps) + ";};").c_str());
+                    glfwSetWindowTitle(window, ("NoLifeStory {fps = " + std::to_string(time::fps) + "; map = " + map::current_name + ";};").c_str());
                 }
             }
             glfwSwapBuffers(window);

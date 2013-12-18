@@ -23,6 +23,7 @@
 namespace nl {
     namespace map {
         extern node current;
+        extern std::string current_name;
         void init();
         void random();
         void load_random();

@@ -89,12 +89,12 @@ namespace nl {
                 for (foothold & f : footholds) {
                     if (!f.initialized)
                         continue;
-                    left = std::max(left, f.x1);
-                    left = std::max(left, f.x2);
+                    left = std::min(left, f.x1);
+                    left = std::min(left, f.x2);
                     right = std::max(right, f.x1);
                     right = std::max(right, f.x2);
-                    top = std::max(top, f.y1);
-                    top = std::max(top, f.y2);
+                    top = std::min(top, f.y1);
+                    top = std::min(top, f.y2);
                     bottom = std::max(bottom, f.y1);
                     bottom = std::max(bottom, f.y2);
                 }
@@ -157,13 +157,10 @@ namespace nl {
         }
         void draw_edges() {
             sprite::unbind();
-            auto math = [](double t) {
-                return 0.5 * sin(time::delta_total * 10 + t) + 0.5;
-            };
             auto doclip = doside || dotop || dobottom;
             auto xmid = (right + left) / 2 - xmin;
             auto ymid = (top + bottom) / 2 - ymin;
-            auto xb = std::max(0, (right - left - 1024) / 2);
+            auto xb = std::max(0, (right - left - 1366) / 2);
             auto yb = std::max(0, (bottom - top - 768) / 2);
             auto nleft = doside ? xmid - 512 + cleft - xb : !doclip ? left - xmin : 0;
             auto nright = doside ? xmid + 512 - cright + xb : !doclip ? right - xmin : width;

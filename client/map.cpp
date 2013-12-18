@@ -36,11 +36,12 @@ namespace nl {
         std::vector<std::string> all_maps;
         node map_node;
         node current, next;
+        std::string current_name;
         std::vector<std::pair<std::string, unsigned>> results;
         bool old_style;
         void load(std::string name, std::string port) {
             if (name.size() < 9)
-                name.insert(0, name.size(), '0');
+                name.insert(0, 9 - name.size(), '0');
             auto m = old_style ? map_node[name + ".img"] :
                 map_node[std::string("Map") + name[0]][name + ".img"];
             //If the map is invalid just ignore it
@@ -74,6 +75,8 @@ namespace nl {
         }
         void load_now() {
             current = next;
+            current_name = current.name();
+            current_name.erase(current_name.find(".img"));
             std::cout << "Loading map " << current.name() << std::endl;
             for (auto n : current["info"])
                 std::cout << n.name() << ": " << n.get_string() << std::endl;
