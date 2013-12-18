@@ -22,6 +22,7 @@
 #include <nx/audio.hpp>
 #include <nx/nx.hpp>
 #ifdef _WIN32
+#  define NOMINMAX
 #  include <Windows.h>
 #else
 #  include <ctime>
@@ -143,8 +144,12 @@ namespace nl {
             info(node n, std::string path) : n(n), path(path) {}
         };
         std::vector<info> nodes;
-        dump() {
+        dump(std::string s) {
             nx::load_all();
+            root(s);
+        }
+        ~dump() {
+            write();
         }
         dump & root(std::string s) {
             nodes.clear();
@@ -281,6 +286,8 @@ namespace nl {
     };
 }
 int main() {
-    nl::dump().root("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP").write();
+    //nl::dump("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP");
+    //nl::dump("Map").name("Map").regex("Map[0-9]").all().name("info").name("LBTop");
+    nl::dump_music();
     //nl::bench();
 }
