@@ -23,6 +23,7 @@
 #include "background.hpp"
 #include "time.hpp"
 #include "portal.hpp"
+#include "sound.hpp"
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
 #include <vector>
@@ -81,6 +82,7 @@ namespace nl {
             for (auto n : current["info"])
                 std::cout << n.name() << ": " << n.get_string() << std::endl;
             time::reset();
+            music::play_bgm();
             sprite::cleanup();
             layer::load();
             background::load();

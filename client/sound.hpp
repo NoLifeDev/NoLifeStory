@@ -15,22 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    class Music : public sf::SoundStream {
-    public:
-        Music();
-        void LoadNode(Node);
-        void LoadFile(string);
-        void PlayMusic();
-    protected:
-        bool onGetData(sf::SoundStream::Chunk &);
-        void onSeek(sf::Time);
-    private:
-        void * handle;
-        Node node;
-        vector<unsigned char> buf;
-        bool raw;
-    };
-    extern Music BGM;
+#include <nx/node.hpp>
+#include <string>
+
+namespace nl {
+    namespace music {
+        void init();
+        void play_bgm();
+        void play(node);
+        void play(std::string);
+    }
 }

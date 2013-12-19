@@ -16,16 +16,94 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "NoLifeClient.hpp"
+#include "sound.hpp"
+#include "map.hpp"
+#include "config.hpp"
+#include <nx/audio.hpp>
+#include <nx/nx.hpp>
 #include <mpg123.h>
+#include <RtAudio.h>
+#include <memory>
+#include <locale>
 
-namespace NL {
-    Music BGM;
-    Music::Music() {
-        if (mpg123_init() != MPG123_OK) throw "Failed to initialize mpg123";
-        handle = 0;
-        node = Node();
+namespace nl {
+    namespace music {
+        mpg123_handle * handle = nullptr;
+        node n = {};
+        std::unique_ptr<RtAudio> dac;
+        unsigned int frames;
+        int channels;
+        void init() {
+            if (mpg123_init() != MPG123_OK)
+                throw std::runtime_error("Failed to initialize mpg123");
+            dac = std::make_unique<RtAudio>();
+            if (!dac->getDeviceCount())
+                throw std::runtime_error("No audio device found!");
+        }
+        int callback(void * output, void *, unsigned int frames, double, RtAudioStreamStatus, void *) {
+            size_t todo = frames * 2 * channels;
+            auto buf = reinterpret_cast<unsigned char *>(output);
+            while (todo) {
+                size_t done;
+                auto err = mpg123_read(handle, buf, todo, &done);
+                todo -= done;
+                buf += done;
+                if (err == MPG123_NEED_MORE) {
+                    audio a = n;
+                    mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.data()) + 82, a.length() - 82);
+                }
+            }
+            return 0;
+        }
+        void play(node nn) {
+            if (n == nn)
+                return;
+            n = nn;
+            audio a = n;
+            if (handle)
+                mpg123_close(handle);
+            if (dac->isStreamOpen())
+                dac->closeStream();
+            handle = mpg123_new(nullptr, nullptr);
+            if (!handle)
+                throw std::runtime_error("Failed to open mpg123 handle");
+            mpg123_open_feed(handle);
+            mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.data()) + 82, a.length() - 82);
+            long rate;
+            int encoding;
+            if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK)
+                throw std::runtime_error("Failed to get format of music");
+            RtAudio::StreamParameters parameters;
+            parameters.deviceId = dac->getDefaultOutputDevice();
+            parameters.nChannels = channels;
+            parameters.firstChannel = 0;
+            frames = mpg123_outblock(handle);
+            dac->openStream(&parameters, nullptr, RTAUDIO_SINT16, rate, &frames, callback);
+            dac->startStream();
+        }
+        void play(std::string s) {
+            if (!n && dac->isStreamRunning())
+                return;
+            n = {};
+        }
+        void play_bgm() {
+            if (config::rave) {
+                play("bgm.mp3");
+            } else {
+                std::string bgm = map::current["info"]["bgm"];
+                if (islower(bgm[0]))
+                    bgm[0] = std::toupper(bgm[0], std::locale::classic());
+                while (bgm.find(' ') != bgm.npos)
+                    bgm.erase(bgm.find(' '), 1);
+                auto p = bgm.find('/');
+                auto sn = nx::sound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
+                if (!sn)
+                    std::cerr << "Failed to find bgm " << bgm << " for map " << map::current_name << std::endl;
+                play(sn);
+            }
+        }
     }
+    /*
     void Music::LoadNode(Node n) {
         if (!n) return;
         if (n == node) return;
@@ -106,5 +184,5 @@ namespace NL {
             setLoop(true);
             play();
         }
-    }
+    }*/
 }

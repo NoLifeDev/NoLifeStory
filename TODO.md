@@ -8,7 +8,8 @@ NoLifeClient
 
 * Finish refactoring everything
 * Text drawing using actual font rendering with freetype
-* Sound system using rtAudio and mpg123
+* Playback of small sounds, not just music
+* Play music from file for rave mode
 * Re-implement physics
 * Character rendering
 * Make portals functional

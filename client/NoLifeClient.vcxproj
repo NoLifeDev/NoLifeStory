@@ -43,11 +43,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;__WINDOWS_DS__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>lz4.lib;glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;glfw.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lz4.lib;glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;glfw.lib;mpg123.lib;RtAudio.lib;oldnames.lib;dsound.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -75,6 +75,7 @@
     <ClInclude Include="layer.hpp" />
     <ClInclude Include="obj.hpp" />
     <ClInclude Include="portal.hpp" />
+    <ClInclude Include="sound.hpp" />
     <ClInclude Include="tile.hpp" />
     <ClInclude Include="window.hpp" />
     <ClInclude Include="map.hpp" />
@@ -90,6 +91,9 @@
     <ClCompile Include="layer.cpp" />
     <ClCompile Include="obj.cpp" />
     <ClCompile Include="portal.cpp" />
+    <ClCompile Include="sound.cpp">
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="tile.cpp" />
     <ClCompile Include="window.cpp" />
     <ClCompile Include="map.cpp" />

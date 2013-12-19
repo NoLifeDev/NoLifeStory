@@ -22,6 +22,7 @@
 #include "time.hpp"
 #include "view.hpp"
 #include "map.hpp"
+#include "sound.hpp"
 #include <nx/nx.hpp>
 #include <iostream>
 
@@ -33,6 +34,7 @@ namespace nl {
             config::load();
             time::reset();
             nx::load_all();
+            music::init();
             window::recreate(config::fullscreen);
             map::init();
         }
