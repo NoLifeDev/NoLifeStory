@@ -19,6 +19,7 @@
 #include "file_impl.hpp"
 #include "node_impl.hpp"
 #ifdef _WIN32
+#  include <codecvt>
 #  ifdef __MINGW32__
 #    include <windows.h>
 #  else
@@ -32,7 +33,6 @@
 #  include <unistd.h>
 #endif
 #include <stdexcept>
-
 namespace nl {
     file::file(std::string name) {
         open(name);
@@ -44,13 +44,27 @@ namespace nl {
         close();
         m_data = new data();
 #ifdef _WIN32
-        m_data->file_handle = ::CreateFileA(name.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, nullptr);
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
+        std::wstring str = convert.from_bytes(name);
+#if WINAPI_FAMILY == WINAPI_FAMILY_APP
+        m_data->file_handle = ::CreateFile2(str.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
+#else
+        m_data->file_handle = ::CreateFileW(str.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_RANDOM_ACCESS, nullptr);
+#endif
         if (m_data->file_handle == INVALID_HANDLE_VALUE)
             throw std::runtime_error("Failed to open file " + name);
-        m_data->map = ::CreateFileMappingA(m_data->file_handle, 0, PAGE_READONLY, 0, 0, nullptr);
+#if WINAPI_FAMILY == WINAPI_FAMILY_APP
+        m_data->map = ::CreateFileMappingFromApp(m_data->file_handle, 0, PAGE_READONLY, 0, nullptr);
+#else
+        m_data->map = ::CreateFileMappingW(m_data->file_handle, 0, PAGE_READONLY, 0, 0, nullptr);
+#endif
         if (!m_data->map)
             throw std::runtime_error("Failed to create file mapping of file " + name);
+#if WINAPI_FAMILY == WINAPI_FAMILY_APP
+        m_data->base = ::MapViewOfFileFromApp(m_data->map, FILE_MAP_READ, 0, 0);
+#else
         m_data->base = ::MapViewOfFile(m_data->map, FILE_MAP_READ, 0, 0, 0);
+#endif
         if (!m_data->base)
             throw std::runtime_error("Failed to map view of file " + name);
 #else
