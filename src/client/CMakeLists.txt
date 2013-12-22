@@ -1,7 +1,7 @@
 project(NoLifeClient)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include_directories(..)
-include(../cmake/common.cmake)
+include(../../cmake/common.cmake)
 enable_cxx11(CXX11_FLAGS)
 
 # Find packages
