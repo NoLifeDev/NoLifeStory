@@ -25,6 +25,5 @@ namespace nl {
         void init();
         void play_bgm();
         void play(node);
-        void play(std::string);
     }
 }

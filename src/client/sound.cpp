@@ -25,14 +25,13 @@
 #include <RtAudio.h>
 #include <memory>
 #include <locale>
+#include <vector>
 
 namespace nl {
     namespace music {
-        mpg123_handle * handle = nullptr;
         node n = {};
         std::unique_ptr<RtAudio> dac;
-        unsigned int frames;
-        int channels;
+        std::vector<unsigned char> buf;
         void init() {
             if (mpg123_init() != MPG123_OK)
                 throw std::runtime_error("Failed to initialize mpg123");
@@ -60,26 +59,39 @@ namespace nl {
                 return;
             n = nn;
             audio a = n;
-            if (handle)
-                mpg123_close(handle);
             if (dac->isStreamOpen())
                 dac->closeStream();
-            handle = mpg123_new(nullptr, nullptr);
+            auto handle = mpg123_new(nullptr, nullptr);
             if (!handle)
                 throw std::runtime_error("Failed to open mpg123 handle");
-            mpg123_open_feed(handle);
-            mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.data()) + 82, a.length() - 82);
+            if (mpg123_open_feed(handle) != MPG123_OK)
+                throw std::runtime_error("Failed to open mpg123 feed");
+            if (mpg123_feed(handle, reinterpret_cast<unsigned char const *>(a.data()) + 82, a.length() - 82) != MPG123_OK)
+                throw std::runtime_error("Failed to feed data to mpg123");
             long rate;
             int encoding;
+            int channels;
             if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK)
                 throw std::runtime_error("Failed to get format of music");
+            buf.clear();
+            for (size_t i = 0u;;) {
+                buf.resize(i + 0x10000);
+                size_t done;
+                mpg123_read(handle, buf.data() + i, 0x10000, &done);
+                i += done;
+                if (done < 0x10000) {
+                    buf.resize(i);
+                    break;
+                }
+            }
             RtAudio::StreamParameters parameters;
             parameters.deviceId = dac->getDefaultOutputDevice();
             parameters.nChannels = channels;
             parameters.firstChannel = 0;
-            frames = mpg123_outblock(handle);
+            unsigned int frames = mpg123_outblock(handle);
             dac->openStream(&parameters, nullptr, RTAUDIO_SINT16, rate, &frames, callback);
             dac->startStream();
+            mpg123_close(handle);
         }
         void play(std::string s) {
             if (!n && dac->isStreamRunning())

@@ -23,6 +23,7 @@
 #include "view.hpp"
 #include "sprite.hpp"
 #include "map.hpp"
+#include "sound.hpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <memory>
@@ -72,6 +73,7 @@ namespace nl {
                         break;
                     case GLFW_KEY_R:
                         config::rave = !config::rave;
+                        music::play_bgm();
                         break;
                     default:;
                     }
