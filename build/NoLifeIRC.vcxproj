@@ -38,8 +38,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup>
-    <LibraryPath>$(OutDir);$(SolutionDir)/sdk/lib/$(Platform)/$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir);$(SolutionDir)/sdk/include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
+    <LibraryPath>$(OutDir);$(SolutionDir)../sdk/lib/$(Platform)/$(Configuration);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)../src;$(SolutionDir)../sdk/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -67,7 +68,7 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
-    <ClCompile Include="irc.cpp" />
+    <ClCompile Include="../src/irc/irc.cpp" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

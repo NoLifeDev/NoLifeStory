@@ -11,45 +11,45 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="nx.cpp">
+    <ClCompile Include="../src/nx/audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bitmap.cpp">
+    <ClCompile Include="../src/nx/bitmap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="audio.cpp">
+    <ClCompile Include="../src/nx/file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="node.cpp">
+    <ClCompile Include="../src/nx/node.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="file.cpp">
+    <ClCompile Include="../src/nx/nx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="nx.hpp">
+    <ClInclude Include="../src/nx/audio.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bitmap.hpp">
+    <ClInclude Include="../src/nx/bitmap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="audio.hpp">
+    <ClInclude Include="../src/nx/file.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="node.hpp">
+    <ClInclude Include="../src/nx/file_impl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="file.hpp">
+    <ClInclude Include="../src/nx/node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nxfwd.hpp">
+    <ClInclude Include="../src/nx/node_impl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="file_impl.hpp">
+    <ClInclude Include="../src/nx/nx.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="node_impl.hpp">
+    <ClInclude Include="../src/nx/nxfwd.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

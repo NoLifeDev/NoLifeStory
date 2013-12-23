@@ -38,8 +38,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup>
-    <LibraryPath>$(OutDir);$(SolutionDir)/sdk/lib/$(Platform)/$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir);$(SolutionDir)/sdk/include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
+    <LibraryPath>$(OutDir);$(SolutionDir)../sdk/lib/$(Platform)/$(Configuration);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)../src;$(SolutionDir)../sdk/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -65,22 +66,22 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
-    <ClCompile Include="audio.cpp" />
-    <ClCompile Include="bitmap.cpp" />
-    <ClCompile Include="file.cpp">
+    <ClCompile Include="../src/nx/audio.cpp" />
+    <ClCompile Include="../src/nx/bitmap.cpp" />
+    <ClCompile Include="../src/nx/file.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
-    <ClCompile Include="node.cpp" />
-    <ClCompile Include="nx.cpp" />
+    <ClCompile Include="../src/nx/node.cpp" />
+    <ClCompile Include="../src/nx/nx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="audio.hpp" />
-    <ClInclude Include="bitmap.hpp" />
-    <ClInclude Include="file.hpp" />
-    <ClInclude Include="file_impl.hpp" />
-    <ClInclude Include="node.hpp" />
-    <ClInclude Include="node_impl.hpp" />
-    <ClInclude Include="nx.hpp" />
-    <ClInclude Include="nxfwd.hpp" />
+    <ClInclude Include="../src/nx/audio.hpp" />
+    <ClInclude Include="../src/nx/bitmap.hpp" />
+    <ClInclude Include="../src/nx/file.hpp" />
+    <ClInclude Include="../src/nx/file_impl.hpp" />
+    <ClInclude Include="../src/nx/node.hpp" />
+    <ClInclude Include="../src/nx/node_impl.hpp" />
+    <ClInclude Include="../src/nx/nx.hpp" />
+    <ClInclude Include="../src/nx/nxfwd.hpp" />
   </ItemGroup>
 </Project>

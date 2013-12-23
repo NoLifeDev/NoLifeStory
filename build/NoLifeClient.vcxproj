@@ -38,12 +38,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup>
-    <LibraryPath>$(OutDir);$(SolutionDir)/sdk/lib/$(Platform)/$(Configuration);$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir);$(SolutionDir)/sdk/include;$(IncludePath)</IncludePath>
+    <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
+    <LibraryPath>$(OutDir);$(SolutionDir)../sdk/lib/$(Platform)/$(Configuration);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)../src;$(SolutionDir)../sdk/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>GLEW_STATIC;__WINDOWS_DS__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableLanguageExtensions>true</DisableLanguageExtensions>
     </ClCompile>
     <Link>
@@ -68,38 +69,38 @@
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup>
-    <ClInclude Include="background.hpp" />
-    <ClInclude Include="config.hpp" />
-    <ClInclude Include="foothold.hpp" />
-    <ClInclude Include="game.hpp" />
-    <ClInclude Include="layer.hpp" />
-    <ClInclude Include="obj.hpp" />
-    <ClInclude Include="portal.hpp" />
-    <ClInclude Include="sound.hpp" />
-    <ClInclude Include="tile.hpp" />
-    <ClInclude Include="window.hpp" />
-    <ClInclude Include="map.hpp" />
-    <ClInclude Include="sprite.hpp" />
-    <ClInclude Include="time.hpp" />
-    <ClInclude Include="view.hpp" />
+    <ClInclude Include="../src/client/background.hpp" />
+    <ClInclude Include="../src/client/config.hpp" />
+    <ClInclude Include="../src/client/foothold.hpp" />
+    <ClInclude Include="../src/client/game.hpp" />
+    <ClInclude Include="../src/client/layer.hpp" />
+    <ClInclude Include="../src/client/obj.hpp" />
+    <ClInclude Include="../src/client/portal.hpp" />
+    <ClInclude Include="../src/client/sound.hpp" />
+    <ClInclude Include="../src/client/tile.hpp" />
+    <ClInclude Include="../src/client/window.hpp" />
+    <ClInclude Include="../src/client/map.hpp" />
+    <ClInclude Include="../src/client/sprite.hpp" />
+    <ClInclude Include="../src/client/time.hpp" />
+    <ClInclude Include="../src/client/view.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="background.cpp" />
-    <ClCompile Include="config.cpp" />
-    <ClCompile Include="foothold.cpp" />
-    <ClCompile Include="game.cpp" />
-    <ClCompile Include="layer.cpp" />
-    <ClCompile Include="obj.cpp" />
-    <ClCompile Include="portal.cpp" />
-    <ClCompile Include="sound.cpp">
+    <ClCompile Include="../src/client/background.cpp" />
+    <ClCompile Include="../src/client/config.cpp" />
+    <ClCompile Include="../src/client/foothold.cpp" />
+    <ClCompile Include="../src/client/game.cpp" />
+    <ClCompile Include="../src/client/layer.cpp" />
+    <ClCompile Include="../src/client/obj.cpp" />
+    <ClCompile Include="../src/client/portal.cpp" />
+    <ClCompile Include="../src/client/sound.cpp">
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
-    <ClCompile Include="tile.cpp" />
-    <ClCompile Include="window.cpp" />
-    <ClCompile Include="map.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="sprite.cpp" />
-    <ClCompile Include="time.cpp" />
-    <ClCompile Include="view.cpp" />
+    <ClCompile Include="../src/client/tile.cpp" />
+    <ClCompile Include="../src/client/window.cpp" />
+    <ClCompile Include="../src/client/map.cpp" />
+    <ClCompile Include="../src/client/main.cpp" />
+    <ClCompile Include="../src/client/sprite.cpp" />
+    <ClCompile Include="../src/client/time.cpp" />
+    <ClCompile Include="../src/client/view.cpp" />
   </ItemGroup>
 </Project>
