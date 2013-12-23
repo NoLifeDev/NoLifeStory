@@ -59,7 +59,7 @@ namespace nl {
                 //Try catch this to prevent crashes from user stupidity
                 try {
                     v = std::stoi(configs[n]);
-                } catch (...) {}
+                } catch (std::exception const &) {}
             };
         }
         void map_bool(std::string const & n, bool & v) {

@@ -3,105 +3,101 @@
   <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp</Extensions>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+      <Extensions>hpp</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="game.hpp">
+    <ClInclude Include="../src/client/background.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="map.hpp">
+    <ClInclude Include="../src/client/config.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="config.hpp">
+    <ClInclude Include="../src/client/foothold.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="time.hpp">
+    <ClInclude Include="../src/client/game.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="view.hpp">
+    <ClInclude Include="../src/client/layer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sprite.hpp">
+    <ClInclude Include="../src/client/obj.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="window.hpp">
+    <ClInclude Include="../src/client/portal.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tile.hpp">
+    <ClInclude Include="../src/client/sound.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="layer.hpp">
+    <ClInclude Include="../src/client/tile.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="foothold.hpp">
+    <ClInclude Include="../src/client/window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="obj.hpp">
+    <ClInclude Include="../src/client/map.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="background.hpp">
+    <ClInclude Include="../src/client/sprite.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="portal.hpp">
+    <ClInclude Include="../src/client/time.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sound.hpp">
+    <ClInclude Include="../src/client/view.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="../src/client/background.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="game.cpp">
+    <ClCompile Include="../src/client/config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="map.cpp">
+    <ClCompile Include="../src/client/foothold.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="config.cpp">
+    <ClCompile Include="../src/client/game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="time.cpp">
+    <ClCompile Include="../src/client/layer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="view.cpp">
+    <ClCompile Include="../src/client/obj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sprite.cpp">
+    <ClCompile Include="../src/client/portal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="window.cpp">
+    <ClCompile Include="../src/client/sound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tile.cpp">
+    <ClCompile Include="../src/client/tile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="layer.cpp">
+    <ClCompile Include="../src/client/window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="foothold.cpp">
+    <ClCompile Include="../src/client/map.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="obj.cpp">
+    <ClCompile Include="../src/client/main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="background.cpp">
+    <ClCompile Include="../src/client/sprite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="portal.cpp">
+    <ClCompile Include="../src/client/time.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sound.cpp">
+    <ClCompile Include="../src/client/view.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

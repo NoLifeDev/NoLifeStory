@@ -288,6 +288,6 @@ namespace nl {
 int main() {
     //nl::dump("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP");
     //nl::dump("Map").name("Map").regex("Map[0-9]").all().name("info").name("LBTop");
-    nl::dump_music();
-    //nl::bench();
+    //nl::dump_music();
+    nl::bench();
 }
