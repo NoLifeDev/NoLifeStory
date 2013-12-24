@@ -6,13 +6,13 @@ If you want to contribute to NoLifeStory, looking here is a good place to get an
 NoLifeClient
 ------------
 
-* Finish refactoring everything
+* Switch from RtAudio to PortAudio
 * Text drawing using actual font rendering with freetype
-* Playback of small sounds, not just music
-* Play music from file for rave mode
 * Re-implement physics
-* Character rendering
+* Play music from file for rave mode
 * Make portals functional
+* Character rendering
+* Playback of small sounds, not just music
 * Mobs and npcs
 * User Interface (styled after windows 8 metro and new VS theme, but better)
 * Implement networking (using NoLifeProtocol)
