@@ -32,12 +32,12 @@ namespace nl {
             double const dreal;
             uint32_t const string;
             int32_t const vector[2];
-            struct bitmap_t {
+            struct {
                 uint32_t index;
                 uint16_t width;
                 uint16_t height;
             } const bitmap;
-            struct audio_t {
+            struct {
                 uint32_t index;
                 uint32_t length;
             } const audio;

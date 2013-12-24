@@ -33,6 +33,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup>
     <IntDir>$(SolutionDir)/$(Platform)/$(Configuration)/$(TargetName)/</IntDir>
+    <OutDir>$(SolutionDir)/$(Platform)/$(Configuration)/</OutDir>
     <LibraryPath>$(OutDir)/;$(SolutionDir)/../sdk/lib/$(Platform)/$(Configuration)/;$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)/../src/;$(SolutionDir)/../sdk/include/;$(IncludePath)</IncludePath>
   </PropertyGroup>
