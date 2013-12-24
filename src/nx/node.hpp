@@ -20,6 +20,7 @@
 #include "nxfwd.hpp"
 #include <string>
 #include <cstdint>
+#include <cstddef>
 
 namespace nl {
     struct _file_data;
