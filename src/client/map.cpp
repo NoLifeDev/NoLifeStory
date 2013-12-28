@@ -79,8 +79,6 @@ namespace nl {
             current_name = current.name();
             current_name.erase(current_name.find(".img"));
             std::cout << "Loading map " << current.name() << std::endl;
-            for (auto n : current["info"])
-                std::cout << n.name() << ": " << n.get_string() << std::endl;
             time::reset();
             music::play_bgm();
             sprite::cleanup();

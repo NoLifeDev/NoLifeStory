@@ -1,10 +1,10 @@
 *
 !.gitignore
 !.gitattributes
-!CMakeLists.txt
 !bgm.mp3
 !*.cmake
 !*.md
+!*.txt
 !sdk/
 !sdk/README.md
 !src/

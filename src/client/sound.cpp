@@ -64,6 +64,10 @@ namespace nl {
                 mpg123_close(handle);
             if (dac->isStreamOpen())
                 dac->closeStream();
+            if (!a) {
+                std::cerr << "Map does not contain valid bgm" << std::endl;
+                return;
+            }
             handle = mpg123_new(nullptr, nullptr);
             if (!handle)
                 throw std::runtime_error("Failed to open mpg123 handle");
@@ -87,20 +91,16 @@ namespace nl {
             n = {};
         }
         void play_bgm() {
-            if (config::rave) {
-                play("bgm.mp3");
-            } else {
-                std::string bgm = map::current["info"]["bgm"];
-                if (islower(bgm[0]))
-                    bgm[0] = std::toupper(bgm[0], std::locale::classic());
-                while (bgm.find(' ') != bgm.npos)
-                    bgm.erase(bgm.find(' '), 1);
-                auto p = bgm.find('/');
-                auto sn = nx::sound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
-                if (!sn)
-                    std::cerr << "Failed to find bgm " << bgm << " for map " << map::current_name << std::endl;
-                play(sn);
-            }
+            std::string bgm = map::current["info"]["bgm"];
+            if (islower(bgm[0]))
+                bgm[0] = std::toupper(bgm[0], std::locale::classic());
+            while (bgm.find(' ') != bgm.npos)
+                bgm.erase(bgm.find(' '), 1);
+            auto p = bgm.find('/');
+            auto sn = nx::sound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
+            if (!sn)
+                std::cerr << "Failed to find bgm " << bgm << " for map " << map::current_name << std::endl;
+            play(sn);
         }
     }
     /*
