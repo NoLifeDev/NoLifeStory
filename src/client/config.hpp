@@ -20,6 +20,7 @@
 
 namespace nl {
     namespace config {
+        extern bool stretch;
         extern bool rave;
         extern bool fullscreen;
         extern bool vsync;

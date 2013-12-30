@@ -63,6 +63,10 @@ namespace nl {
                 config::window_width = width;
                 config::window_height = height;
             }
+            if (config::stretch) {
+                width = 800;
+                height = 600;
+            }
         }
         void reset() {
             auto info = map::current["info"];

@@ -27,6 +27,7 @@
 namespace nl {
     namespace config {
         //Various config variables
+        bool stretch = false;
         bool rave = false;
         bool fullscreen = false;
         bool vsync = true;
@@ -90,6 +91,7 @@ namespace nl {
             map_bool("fullscreen", fullscreen);
             map_bool("vsync", vsync);
             map_bool("capfps", limit_fps);
+            map_bool("stretch", stretch);
             map_int("fps", target_fps);
             map_int("maxtextures", max_textures);
             map_int("winwidth", window_width);
