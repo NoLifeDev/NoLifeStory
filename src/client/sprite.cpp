@@ -124,7 +124,7 @@ namespace nl {
             movetype = current["moveType"];
             movew = current["moveW"];
             moveh = current["moveH"];
-            movep = current["moveP"].get_real(1000);
+            movep = current["moveP"].get_real(1000 * 2 * pi);
             mover = current["moveR"];
         }
         repeat = current["repeat"].get_bool();

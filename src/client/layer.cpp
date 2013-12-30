@@ -41,8 +41,10 @@ namespace nl {
             l.objs.clear();
             for (auto nn : n["obj"])
                 l.objs.emplace_back(nn);
-            sort(l.objs.begin(), l.objs.end(),
+            std::sort(l.objs.begin(), l.objs.end(),
                 [](obj const & a, obj const & b) {
+                if (a.z == b.z)
+                    return a.zid < b.zid;
                 return a.z < b.z;
             });
             l.tiles.clear();

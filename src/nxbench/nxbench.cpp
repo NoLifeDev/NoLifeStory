@@ -222,6 +222,13 @@ namespace nl {
             nodes.erase(it, nodes.end());
             return *this;
         }
+        dump & filter_value(std::string v) {
+            auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info & i) {
+                return v != i.n.get_string();
+            });
+            nodes.erase(it, nodes.end());
+            return *this;
+        }
         dump & has_child(std::string s) {
             auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info & i) {
                 return !i.n[s];
@@ -287,7 +294,8 @@ namespace nl {
 }
 int main() {
     //nl::dump("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP");
-    //nl::dump("Map").name("Map").regex("Map[0-9]").all().name("info").name("LBTop");
+    //nl::dump("Map").name("Map").regex("Map[0-9]").all().regex("[0-9]").name("obj").all().name("z");
+    //nl::dump("Map").name("Obj").all().all().all().all().regex("[0-9]*");
     //nl::dump_music();
-    nl::bench();
+    //nl::bench();
 }

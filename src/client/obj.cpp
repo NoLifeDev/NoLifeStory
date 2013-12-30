@@ -21,16 +21,19 @@
 #include "view.hpp"
 #include <nx/nx.hpp>
 #include <iostream>
+#include <string>
 
 namespace nl {
     obj::obj(node n) {
         x = n["x"];
         y = n["y"];
         z = n["z"];
+        zm = n["zM"];
+        zid = std::stoi(n.name());
         rx = n["rx"];
         ry = n["ry"];
-        cx = n["cx"] ? n["cx"] : 1000;
-        cy = n["cy"] ? n["cy"] : 1000;
+        cx = n["cx"];
+        cy = n["cy"];
         flow = n["flow"];
         flip = n["f"].get_bool();
         spr = nx::map["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];

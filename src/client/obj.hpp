@@ -25,7 +25,7 @@ namespace nl {
     public:
         obj(node);
         void render();
-        int x, y, z;
+        int x, y, z, zm, zid;
     private:
         sprite spr;
         int rx, ry;
