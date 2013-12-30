@@ -46,6 +46,7 @@ namespace nl {
             window::update();
         }
         void unload() {
+            music::unload();
             config::save();
             window::unload();
         }

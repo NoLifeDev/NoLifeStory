@@ -24,5 +24,6 @@ namespace nl {
     namespace music {
         void init();
         void play();
+        void unload();
     }
 }
