@@ -17,9 +17,8 @@ FILE(GLOB NOLIFE_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 list(REMOVE_ITEM NOLIFE_SOURCES
   ClassicUI.cpp
   physics.cpp
-  player.cpp
-  sound.cpp)
+  player.cpp)
 
 add_executable(NoLifeClient ${NOLIFE_SOURCES})
 
-target_link_libraries(NoLifeClient lz4 NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY} ${CXX11_FLAGS})
+target_link_libraries(NoLifeClient lz4 NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY} ${CXX11_FLAGS} portaudio mpg123 pthread)
