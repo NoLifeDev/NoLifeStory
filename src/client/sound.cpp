@@ -26,6 +26,7 @@
 #include <memory>
 #include <locale>
 #include <iostream>
+#include <thread>
 
 namespace nl {
     namespace music {
@@ -65,7 +66,10 @@ namespace nl {
             if (handle)
                 mpg123_close(handle);
             if (stream) {
-                Pa_CloseStream(stream);
+                std::thread([](PaStream * stream) {
+                    Pa_StopStream(stream);
+                    Pa_CloseStream(stream);
+                }, stream).detach();
                 stream = nullptr;
             }
             audio a = n;
