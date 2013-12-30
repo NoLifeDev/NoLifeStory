@@ -23,7 +23,6 @@
 namespace nl {
     namespace music {
         void init();
-        void play_bgm();
-        void play(node);
+        void play();
     }
 }

@@ -73,7 +73,7 @@ namespace nl {
                         break;
                     case GLFW_KEY_R:
                         config::rave = !config::rave;
-                        music::play_bgm();
+                        music::play();
                         break;
                     default:;
                     }

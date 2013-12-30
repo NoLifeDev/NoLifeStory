@@ -22,26 +22,29 @@
 #include <nx/audio.hpp>
 #include <nx/nx.hpp>
 #include <mpg123.h>
-#include <RtAudio.h>
+#include <portaudio.h>
 #include <memory>
 #include <locale>
+#include <iostream>
 
 namespace nl {
     namespace music {
         mpg123_handle * handle = nullptr;
         node n = {};
-        std::unique_ptr<RtAudio> dac;
-        unsigned int frames;
+        PaStream * stream = nullptr;
         int channels;
         void init() {
             if (mpg123_init() != MPG123_OK)
                 throw std::runtime_error("Failed to initialize mpg123");
-            dac = std::make_unique<RtAudio>();
-            if (!dac->getDeviceCount())
-                throw std::runtime_error("No audio device found!");
+            if (Pa_Initialize() != paNoError)
+                throw std::runtime_error("Failed to initialize PortAudio");
         }
-        int callback(void * output, void *, unsigned int frames, double, RtAudioStreamStatus, void *) {
-            size_t todo = frames * 2 * channels;
+        void unload() {
+            mpg123_exit();
+            Pa_Terminate();
+        }
+        int callback(const void *, void * output, unsigned long frames, PaStreamCallbackTimeInfo const *, PaStreamCallbackFlags, void *) {
+            size_t todo = static_cast<size_t>(frames * 2 * channels);
             auto buf = reinterpret_cast<unsigned char *>(output);
             while (todo) {
                 size_t done;
@@ -59,11 +62,13 @@ namespace nl {
             if (n == nn)
                 return;
             n = nn;
-            audio a = n;
             if (handle)
                 mpg123_close(handle);
-            if (dac->isStreamOpen())
-                dac->closeStream();
+            if (stream) {
+                Pa_CloseStream(stream);
+                stream = nullptr;
+            }
+            audio a = n;
             if (!a) {
                 std::cerr << "Map does not contain valid bgm" << std::endl;
                 return;
@@ -77,20 +82,11 @@ namespace nl {
             int encoding;
             if (mpg123_getformat(handle, &rate, &channels, &encoding) != MPG123_OK)
                 throw std::runtime_error("Failed to get format of music");
-            RtAudio::StreamParameters parameters;
-            parameters.deviceId = dac->getDefaultOutputDevice();
-            parameters.nChannels = channels;
-            parameters.firstChannel = 0;
-            frames = mpg123_outblock(handle);
-            dac->openStream(&parameters, nullptr, RTAUDIO_SINT16, rate, &frames, callback);
-            dac->startStream();
+            if (Pa_OpenDefaultStream(&stream, 0, channels, paInt16, rate, static_cast<unsigned long>(mpg123_outblock(handle)), callback, nullptr) != paNoError)
+                throw std::runtime_error("Failed to open PortAudio stream");
+            Pa_StartStream(stream);
         }
-        void play(std::string s) {
-            if (!n && dac->isStreamRunning())
-                return;
-            n = {};
-        }
-        void play_bgm() {
+        void play() {
             std::string bgm = map::current["info"]["bgm"];
             if (islower(bgm[0]))
                 bgm[0] = std::toupper(bgm[0], std::locale::classic());

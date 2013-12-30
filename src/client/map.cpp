@@ -80,7 +80,7 @@ namespace nl {
             current_name.erase(current_name.find(".img"));
             std::cout << "Loading map " << current.name() << std::endl;
             time::reset();
-            music::play_bgm();
+            music::play();
             sprite::cleanup();
             layer::load();
             background::load();
