@@ -25,7 +25,7 @@ namespace NL {
     double const float_drag_2 = 10000;
     double const float_multiplier = 0.0008928571428571428;
     double const fly_force = 120000;
-    double const fly_jumo_dec = 0.35;
+    double const fly_jump_dec = 0.35;
     double const fly_speed = 200;
     double const gravity_acc = 2000;
     double const jump_speed = 555;
