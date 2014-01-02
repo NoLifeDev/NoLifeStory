@@ -2,7 +2,6 @@ project(NoLifeClient)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include_directories(..)
 include(../../cmake/common.cmake)
-enable_cxx11(CXX11_FLAGS)
 
 # Find packages
 find_package(OpenGL REQUIRED)
@@ -21,4 +20,4 @@ list(REMOVE_ITEM NOLIFE_SOURCES
 
 add_executable(NoLifeClient ${NOLIFE_SOURCES})
 
-target_link_libraries(NoLifeClient lz4 NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY} ${CXX11_FLAGS} portaudio mpg123 pthread)
+target_link_libraries(NoLifeClient lz4 NoLifeNx ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${GLFW_LIBRARY} portaudio mpg123 pthread)

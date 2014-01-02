@@ -6,21 +6,6 @@ macro(detect_system OS_VAR)
   endif()
 endmacro()
 
-# At the moment, we assume Clang with libc++ is used to build WzToNx
-macro(enable_cxx11 CXX11_LINKER_FLAGS)
-  detect_system(OPERATING_SYSTEM)
-  if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    message(STATUS "${PROJECT_NAME}: Enabling Clang C++11 support")
-    message(STATUS "${PROJECT_NAME}: Make sure libc++ is installed")
-    add_compile_options(-std=c++11 -stdlib=libc++)
-    if(${OPERATING_SYSTEM} MATCHES "Linux")
-      set(${CXX11_LINKER_FLAGS} "-stdlib=libc++ -lc++ -lc++abi") 
-    endif()
-  else()
-    message(FATAL_ERROR "Only Clang and msvc are supported")
-  endif()
-endmacro()
-
 # Usage: cmake -DBUILD_SHARED_LIBS=ON/OFF .
 function(setup_option_shared_lib)
   option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
