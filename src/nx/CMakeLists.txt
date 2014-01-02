@@ -11,5 +11,12 @@ else()
     install(TARGETS NoLifeNx LIBRARY ARCHIVE DESTINATION lib)
 endif()
 file(GLOB NOLIFENX_HEADERS . *.hpp)
-install(FILES ${NOLIFENX_HEADERS} DESTINATION include/nx)
+install(FILES 
+audio.hpp
+bitmap.hpp
+file.hpp
+node.hpp
+nxfwd.hpp
+nx.hpp
+DESTINATION include/nx)
 target_link_libraries(NoLifeNx lz4)
