@@ -140,7 +140,7 @@ namespace nl {
     node::operator std::string() const {
         return get_string();
     }
-    node::operator vector() const {
+    node::operator vector2i() const {
         return get_vector();
     }
     node::operator bitmap() const {
@@ -209,7 +209,7 @@ namespace nl {
             throw std::runtime_error("Unknown node type");
         }
     }
-    vector node::get_vector(vector def) const {
+    vector2i node::get_vector(vector2i def) const {
         if (m_data && m_data->type == type::vector)
             return to_vector();
         return def;
@@ -300,7 +300,7 @@ namespace nl {
             + m_file->string_table[m_data->string];
         return {s + 2, *reinterpret_cast<uint16_t const *>(s)};
     }
-    std::pair<int32_t, int32_t> node::to_vector() const {
+    vector2i node::to_vector() const {
         return {m_data->vector[0], m_data->vector[1]};
     }
     bitmap node::to_bitmap() const {

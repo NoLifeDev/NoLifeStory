@@ -60,24 +60,22 @@ namespace nl {
             return recurse_sub(nxfile);
         }
         size_t recurse_search_sub(node const & n) {
-            if (n["x"])
-                return 1;
-            size_t c = 0;
+            size_t c = 1;
             for (node const & nn : n)
-                c += nn.size() ? recurse_search_sub(nn) : 0;
+                c += n[nn.name()] == nn ? nn.size() ? recurse_search_sub(nn) : 1 : 0;
             return c;
         }
         size_t recurse_search() {
             return recurse_search_sub(nxfile);
         }
-        void recurse_decompress_sub(node const & n) {
-            n.get_bitmap().data();
+        size_t recurse_decompress_sub(node const & n) {
+            size_t c = n.get_bitmap().data() ? 1u : 0u;
             for (node const & nn : n)
-                recurse_decompress_sub(nn);
+                c += recurse_decompress_sub(nn);
+            return c;
         }
         size_t recurse_decompress() {
-            recurse_decompress_sub(nxfile);
-            return 0;
+            return recurse_decompress_sub(nxfile);
         }
 #ifdef _WIN32
         double frequency;
@@ -122,10 +120,10 @@ namespace nl {
             setup_time();
             std::printf("Name\t75%%t\tM50%%\tBest\tAnswer\n");
             test("Ld", &bench::load, 0x1000);
-            test("Re", &bench::recurse, 0x40);
-            test("LR", &bench::recurse_load, 0x40);
-            test("SA", &bench::recurse_search, 0x40);
-            test("De", &bench::recurse_decompress, 0x10);
+            test("Re", &bench::recurse, 0x100);
+            test("LR", &bench::recurse_load, 0x100);
+            test("SA", &bench::recurse_search, 0x100);
+            test("De", &bench::recurse_decompress, 0x100);
         }
     };
     void dump_music() {
@@ -296,6 +294,7 @@ int main() {
     //nl::dump("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP");
     //nl::dump("Map").name("Map").regex("Map[0-9]").all().regex("[0-9]").name("obj").all().name("z");
     //nl::dump("Map").name("Obj").all().all().all().all().regex("[0-9]*");
+    //nl::dump("Map").name("Map").regex("Map[0-9]").all().name("info").name("timeMob");
     //nl::dump_music();
-    //nl::bench();
+    nl::bench();
 }

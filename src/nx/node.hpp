@@ -24,7 +24,7 @@
 
 namespace nl {
     struct _file_data;
-    typedef std::pair<int32_t, int32_t> vector;
+    typedef std::pair<int32_t, int32_t> vector2i;
     class node {
     public:
         using difference_type = ptrdiff_t;
@@ -95,7 +95,7 @@ namespace nl {
         operator double() const;
         operator long double() const;
         operator std::string() const;
-        operator vector() const;
+        operator vector2i() const;
         operator bitmap() const;
         operator audio() const;
         //Explicitly called versions of all the operators
@@ -104,7 +104,7 @@ namespace nl {
         int64_t get_integer(int64_t = 0) const;
         double get_real(double = 0) const;
         std::string get_string(std::string = "") const;
-        vector get_vector(vector = {0, 0}) const;
+        vector2i get_vector(vector2i = {0, 0}) const;
         bitmap get_bitmap() const;
         audio get_audio() const;
         bool get_bool() const;
@@ -128,7 +128,7 @@ namespace nl {
         int64_t to_integer() const;
         double to_real() const;
         std::string to_string() const;
-        vector to_vector() const;
+        vector2i to_vector() const;
         bitmap to_bitmap() const;
         audio to_audio() const;
         //Internal variables

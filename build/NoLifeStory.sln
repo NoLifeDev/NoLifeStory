@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNxBench", "NoLifeNxBe
 		{A9F2D040-71A0-4593-9EAE-0E6820DC39FE} = {A9F2D040-71A0-4593-9EAE-0E6820DC39FE}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeMcdb", "NoLifeMcdb.vcxproj", "{9BE23F98-9673-40AA-912E-5457DADBD926}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -57,6 +59,14 @@ Global
 		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|Win32.Build.0 = Release|Win32
 		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|x64.ActiveCfg = Release|x64
 		{77E91142-3BCB-4283-8E80-4EE48AED491F}.Release|x64.Build.0 = Release|x64
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Debug|Win32.Build.0 = Debug|Win32
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Debug|x64.ActiveCfg = Debug|x64
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Debug|x64.Build.0 = Debug|x64
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Release|Win32.ActiveCfg = Release|Win32
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Release|Win32.Build.0 = Release|Win32
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Release|x64.ActiveCfg = Release|x64
+		{9BE23F98-9673-40AA-912E-5457DADBD926}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
