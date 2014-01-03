@@ -15,13 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
+
 #pragma once
-namespace NL {
-    namespace Player {
-        extern Physics Pos;
-        extern uint16_t Level;//Srsly, we want epic levels :D
-        void Respawn(string portal);
-        void Update();
-        void Render();
+#include "physics.hpp"
+#include <string>
+
+namespace nl {
+    namespace player {
+        extern physics pos;
+        extern uint16_t level;//Srsly, we want epic levels :D
+        void respawn(std::string portal);
+        void update();
+        void render();
     }
 }

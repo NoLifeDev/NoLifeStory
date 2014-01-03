@@ -14,8 +14,7 @@ include_directories(${GLFW_INCLUDE_DIR})
 FILE(GLOB NOLIFE_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 
 list(REMOVE_ITEM NOLIFE_SOURCES
-  ClassicUI.cpp
-  player.cpp)
+  ClassicUI.cpp)
 
 add_executable(NoLifeClient ${NOLIFE_SOURCES})
 
