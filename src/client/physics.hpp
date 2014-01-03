@@ -16,6 +16,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "foothold.hpp"
+#include <cstdint>
+
 namespace NL {
     class Physics {
     public:
@@ -26,7 +29,7 @@ namespace NL {
         double x, y, r;
         double vx, vy, vr;
         int32_t layer, group;
-        Foothold * fh, * djump;
+        nl::foothold * fh, * djump;
         void * lr;//Todo ladderropes
         bool left, right, up, down;
         double laststep;

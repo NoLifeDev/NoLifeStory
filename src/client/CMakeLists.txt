@@ -15,7 +15,6 @@ FILE(GLOB NOLIFE_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 
 list(REMOVE_ITEM NOLIFE_SOURCES
   ClassicUI.cpp
-  physics.cpp
   player.cpp)
 
 add_executable(NoLifeClient ${NOLIFE_SOURCES})

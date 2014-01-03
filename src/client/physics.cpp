@@ -15,7 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License //
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
-#include "NoLifeClient.hpp"
+
+#include "physics.hpp"
+#include "time.hpp"
+#include "map.hpp"
+#include <cmath>
+
 namespace NL {
     double const down_jump_multiplier = 0.35355339;
     double const epsilon = 0.00001;
@@ -61,12 +66,12 @@ namespace NL {
         vx = 0, vy = 0, vr = 0;
         layer = 7, group = -1;
         fh = nullptr, lr = nullptr, djump = nullptr;
-        laststep = Time::TDelta;
+        laststep = nl::time::delta_total;
     }
     void Physics::Jump() {
-        bool flying = Map::Current["info"]["swim"].GetBool();
+        bool flying = nl::map::current["info"]["swim"].get_bool();
         if (fh) {
-            if (down && !fh->cantThrough && !fh->forbidFallDown && any_of(Footholds.begin(), Footholds.end(), [&](Foothold & f) {
+            if (down && !fh->cant_through && !fh->forbid_fall_down && any_of(nl::footholds.begin(), nl::footholds.end(), [&](nl::foothold & f) {
                 return f.id != fh->id && f.x1 < x && f.x2 > x && f.y1 > y && f.y2 > y;
             })) {
                 djump = fh;
@@ -75,7 +80,7 @@ namespace NL {
                 vy = shoe_walk_jump * jump_speed * (flying ? -0.7 : -1);
                 double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1, fmax = walk_speed * shoe_walk_speed;
                 (left && fy < 0) || (right && fy > 0) ? fmax *= (1 + (fy * fy) / (fx * fx +  fy * fy)) : 0;
-                vx = left ? max(min(vx, -fmax * 0.8), -fmax) : right ? min(max(vx, fmax * 0.8), fmax) : vx;
+                vx = left ? std::max(std::min(vx, -fmax * 0.8), -fmax) : right ? std::min(std::max(vx, fmax * 0.8), fmax) : vx;
             }
             fh = nullptr;
         } else {
@@ -86,16 +91,16 @@ namespace NL {
     }
     void Physics::Update() {
         //First get player input
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+        /*if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
             auto p = sf::Mouse::getPosition(*Graphics::Window);
             return Reset(p.x + View::X - View::Width / 2, p.y + View::Y - View::Height / 2);
-        }
+        }*/
         bool left = this->left && !this->right;
         bool right = !this->left && this->right;
         bool up = this->up && !this->down;
         bool down = !this->up && this->down;
-        bool flying = Map::Current["info"]["swim"].GetBool();
-        while (Time::TDelta > laststep) {
+        bool flying = nl::map::current["info"]["swim"].get_bool();
+        while (nl::time::delta_total > laststep) {
             laststep += 0.01;
             double delta = 0.01;
             if (lr) {
@@ -103,20 +108,20 @@ namespace NL {
                 double const fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1, fx2 = fx * fx, fy2 = fy * fy, len = sqrt(fx2 + fy2);
                 double vr = vx * len / fx;
                 vr -= fh->force;
-                double fs = (Map::Current["info"]["fs"] ? Map::Current["info"]["fs"] : 1.) / shoe_mass * delta;
+                double fs = (nl::map::current["info"]["fs"] ? nl::map::current["info"]["fs"] : 1.) / shoe_mass * delta;
                 double maxf = (flying ? swim_speed_dec : 1.) * walk_speed * shoe_walk_speed;
                 double horz = shoe_walk_acc * walk_force;
-                double drag = max(min(shoe_walk_drag, max_friction), min_friction) * walk_drag;
+                double drag = std::max(std::min(shoe_walk_drag, max_friction), min_friction) * walk_drag;
                 double slip = fy / len;
-                if (shoe_walk_slant < abs(slip)) {
+                if (shoe_walk_slant < std::abs(slip)) {
                     double slipf = slip_force * slip;
                     double slips = slip_speed * slip;
                     vr += left ? -drag * fs : right ? drag * fs : 0;
-                    vr = slips > 0 ? min(slips, vr + slipf * delta) : max(slips, vr + slipf * delta);
+                    vr = slips > 0 ? std::min(slips, vr + slipf * delta) : std::max(slips, vr + slipf * delta);
                 } else {
-                    vr = left ? vr < -maxf ? min(-maxf, vr + drag * fs) : max(-maxf, vr - shoe_walk_acc * walk_force * fs) :
-                        right ? vr > maxf ? max(maxf, vr - drag * fs) : min(maxf, vr + shoe_walk_acc * walk_force * fs) :
-                        vr < 0. ? min(0., vr + drag * fs) : vr > 0. ? max(0., vr - drag * fs) : vr;
+                    vr = left ? vr < -maxf ? std::min(-maxf, vr + drag * fs) : std::max(-maxf, vr - shoe_walk_acc * walk_force * fs) :
+                        right ? vr > maxf ? std::max(maxf, vr - drag * fs) : std::min(maxf, vr + shoe_walk_acc * walk_force * fs) :
+                        vr < 0. ? std::min(0., vr + drag * fs) : vr > 0. ? std::max(0., vr - drag * fs) : vr;
                 }
                 vr += fh->force;
                 vx = vr * fx / len, vy = vr * fy / len;
@@ -125,21 +130,21 @@ namespace NL {
                     double vmid = shoe_swim_acc;
                     double vmax = shoe_swim_speed_h * swim_speed;
                     double shoefloat = float_drag_1 / shoe_mass * delta;
-                    vx = vx < -vmax ? min(-vmax, vx + shoefloat) : vx > vmax ? max(vmax, vx - shoefloat) :
-                        left ? max(-vmax, vx - shoefloat) : right ? min(vmax, vx + shoefloat) :
-                        vx > 0 ? max(0., vx - shoefloat) : min(0., vx + shoefloat);
+                    vx = vx < -vmax ? std::min(-vmax, vx + shoefloat) : vx > vmax ? std::max(vmax, vx - shoefloat) :
+                        left ? std::max(-vmax, vx - shoefloat) : right ? std::min(vmax, vx + shoefloat) :
+                        vx > 0 ? std::max(0., vx - shoefloat) : std::min(0., vx + shoefloat);
                     double flys = fly_force / shoe_mass * delta * vmid;
-                    vy = up ? vy < vmax * 0.3 ? min(vmax * 0.3, vy + flys * 0.5) : max(vmax * 0.3, vy - flys) :
-                        down ? vy < vmax * 1.5 ? min(vmax * 1.5, vy + flys) : max(vmax * 1.5, vy - flys * 0.5) :
-                        vy < vmax ? min(vmax, vy + flys) : max(vmax, vy - flys);
+                    vy = up ? vy < vmax * 0.3 ? std::min(vmax * 0.3, vy + flys * 0.5) : std::max(vmax * 0.3, vy - flys) :
+                        down ? vy < vmax * 1.5 ? std::min(vmax * 1.5, vy + flys) : std::max(vmax * 1.5, vy - flys * 0.5) :
+                        vy < vmax ? std::min(vmax, vy + flys) : std::max(vmax, vy - flys);
                 } else {
                     double shoefloat = float_drag_2 / shoe_mass * delta;
-                    vy > 0 ? vy = max(0., vy - shoefloat) : vy = min(0., vy + shoefloat);
-                    vy = min(vy + gravity_acc * delta, fall_speed);
-                    vx = left ? vx > -float_drag_2 * float_multiplier ? max(-float_drag_2 * float_multiplier, vx - 2 * shoefloat) : vx :
-                        right ? vx < float_drag_2 * float_multiplier ? min(float_drag_2 * float_multiplier, vx + 2 * shoefloat) : vx :
-                        vy < fall_speed ? vx > 0 ? max(0., vx - float_coefficient * shoefloat) : min(0., vx + float_coefficient * shoefloat) :
-                        vx > 0 ? max(0., vx - shoefloat) : min(0., vx + shoefloat);
+                    vy > 0 ? vy = std::max(0., vy - shoefloat) : vy = std::min(0., vy + shoefloat);
+                    vy = std::min(vy + gravity_acc * delta, fall_speed);
+                    vx = left ? vx > -float_drag_2 * float_multiplier ? std::max(-float_drag_2 * float_multiplier, vx - 2 * shoefloat) : vx :
+                        right ? vx < float_drag_2 * float_multiplier ? std::min(float_drag_2 * float_multiplier, vx + 2 * shoefloat) : vx :
+                        vy < fall_speed ? vx > 0 ? std::max(0., vx - float_coefficient * shoefloat) : std::min(0., vx + float_coefficient * shoefloat) :
+                        vx > 0 ? std::max(0., vx - shoefloat) : std::min(0., vx + shoefloat);
                 }
             }
             while (delta > epsilon) {
@@ -148,7 +153,7 @@ namespace NL {
                 } else if (fh) {
                     double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
                     double nx = x + vx * delta, ny = y + vy * delta;
-                    if (nx > View::Right - 20) {
+                    /*if (nx > View::Right - 20) {
                         nx = View::Right - 20 - epsilon;
                         ny = fh->y1 + (nx - fh->x1) * fy / fx;
                         vx = 0, vy = 0;
@@ -158,7 +163,7 @@ namespace NL {
                         ny = fh->y1 + (nx - fh->x1) * fy / fx;
                         vx = 0, vy = 0;
                         delta = 0;
-                    } else if (nx > fh->x2) {
+                    } else*/ if (nx > fh->x2) {
                         if (!fh->next) {
                             nx = fh->x2 + epsilon, ny = fh->y2;
                             fh = nullptr;
@@ -208,18 +213,18 @@ namespace NL {
                     double dx1 = vx * delta, dy1 = vy * delta;
                     double distance = 1;
                     double nnx = x + dx1, nny = y + dy1;
-                    if (nnx < View::Left + 20) nnx = View::Left + 20, vx = 0;
+                    /*if (nnx < View::Left + 20) nnx = View::Left + 20, vx = 0;
                     if (nnx > View::Right - 20) nnx = View::Right - 20, vx = 0;
                     if (nny < View::Top - 60) nny = View::Top - 60, vy = 0;
-                    if (nny > View::Bottom) nny = View::Bottom, vy = 0;
-                    for (Foothold & f : Footholds) {
+                    if (nny > View::Bottom) nny = View::Bottom, vy = 0;*/
+                    for (nl::foothold & f : nl::footholds) {
                         double dx2 = f.x2 - f.x1, dy2 = f.y2 - f.y1;
                         double dx3 = x - f.x1, dy3 = y - f.y1;
                         double denom = dx1 * dy2 - dy1 * dx2;
                         double n1 = (dx1 * dy3 - dy1 * dx3) / denom;
                         double n2 = (dx2 * dy3 - dy2 * dx3) / denom;
                         if (n1 >= 0 && n1 <= 1 && n2 >= 0 && denom < 0 && &f != djump && n2 <= distance)
-                            if (group == f.group || dx2 > 0 || f.group == 0 || f.cantThrough) {
+                            if (group == f.group || dx2 > 0 || f.group == 0 || f.cant_through) {
                                 nnx = x + n2 * dx1, nny = y + n2 * dy1;
                                 distance = n2;
                                 fh = &f;
@@ -248,6 +253,6 @@ namespace NL {
                     }
                 }//} else {
             }//while (delta > Epsilon) {
-        }//while (Time::TDelta > laststep) {
+        }//while (nl::time::delta_total > laststep) {
     }//void Physics::Update() {
 }//namespace NL {
