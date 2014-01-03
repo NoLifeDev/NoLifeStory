@@ -66,12 +66,12 @@ namespace nl {
         vx = 0, vy = 0, vr = 0;
         layer = 7, group = -1;
         fh = nullptr, lr = nullptr, djump = nullptr;
-        laststep = nl::time::delta_total;
+        laststep = time::delta_total;
     }
     void physics::Jump() {
-        bool flying = nl::map::current["info"]["swim"].get_bool();
+        bool flying = map::current["info"]["swim"].get_bool();
         if (fh) {
-            if (down && !fh->cant_through && !fh->forbid_fall_down && any_of(nl::footholds.begin(), nl::footholds.end(), [&](nl::foothold & f) {
+            if (down && !fh->cant_through && !fh->forbid_fall_down && any_of(footholds.begin(), footholds.end(), [&](foothold & f) {
                 return f.id != fh->id && f.x1 < x && f.x2 > x && f.y1 > y && f.y2 > y;
             })) {
                 djump = fh;
@@ -99,8 +99,8 @@ namespace nl {
         bool right = !this->left && this->right;
         bool up = this->up && !this->down;
         bool down = !this->up && this->down;
-        bool flying = nl::map::current["info"]["swim"].get_bool();
-        while (nl::time::delta_total > laststep) {
+        bool flying = map::current["info"]["swim"].get_bool();
+        while (time::delta_total > laststep) {
             laststep += 0.01;
             double delta = 0.01;
             if (lr) {
@@ -108,7 +108,7 @@ namespace nl {
                 double const fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1, fx2 = fx * fx, fy2 = fy * fy, len = sqrt(fx2 + fy2);
                 double vr = vx * len / fx;
                 vr -= fh->force;
-                double fs = (nl::map::current["info"]["fs"] ? nl::map::current["info"]["fs"] : 1.) / shoe_mass * delta;
+                double fs = (map::current["info"]["fs"] ? map::current["info"]["fs"] : 1.) / shoe_mass * delta;
                 double maxf = (flying ? swim_speed_dec : 1.) * walk_speed * shoe_walk_speed;
                 double horz = shoe_walk_acc * walk_force;
                 double drag = std::max(std::min(shoe_walk_drag, max_friction), min_friction) * walk_drag;
@@ -217,7 +217,7 @@ namespace nl {
                     if (nnx > View::Right - 20) nnx = View::Right - 20, vx = 0;
                     if (nny < View::Top - 60) nny = View::Top - 60, vy = 0;
                     if (nny > View::Bottom) nny = View::Bottom, vy = 0;*/
-                    for (nl::foothold & f : nl::footholds) {
+                    for (foothold & f : footholds) {
                         double dx2 = f.x2 - f.x1, dy2 = f.y2 - f.y1;
                         double dx3 = x - f.x1, dy3 = y - f.y1;
                         double denom = dx1 * dy2 - dy1 * dx2;
@@ -253,6 +253,6 @@ namespace nl {
                     }
                 }//} else {
             }//while (delta > Epsilon) {
-        }//while (nl::time::delta_total > laststep) {
+        }//while (time::delta_total > laststep) {
     }//void Physics::Update() {
 }//namespace NL {
