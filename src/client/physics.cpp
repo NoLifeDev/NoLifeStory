@@ -21,7 +21,7 @@
 #include "map.hpp"
 #include <cmath>
 
-namespace NL {
+namespace nl {
     double const down_jump_multiplier = 0.35355339;
     double const epsilon = 0.00001;
     double const fall_speed = 670;
@@ -57,18 +57,18 @@ namespace NL {
     double const walk_drag = 80000;
     double const walk_force = 140000;
     double const walk_speed = 125;
-    Physics::Physics() {
+    physics::physics() {
         Reset(0, 0);
         left = false, right = false, up = false, down = false;
     }
-    void Physics::Reset(double nx, double ny) {
+    void physics::Reset(double nx, double ny) {
         x = nx, y = ny, r = 0;
         vx = 0, vy = 0, vr = 0;
         layer = 7, group = -1;
         fh = nullptr, lr = nullptr, djump = nullptr;
         laststep = nl::time::delta_total;
     }
-    void Physics::Jump() {
+    void physics::Jump() {
         bool flying = nl::map::current["info"]["swim"].get_bool();
         if (fh) {
             if (down && !fh->cant_through && !fh->forbid_fall_down && any_of(nl::footholds.begin(), nl::footholds.end(), [&](nl::foothold & f) {
@@ -89,7 +89,7 @@ namespace NL {
             }
         }
     }
-    void Physics::Update() {
+    void physics::Update() {
         //First get player input
         /*if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
             auto p = sf::Mouse::getPosition(*Graphics::Window);

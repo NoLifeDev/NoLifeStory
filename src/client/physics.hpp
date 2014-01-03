@@ -19,17 +19,17 @@
 #include "foothold.hpp"
 #include <cstdint>
 
-namespace NL {
-    class Physics {
+namespace nl {
+    class physics {
     public:
-        Physics();
+        physics();
         void Update();
         void Reset(double x, double y);
         void Jump();
         double x, y, r;
         double vx, vy, vr;
         int32_t layer, group;
-        nl::foothold * fh, * djump;
+        foothold * fh, * djump;
         void * lr;//Todo ladderropes
         bool left, right, up, down;
         double laststep;
