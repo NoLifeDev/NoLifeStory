@@ -28,7 +28,7 @@ namespace nl {
         void jump();
         double x, y, r;
         double vx, vy, vr;
-        int32_t layer, group;
+        unsigned layer, group;
         foothold * fh, * djump;
         void * lr;//Todo ladderropes
         bool left, right, up, down;

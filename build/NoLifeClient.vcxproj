@@ -31,6 +31,7 @@
     <ClInclude Include="../src/client/sprite.hpp" />
     <ClInclude Include="../src/client/time.hpp" />
     <ClInclude Include="../src/client/view.hpp" />
+    <ClInclude Include="../src/client/physics.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/client/background.cpp" />
@@ -50,5 +51,6 @@
     <ClCompile Include="../src/client/sprite.cpp" />
     <ClCompile Include="../src/client/time.cpp" />
     <ClCompile Include="../src/client/view.cpp" />
+    <ClCompile Include="../src/client/physics.cpp" />
   </ItemGroup>
 </Project>

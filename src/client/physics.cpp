@@ -20,6 +20,7 @@
 #include "time.hpp"
 #include "map.hpp"
 #include <cmath>
+#include <algorithm>
 
 namespace nl {
     double const down_jump_multiplier = 0.35355339;
@@ -64,7 +65,7 @@ namespace nl {
     void physics::reset(double nx, double ny) {
         x = nx, y = ny, r = 0;
         vx = 0, vy = 0, vr = 0;
-        layer = 7, group = -1;
+        layer = 7, group = 0;
         fh = nullptr, lr = nullptr, djump = nullptr;
         laststep = time::delta_total;
     }
@@ -110,7 +111,7 @@ namespace nl {
                 vr -= fh->force;
                 double fs = (map::current["info"]["fs"] ? map::current["info"]["fs"] : 1.) / shoe_mass * delta;
                 double maxf = (flying ? swim_speed_dec : 1.) * walk_speed * shoe_walk_speed;
-                double horz = shoe_walk_acc * walk_force;
+                //double horz = shoe_walk_acc * walk_force;
                 double drag = std::max(std::min(shoe_walk_drag, max_friction), min_friction) * walk_drag;
                 double slip = fy / len;
                 if (shoe_walk_slant < std::abs(slip)) {
@@ -151,7 +152,7 @@ namespace nl {
                 if (lr) {
 
                 } else if (fh) {
-                    double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
+                    //double fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1;
                     double nx = x + vx * delta, ny = y + vy * delta;
                     /*if (nx > View::Right - 20) {
                         nx = View::Right - 20 - epsilon;
