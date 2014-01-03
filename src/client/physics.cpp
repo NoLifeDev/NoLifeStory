@@ -58,17 +58,17 @@ namespace nl {
     double const walk_force = 140000;
     double const walk_speed = 125;
     physics::physics() {
-        Reset(0, 0);
+        reset(0, 0);
         left = false, right = false, up = false, down = false;
     }
-    void physics::Reset(double nx, double ny) {
+    void physics::reset(double nx, double ny) {
         x = nx, y = ny, r = 0;
         vx = 0, vy = 0, vr = 0;
         layer = 7, group = -1;
         fh = nullptr, lr = nullptr, djump = nullptr;
         laststep = time::delta_total;
     }
-    void physics::Jump() {
+    void physics::jump() {
         bool flying = map::current["info"]["swim"].get_bool();
         if (fh) {
             if (down && !fh->cant_through && !fh->forbid_fall_down && any_of(footholds.begin(), footholds.end(), [&](foothold & f) {
@@ -89,7 +89,7 @@ namespace nl {
             }
         }
     }
-    void physics::Update() {
+    void physics::update() {
         //First get player input
         /*if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
             auto p = sf::Mouse::getPosition(*Graphics::Window);

@@ -23,9 +23,9 @@ namespace nl {
     class physics {
     public:
         physics();
-        void Update();
-        void Reset(double x, double y);
-        void Jump();
+        void update();
+        void reset(double x, double y);
+        void jump();
         double x, y, r;
         double vx, vy, vr;
         int32_t layer, group;
