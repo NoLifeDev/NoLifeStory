@@ -252,8 +252,8 @@ namespace nl {
                     } else {
                         delta = 0;
                     }
-                }//} else {
-            }//while (delta > Epsilon) {
-        }//while (time::delta_total > laststep) {
-    }//void Physics::Update() {
-}//namespace NL {
+                }
+            }
+        }
+    }
+}

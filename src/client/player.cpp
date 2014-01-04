@@ -29,18 +29,17 @@ namespace nl {
         physics pos;
         uint16_t level = 69;
         double last_tele = time::delta_total;
-        void respawn(std::string portal) {
+        void respawn(std::string port) {
             std::vector<std::pair<int32_t, int32_t>> spawns;
-            for (auto && p : portals) {
-                if (p.pn == portal)
+            for (auto && p : portals)
+                if (p.pn == port)
                     spawns.emplace_back(p.x, p.y);
-            }
             if (!spawns.empty()) {
                 auto && spawn = spawns[rand() % spawns.size()];
                 pos.reset(spawn.first, spawn.second - 20);
             } else {
-                std::cerr << "Failed to find portal " << portal << " for map " << map::current_name;
-                if (portal != "sp")
+                std::cerr << "Failed to find portal " << port << " for map " << map::current_name;
+                if (port != "sp")
                     respawn("sp");
                 else
                     pos.reset(0, 0);

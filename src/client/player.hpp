@@ -23,7 +23,7 @@
 namespace nl {
     namespace player {
         extern physics pos;
-        extern uint16_t level;//Srsly, we want epic levels :D
+        extern uint16_t level;
         void respawn(std::string portal);
         void update();
         void render();
