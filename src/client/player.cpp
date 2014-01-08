@@ -21,39 +21,54 @@
 #include "portal.hpp"
 #include "map.hpp"
 #include "config.hpp"
+#include "view.hpp"
+#include "window.hpp"
+#include "log.hpp"
+#include <nx/nx.hpp>
+#include <nx/node.hpp>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <cstdlib>
 #include <iostream>
 
 namespace nl {
     namespace player {
         physics pos;
-        uint16_t level = 69;
         double last_tele = time::delta_total;
+        sprite spr;
+        bool mouse_fly = false;
         void respawn(std::string port) {
-            std::vector<std::pair<int32_t, int32_t>> spawns;
-            for (auto && p : portals)
+            std::vector<std::pair<int, int>> spawns;
+            for (auto & p : portals)
                 if (p.pn == port)
                     spawns.emplace_back(p.x, p.y);
             if (!spawns.empty()) {
-                auto && spawn = spawns[rand() % spawns.size()];
+                auto spawn = spawns[rand() % spawns.size()];
                 pos.reset(spawn.first, spawn.second - 20);
             } else {
-                std::cerr << "Failed to find portal " << port << " for map " << map::current_name;
+                log << "Failed to find portal " << port << " for map " << map::current_name;
                 if (port != "sp")
                     respawn("sp");
                 else
                     pos.reset(0, 0);
             }
+            spr = nx::mob["1210102.img"]["stand"];
         }
         void update() {
-            /*if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+            if (mouse_fly) {
+                auto p = window::mouse_pos();
+                pos.reset(p.first + view::xmin, p.second + view::ymin);
+            }
+            if (!window::get_key(GLFW_KEY_RIGHT_SHIFT) && !window::get_key(GLFW_KEY_LEFT_SHIFT))
+                mouse_fly = false;
+            if (!window::get_key(GLFW_KEY_LEFT))
                 pos.left = false;
-            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+            if (!window::get_key(GLFW_KEY_RIGHT))
                 pos.right = false;
-            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+            if (!window::get_key(GLFW_KEY_UP))
                 pos.up = false;
-            if (!sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-                pos.down = false;*/
+            if (!window::get_key(GLFW_KEY_DOWN))
+                pos.down = false;
             pos.update();
             if (last_tele + 0.5 > time::delta_total)
                 return;
@@ -73,10 +88,7 @@ namespace nl {
             }
         }
         void render() {
-            /*Sprite::Unbind();
-            if (!config::rave)
-                glColor4f(1, 1, 1, 1);
-            Graphics::DrawRect(pos.x - 20, pos.y - 60, pos.x + 20, pos.y, true);*/
+            spr.draw(static_cast<int>(pos.x), static_cast<int>(pos.y), sprite::relative);
         }
     }
 }

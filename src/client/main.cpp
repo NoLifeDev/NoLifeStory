@@ -17,7 +17,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "game.hpp"
+#include "log.hpp"
 #include <iostream>
+#include <memory>
+#include <fstream>
 
 void terminated() {
     std::cerr << "Fatal termination!" << std::endl;
@@ -26,18 +29,17 @@ void terminated() {
 
 int main() {
     try {
+        nl::log.open("NoLifeClient.log", std::ios::app);
         std::set_terminate(terminated);
-        std::freopen("NoLifeClient.log", "a", stderr);
-        std::freopen("NoLifeClient.log", "a", stdout);
-        std::cout << "Starting up NoLifeClient" << std::endl;
+        nl::log << "Starting up NoLifeClient" << std::endl;
         nl::game::play();
-        std::cout << "Shutting down NoLifeClient" << std::endl;
+        nl::log << "Shutting down NoLifeClient" << std::endl;
         return EXIT_SUCCESS;
     } catch (std::exception const & e) {
-        std::cerr << "Fatal uncaught exception: " << e.what() << std::endl;
+        nl::log << "Fatal uncaught exception: " << e.what() << std::endl;
         return EXIT_FAILURE;
     } catch (...) {
-        std::cerr << "Fatal unknown exception!" << std::endl;
+        nl::log << "Fatal unknown exception!" << std::endl;
         return EXIT_FAILURE;
     }
 }

@@ -24,6 +24,8 @@
 #include "time.hpp"
 #include "portal.hpp"
 #include "sound.hpp"
+#include "player.hpp"
+#include "log.hpp"
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
 #include <vector>
@@ -37,8 +39,8 @@ namespace nl {
         std::vector<std::string> all_maps;
         node map_node;
         node current, next;
+        std::string next_portal;
         std::string current_name;
-        std::vector<std::pair<std::string, unsigned>> results;
         bool old_style;
         void load(std::string name, std::string port) {
             if (name.size() < 9)
@@ -52,6 +54,7 @@ namespace nl {
             if (m["info"]["link"])
                 return load(m["info"]["link"], port);
             next = m;
+            next_portal = port;
         }
         void add_random(node n) {
             auto name = n.name();
@@ -78,7 +81,7 @@ namespace nl {
             current = next;
             current_name = current.name();
             current_name.erase(current_name.find(".img"));
-            std::cout << "Loading map " << current.name() << std::endl;
+            log << "Loading map " << current.name() << std::endl;
             time::reset();
             music::play();
             sprite::cleanup();
@@ -86,6 +89,7 @@ namespace nl {
             background::load();
             foothold::load();
             portal::load();
+            player::respawn(next_portal);
             view::reset();
         }
         void init() {
@@ -96,6 +100,7 @@ namespace nl {
             load_now();
         }
         void update() {
+            player::update();
             if (next != current)
                 load_now();
         }

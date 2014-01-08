@@ -22,6 +22,7 @@
 #include "time.hpp"
 #include "foothold.hpp"
 #include "sprite.hpp"
+#include "player.hpp"
 #include <GL/glew.h>
 #include <algorithm>
 #include <random>
@@ -114,13 +115,15 @@ namespace nl {
             doside = !!info["LBSide"];
             dobottom = !!info["LBBottom"];
             dotop = !!info["LBTop"];
-            fx = 0;
-            fy = 0;
-            tx = 0;
-            ty = 0;
+            tx = player::pos.x;
+            ty = player::pos.y;
+            fx = tx;
+            fy = ty;
             update();
         }
         void update() {
+            tx = player::pos.x;
+            ty = player::pos.y;
             auto sx = (tx - fx) * time::delta * 3;
             auto sy = (ty - fy) * time::delta * 3;
             if (abs(sx) > abs(tx - fx))

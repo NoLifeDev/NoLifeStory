@@ -19,6 +19,7 @@
 #include "sound.hpp"
 #include "map.hpp"
 #include "config.hpp"
+#include "log.hpp"
 #include <nx/audio.hpp>
 #include <nx/nx.hpp>
 #include <mpg123.h>
@@ -90,7 +91,7 @@ namespace nl {
             }
             audio a = n;
             if (!a) {
-                std::cerr << "Map does not contain valid bgm" << std::endl;
+                log << "Map does not contain valid bgm" << std::endl;
                 return;
             }
             active = new stream_t();
@@ -105,8 +106,13 @@ namespace nl {
             int encoding;
             if (mpg123_getformat(active->handle, &rate, &active->channels, &encoding) != MPG123_OK)
                 throw std::runtime_error("Failed to get format of music");
-            if (Pa_OpenDefaultStream(&active->stream, 0, active->channels, paInt16, rate, static_cast<unsigned long>(mpg123_outblock(active->handle)), callback, active) != paNoError)
-                throw std::runtime_error("Failed to open PortAudio stream");
+            auto err = Pa_OpenDefaultStream(&active->stream, 0, active->channels, paInt16, rate, static_cast<unsigned long>(mpg123_outblock(active->handle)), callback, active);
+            if (err != paNoError) {
+                log << "Failed to open PortAudio stream: " << err << std::endl;
+                delete active;
+                active = nullptr;
+                return;
+            }
             Pa_StartStream(active->stream);
         }
         void play() {
@@ -118,7 +124,7 @@ namespace nl {
             auto p = bgm.find('/');
             auto sn = nx::sound[bgm.substr(0, p) + ".img"][bgm.substr(p + 1)];
             if (!sn)
-                std::cerr << "Failed to find bgm " << bgm << " for map " << map::current_name << std::endl;
+                log << "Failed to find bgm " << bgm << " for map " << map::current_name << std::endl;
             play(sn);
         }
     }

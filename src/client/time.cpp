@@ -28,11 +28,12 @@ namespace nl {
     namespace time {
         using clock = std::chrono::high_resolution_clock;
         unsigned fps = 0;
-        double delta = 1, delta_total = 0;
+        double delta = 0, delta_total = 0;
         std::deque<clock::time_point> frames;
         clock::time_point first;
         void reset() {
             frames = {first = clock::now()};
+            delta_total = 0;
         }
         void draw() {
             sprite::unbind();

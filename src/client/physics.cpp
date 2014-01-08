@@ -19,7 +19,9 @@
 #include "physics.hpp"
 #include "time.hpp"
 #include "map.hpp"
+#include "log.hpp"
 #include <cmath>
+#include <iostream>
 #include <algorithm>
 
 namespace nl {
@@ -59,7 +61,6 @@ namespace nl {
     double const walk_force = 140000;
     double const walk_speed = 125;
     physics::physics() {
-        reset(0, 0);
         left = false, right = false, up = false, down = false;
     }
     void physics::reset(double nx, double ny) {
@@ -91,11 +92,6 @@ namespace nl {
         }
     }
     void physics::update() {
-        //First get player input
-        /*if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-            auto p = sf::Mouse::getPosition(*Graphics::Window);
-            return Reset(p.x + View::X - View::Width / 2, p.y + View::Y - View::Height / 2);
-        }*/
         bool left = this->left && !this->right;
         bool right = !this->left && this->right;
         bool up = this->up && !this->down;

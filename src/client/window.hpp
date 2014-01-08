@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <utility>
 
 namespace nl {
     namespace window {
@@ -24,5 +25,7 @@ namespace nl {
         void recreate(bool fullscreen);
         void update();
         void unload();
+        std::pair<double, double> mouse_pos();
+        bool get_key(int);
     }
 }

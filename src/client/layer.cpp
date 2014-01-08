@@ -18,6 +18,7 @@
 
 #include "layer.hpp"
 #include "map.hpp"
+#include "player.hpp"
 #include <nx/nx.hpp>
 #include <algorithm>
 
@@ -29,7 +30,8 @@ namespace nl {
                 o.render();
             for (auto & t : layers[i].tiles)
                 t.render();
-            //if (Player::Pos.layer == i) Player::Render();
+            if (player::pos.layer == i)
+                player::render();
         }
     }
     void layer::load() {
@@ -41,8 +43,7 @@ namespace nl {
             l.objs.clear();
             for (auto nn : n["obj"])
                 l.objs.emplace_back(nn);
-            std::sort(l.objs.begin(), l.objs.end(),
-                [](obj const & a, obj const & b) {
+            std::sort(l.objs.begin(), l.objs.end(), [](obj const & a, obj const & b) {
                 if (a.z == b.z)
                     return a.zid < b.zid;
                 return a.z < b.z;
@@ -50,8 +51,7 @@ namespace nl {
             l.tiles.clear();
             for (auto nn : n["tile"])
                 l.tiles.emplace_back(nn, tn);
-            std::sort(l.tiles.begin(), l.tiles.end(),
-                [](tile const & a, tile const & b) {
+            std::sort(l.tiles.begin(), l.tiles.end(), [](tile const & a, tile const & b) {
                 return a.z < b.z;
             });
         }

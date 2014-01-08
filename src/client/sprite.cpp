@@ -20,6 +20,7 @@
 #include "config.hpp"
 #include "time.hpp"
 #include "view.hpp"
+#include "log.hpp"
 #include <nx/bitmap.hpp>
 #include <GL/glew.h>
 #include <unordered_map>
@@ -180,7 +181,7 @@ namespace nl {
             angle = 180 / pi * 2 * pi * 1000 * time::delta_total / mover;
             break;
         default:
-            std::cerr << "Unknown move type: " << movetype << std::endl;
+            log << "Unknown move type: " << movetype << std::endl;
         }
         auto xbegin = x;
         auto xend = x;

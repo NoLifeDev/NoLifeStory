@@ -24,6 +24,7 @@
 #include "sprite.hpp"
 #include "map.hpp"
 #include "sound.hpp"
+#include "player.hpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <memory>
@@ -64,6 +65,25 @@ namespace nl {
                 switch (action) {
                 case GLFW_PRESS:
                     switch (key) {
+                    case GLFW_KEY_LEFT:
+                        player::pos.left = true;
+                        break;
+                    case GLFW_KEY_RIGHT:
+                        player::pos.right = true;
+                        break;
+                    case GLFW_KEY_UP:
+                        player::pos.up = true;
+                        break;
+                    case GLFW_KEY_DOWN:
+                        player::pos.down = true;
+                        break;
+                    case GLFW_KEY_LEFT_SHIFT:
+                    case GLFW_KEY_RIGHT_SHIFT:
+                        player::mouse_fly = true;
+                        break;
+                    case GLFW_KEY_LEFT_ALT:
+                        player::pos.jump();
+                        break;
                     case GLFW_KEY_ENTER:
                         if (mod & GLFW_MOD_ALT)
                             recreate(!config::fullscreen);
@@ -172,17 +192,17 @@ namespace nl {
             glfwPollEvents();
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT);
-            //Temporary code to move the view around until the player is added in
-            if (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS ||
-                glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-                double x, y;
-                glfwGetCursorPos(window, &x, &y);
-                view::tx = x - view::width / 2 + view::x;
-                view::ty = y - view::height / 2 + view::y;
-            }
         }
         void unload() {
             glfwTerminate();
+        }
+        std::pair<double, double> mouse_pos() {
+            double x, y;
+            glfwGetCursorPos(window, &x, &y);
+            return{x, y};
+        }
+        bool get_key(int key) {
+            return glfwGetKey(window, key) == GLFW_PRESS;
         }
     }
 }

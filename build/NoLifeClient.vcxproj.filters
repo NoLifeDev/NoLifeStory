@@ -59,6 +59,9 @@
     <ClInclude Include="../src/client/player.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\client\log.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/client/background.cpp">
@@ -110,6 +113,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="../src/client/player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\client\log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
