@@ -9,8 +9,8 @@
 !sdk/README.md
 !src/
 !src/**/
-!src/*.cpp
-!src/*.hpp
+!src/**/*.cpp
+!src/**/*.hpp
 !build/
 !build/*.sln
 !build/*.vcxproj
