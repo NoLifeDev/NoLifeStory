@@ -124,8 +124,12 @@ namespace nl {
         void update() {
             tx = player::pos.x;
             ty = player::pos.y;
-            auto sx = (tx - fx) * time::delta * 3;
-            auto sy = (ty - fy) * time::delta * 3;
+            auto dx = tx - fx;
+            auto dy = ty - fy;
+            dx = std::copysign(std::max(std::abs(dx) - 30, 0.), dx);
+            dy = std::copysign(std::max(std::abs(dy) - 30, 0.), dy);
+            auto sx = dx * time::delta * 2;
+            auto sy = dy * time::delta * 2;
             if (abs(sx) > abs(tx - fx))
                 sx = tx - fx;
             if (abs(sy) > abs(ty - fy))

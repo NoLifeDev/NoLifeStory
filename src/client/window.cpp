@@ -63,6 +63,15 @@ namespace nl {
             void scroll(GLFWwindow *, double, double) {}
             void key(GLFWwindow *, int key, int, int action, int mod) {
                 switch (action) {
+                case GLFW_REPEAT:
+                    switch (key) {
+                    case GLFW_KEY_LEFT_ALT:
+                    case GLFW_KEY_RIGHT_ALT:
+                        player::pos.jump();
+                        break;
+                    default:;
+                    }
+                    break;
                 case GLFW_PRESS:
                     switch (key) {
                     case GLFW_KEY_LEFT:
@@ -82,6 +91,7 @@ namespace nl {
                         player::mouse_fly = true;
                         break;
                     case GLFW_KEY_LEFT_ALT:
+                    case GLFW_KEY_RIGHT_ALT:
                         player::pos.jump();
                         break;
                     case GLFW_KEY_ENTER:

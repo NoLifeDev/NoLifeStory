@@ -88,7 +88,10 @@ namespace nl {
             }
         }
         void render() {
-            spr.draw(static_cast<int>(pos.x), static_cast<int>(pos.y), sprite::relative);
+            auto flags = sprite::relative;
+            if (pos.right && !pos.left)
+                flags |= sprite::flipped;
+            spr.draw(static_cast<int>(pos.x), static_cast<int>(pos.y), flags);
         }
     }
 }
