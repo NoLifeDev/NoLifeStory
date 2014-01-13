@@ -19,7 +19,12 @@
 #include "file_impl.hpp"
 #include "node_impl.hpp"
 #ifdef _WIN32
-#  include <codecvt>
+#  ifdef _MSC_VER
+#    include <codecvt>
+#  else
+#    include <clocale>
+#    include <cstdlib>
+#  endif
 #  ifdef __MINGW32__
 #    include <windows.h>
 #  else
@@ -33,6 +38,7 @@
 #  include <unistd.h>
 #endif
 #include <stdexcept>
+
 namespace nl {
     file::file(std::string name) {
         open(name);
@@ -44,8 +50,15 @@ namespace nl {
         close();
         m_data = new data();
 #ifdef _WIN32
+#  ifdef _MSC_VER
         std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
-        std::wstring str = convert.from_bytes(name);
+        auto str = convert.from_bytes(name);
+#  else
+        std::setlocale(LC_ALL, "en_US.utf8");
+        auto str = std::wstring(name.size(), 0);
+        auto len = std::mbstowcs(const_cast<wchar_t *>(str.c_str()), name.c_str(), str.size());
+        str.resize(len);
+#  endif
 #  if WINAPI_FAMILY == WINAPI_FAMILY_APP
         m_data->file_handle = ::CreateFile2(str.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING, nullptr);
 #  else
