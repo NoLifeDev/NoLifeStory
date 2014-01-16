@@ -367,12 +367,14 @@ namespace nl {
             if (parent_node == 0)
                 return 0;
             auto & n = nodes[parent_node];
-            auto it = std::lower_bound(nodes.begin() + n.children,
-                nodes.begin() + n.children + n.num, str,
-                [this](node const & n, std::string const & s) {
+            auto first = nodes.begin() + n.children;
+            auto last = first + n.num;
+            auto it = std::lower_bound(first, last, str, [this](node const & n, std::string const & s) {
                 return strings[n.name] < s;
             });
-            if (it == nodes.begin() + n.children + n.num)
+            if (it == last)
+                return 0;
+            if (strings[it->name] != str)
                 return 0;
             return static_cast<id_t>(it - nodes.begin());
         }
@@ -622,7 +624,7 @@ namespace nl {
             offset += 0x10 - (offset & 0xf);
             string_offset = offset;
             offset += std::accumulate(strings.begin(), strings.end(), 0ull, [](size_t n, std::string const & s) {
-                return n + s.size() + 2;
+                return n + s.size() + 2 + (s.size() & 1 ? 1 : 0);
             });
             offset += 0x10 - (offset & 0xf);
             audio_table_offset = offset;
@@ -680,11 +682,15 @@ namespace nl {
             for (auto const & s : strings) {
                 out.write<uint64_t>(next_str);
                 next_str += s.size() + 2;
+                if (s.size() & 1)
+                    ++next_str;
             }
             out.seek(string_offset);
             for (auto const & s : strings) {
                 out.write<uint16_t>(static_cast<uint16_t>(s.size()));
                 out.write(s.data(), s.size());
+                if (s.size() & 1)
+                    out.skip(1);
             }
             std::cout << "Done!" << std::endl;
         }

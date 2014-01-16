@@ -289,6 +289,32 @@ namespace nl {
                 file << "* " << s << std::endl;
         }
     };
+    void diff_dump(node n, std::string path, char c) {
+        std::cout << c << path << '\n';
+        path += '/';
+        for (auto nn : n)
+            diff_dump(nn, path + nn.name(), c);
+    }
+    void diff_node(node a, node b, std::string path) {
+        path += '/';
+        for (auto an : a) {
+            auto name = an.name();
+            auto bn = b[name];
+            if (bn)
+                diff_node(an, bn, path + name);
+            else
+                diff_dump(an, path + name, '-');
+        }
+        for (auto bn : b) {
+            auto name = bn.name();
+            auto an = a[name];
+            if (!an)
+                diff_dump(bn, path + name, '+');
+        }
+    }
+    void diff(file a, file b) {
+        diff_node(a, b, {});
+    }
 }
 int main() {
     //nl::dump("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP");
@@ -296,5 +322,6 @@ int main() {
     //nl::dump("Map").name("Obj").all().all().all().all().regex("[0-9]*");
     //nl::dump("Map").name("Map").regex("Map[0-9]").all().name("info").name("timeMob");
     //nl::dump_music();
-    nl::bench();
+    //nl::bench();
+    nl::diff({"Data1.nx"}, {"Data2.nx"});
 }
