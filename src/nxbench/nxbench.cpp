@@ -38,6 +38,7 @@
 #include <map>
 #include <iomanip>
 #include <set>
+#include <chrono>
 #include <regex>
 
 namespace nl {
@@ -316,6 +317,9 @@ namespace nl {
         diff_node(a, b, {});
     }
 }
+
+void fraysa();
+
 int main() {
     //nl::dump("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP");
     //nl::dump("Map").name("Map").regex("Map[0-9]").all().regex("[0-9]").name("obj").all().name("z");
@@ -323,5 +327,11 @@ int main() {
     //nl::dump("Map").name("Map").regex("Map[0-9]").all().name("info").name("timeMob");
     //nl::dump_music();
     //nl::bench();
-    nl::diff({"Data1.nx"}, {"Data2.nx"});
+    //nl::diff({"Data1.nx"}, {"Data2.nx"});
+    fraysa();
+    auto a = std::chrono::high_resolution_clock::now();
+    fraysa();
+    auto b = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(b - a).count() << std::endl;
+    std::system("pause");
 }
