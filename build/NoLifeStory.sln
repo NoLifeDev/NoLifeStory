@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21126.0
+VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNx", "NoLifeNx.vcxproj", "{A9F2D040-71A0-4593-9EAE-0E6820DC39FE}"
 EndProject
@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNxBench", "NoLifeNxBe
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeMcdb", "NoLifeMcdb.vcxproj", "{9BE23F98-9673-40AA-912E-5457DADBD926}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoLifeNxEdit", "NoLifeNxEdit.vcxproj", "{3923D012-98D9-4316-B37D-0ECC2E992608}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +69,14 @@ Global
 		{9BE23F98-9673-40AA-912E-5457DADBD926}.Release|Win32.Build.0 = Release|Win32
 		{9BE23F98-9673-40AA-912E-5457DADBD926}.Release|x64.ActiveCfg = Release|x64
 		{9BE23F98-9673-40AA-912E-5457DADBD926}.Release|x64.Build.0 = Release|x64
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Debug|Win32.Build.0 = Debug|Win32
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Debug|x64.ActiveCfg = Debug|x64
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Debug|x64.Build.0 = Debug|x64
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Release|Win32.ActiveCfg = Release|Win32
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Release|Win32.Build.0 = Release|Win32
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Release|x64.ActiveCfg = Release|x64
+		{3923D012-98D9-4316-B37D-0ECC2E992608}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

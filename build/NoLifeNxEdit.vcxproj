@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3923D012-98D9-4316-B37D-0ECC2E992608}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="NoLife.props" />
+  <ItemGroup>
+    <ClInclude Include="..\src\nxedit\file.hpp" />
+    <ClInclude Include="..\src\nxedit\node.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+</Project>
