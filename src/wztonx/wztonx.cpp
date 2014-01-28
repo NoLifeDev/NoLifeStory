@@ -249,6 +249,8 @@ namespace nl {
         std::string str_buf;
         std::u16string wstr_buf;
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+        std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>, wchar_t> convert_up;
+        std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convert_down;
         char8_t const * u8key = nullptr;
         char16_t const * u16key = nullptr;
         std::vector<std::pair<id_t, int32_t>> imgs;
@@ -296,6 +298,10 @@ namespace nl {
                 str_buf.resize(slen);
                 for (auto i = 0u; i < slen; ++i, ++mask)
                     str_buf[i] = static_cast<char8_t>(os[i] ^ u8key[i] ^ mask);
+                if (std::any_of(str_buf.begin(), str_buf.end(), [](char const & c) {
+                    return static_cast<uint8_t>(c) >= 0x80;
+                }))
+                    str_buf = convert_down.to_bytes(convert_up.from_bytes(str_buf));
                 return add_string(str_buf);
             }
             return 0;
@@ -600,8 +606,7 @@ namespace nl {
                 sort_nodes(n.first, n.second);
             find_uols(0);
             for (;;) {
-                auto it = std::remove_if(uols.begin(), uols.end(),
-                    [this](std::vector<id_t> const & v) {
+                auto it = std::remove_if(uols.begin(), uols.end(), [this](std::vector<id_t> const & v) {
                     return resolve_uol(v);
                 });
                 if (it == uols.begin() || it == uols.end())
@@ -703,9 +708,8 @@ namespace nl {
                 audio_off += a.length;
             }
             out.seek(audio_offset);
-            for (auto & a : audios) {
+            for (auto & a : audios)
                 out.write(in.base + a.data, a.length);
-            }
             std::cout << "Done!" << std::endl;
         }
         void write_bitmaps() {
@@ -756,10 +760,8 @@ namespace nl {
                     for (auto i = 0u; i <= length - 4;) {
                         auto blen = *reinterpret_cast<uint32_t const *>(original + i);
                         i += 4;
-                        if (i + blen > length) {
-                            std::clog << "Even decryption fails" << std::endl;
+                        if (i + blen > length)
                             return false;
-                        }
                         for (auto j = 0u; j < blen; ++j)
                             input[p + j] = static_cast<uint8_t>(original[i + j] ^ key[j]);
                         i += blen;
