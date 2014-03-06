@@ -290,11 +290,11 @@ namespace nl {
                 file << "* " << s << std::endl;
         }
     };
-    void diff_dump(node n, std::string path, char c) {
-        std::cout << c << path << '\n';
+    void dump_tree(node n, std::string path) {
+        std::cout << path << '\n';
         path += '/';
         for (auto nn : n)
-            diff_dump(nn, path + nn.name(), c);
+            dump_tree(nn, path + nn.name());
     }
     void diff_node(node a, node b, std::string path) {
         path += '/';
@@ -304,13 +304,13 @@ namespace nl {
             if (bn)
                 diff_node(an, bn, path + name);
             else
-                diff_dump(an, path + name, '-');
+                dump_tree(an, '-' + path + name);
         }
         for (auto bn : b) {
             auto name = bn.name();
             auto an = a[name];
             if (!an)
-                diff_dump(bn, path + name, '+');
+                dump_tree(bn, '+' + path + name);
         }
     }
     void diff(file a, file b) {
@@ -320,17 +320,11 @@ namespace nl {
 
 void fraysa();
 
+
 int main() {
-    //nl::dump("Map").name("Back").all().name("ani").all().regex("[0-9]*").name("moveP");
-    //nl::dump("Map").name("Map").regex("Map[0-9]").all().regex("[0-9]").name("obj").all().name("z");
-    //nl::dump("Map").name("Obj").all().all().all().all().regex("[0-9]*");
-    //nl::dump("Map").name("Map").regex("Map[0-9]").all().name("info").name("timeMob");
-    //nl::dump_music();
-    //nl::bench();
-    //nl::diff({"Data1.nx"}, {"Data2.nx"});
-    fraysa();
     auto a = std::chrono::high_resolution_clock::now();
-    fraysa();
+    nl::file file{"Item.nx"};
+    nl::dump_tree(file, {});
     auto b = std::chrono::high_resolution_clock::now();
     std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(b - a).count() << std::endl;
     std::system("pause");

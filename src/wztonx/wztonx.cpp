@@ -242,7 +242,7 @@ namespace nl {
         //Variables
         imapfile in;
         omapfile out;
-        std::vector<node> nodes = {{node()}};
+        std::vector<node> nodes = {{node{}}};
         std::vector<std::pair<id_t, id_t>> nodes_to_sort;
         std::unordered_map<uint32_t, id_t, identity<uint32_t>> string_map;
         std::vector<std::string> strings;
@@ -584,7 +584,7 @@ namespace nl {
             sub_property(img_node, p);
             in.seek(p + size);
         }
-        void parse_file() {
+        virtual void parse_file() {
             std::cout << "Parsing input.......";
             in.open(wzfilename);
             auto magic = in.read<uint32_t>();
@@ -848,6 +848,8 @@ namespace nl {
             if (!std::ifstream(wzfilename).is_open())
                 return;
             std::cout << wzfilename << " -> " << nxfilename << std::endl;
+        }
+        void convert_file() {
             parse_file();
             open_output();
             write_nodes();
@@ -856,6 +858,29 @@ namespace nl {
                 write_audio();
                 write_bitmaps();
             }
+        }
+    };
+    struct imgtonx : wztonx {
+        imgtonx(std::string filename, bool client, bool hc) : wztonx{filename, client, hc} {}
+        void parse_file() override {
+            std::cout << "Parsing input.......";
+            in.open(wzfilename);
+            add_string({});
+            img(0, 0);
+            for (auto const & n : nodes_to_sort)
+                sort_nodes(n.first, n.second);
+            find_uols(0);
+            for (;;) {
+                auto it = std::remove_if(uols.begin(), uols.end(), [this](std::vector<id_t> const & v) {
+                    return resolve_uol(v);
+                });
+                if (it == uols.begin() || it == uols.end())
+                    break;
+                uols.erase(it, uols.end());
+            }
+            for (auto & it : uols)
+                uol_fail(it);
+            std::cout << "Done!" << std::endl;
         }
     };
 }
@@ -888,7 +913,11 @@ If no files are specified, this program will automatically scan for all WZ files
         args = {"Base.wz", "Character.wz", "Data.wz", "Effect.wz", "Etc.wz", "Item.wz", "Map.wz", "Mob.wz", "Morph.wz", "Npc.wz", "Quest.wz", "Reactor.wz", "Skill.wz", "Sound.wz", "String.wz", "TamingMob.wz", "UI.wz"};
     for (std::string n : args) {
         try {
-            nl::wztonx lel(n, client, hc);
+            if (n.find(".img") != std::string::npos) {
+                nl::imgtonx{n, client, hc}.convert_file();
+            } else {
+                nl::wztonx{n, client, hc}.convert_file();
+            }
         } catch (std::exception const & e) {
             std::cerr << e.what() << std::endl;
         }
