@@ -27,6 +27,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <complex>
 #include <deque>
 #include <iostream>
 #include <unordered_map>
@@ -234,7 +235,7 @@ namespace nl {
             y += static_cast<int>(moveh * sin(tau * 1000 * time::delta_total / movep));
             break;
         case 3:
-            angle = 360 * 1000 * time::delta_total / mover;
+            angle = tau * 1000 * time::delta_total / mover;
             break;
         default:
             log << "Unknown move type: " << movetype << std::endl;
@@ -290,20 +291,31 @@ namespace nl {
         auto & tex = get_texture(curbit);
         for (x = xbegin; x <= xend; x += cx) {
             for (y = ybegin; y <= yend; y += cy) {
-                glLoadIdentity();
-                glTranslated(x + originx, y + originy, 0);
-                glRotated(angle, 0, 0, 1);
-                glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
-                glScaled(f & flipped ? -width : width, height, 1);
+                std::complex<double> v1{static_cast<double>(0), static_cast<double>(0)};
+                std::complex<double> v2{static_cast<double>(width), static_cast<double>(0)};
+                std::complex<double> v3{static_cast<double>(width), static_cast<double>(height)};
+                std::complex<double> v4{static_cast<double>(0), static_cast<double>(height)};
+                if (angle != 0) {
+                    std::complex<double> rot{std::cos(angle), std::sin(angle)};
+                    v1 *= rot;
+                    v2 *= rot;
+                    v3 *= rot;
+                    v4 *= rot;
+                }
+                std::complex<double> pos{static_cast<double>(x), static_cast<double>(y)};
+                v1 += pos;
+                v2 += pos;
+                v3 += pos;
+                v4 += pos;
                 glBegin(GL_QUADS);
                 glTexCoord3f(tex.left, tex.top, tex.layer);
-                glVertex2i(0, 0);
+                glVertex2d(v1.real(), v1.imag());
                 glTexCoord3f(tex.right, tex.top, tex.layer);
-                glVertex2i(1, 0);
+                glVertex2d(v2.real(), v2.imag());
                 glTexCoord3f(tex.right, tex.bottom, tex.layer);
-                glVertex2i(1, 1);
+                glVertex2d(v3.real(), v3.imag());
                 glTexCoord3f(tex.left, tex.bottom, tex.layer);
-                glVertex2i(0, 1);
+                glVertex2d(v4.real(), v4.imag());
                 glEnd();
             }
         }
