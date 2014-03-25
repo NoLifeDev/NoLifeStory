@@ -34,9 +34,7 @@ namespace nl {
         sprite(node);
         void draw(int x, int y, flags f, int cx = 0, int cy = 0);
         static void init();
-        static void cleanup();
-        static void unbind();
-        static void reinit();
+        static void flush();
     private:
         void set_frame(int f);
         node data, current;

@@ -84,7 +84,6 @@ namespace nl {
             log << "Loading map " << current.name() << std::endl;
             time::reset();
             music::play();
-            sprite::cleanup();
             layer::load();
             background::load();
             foothold::load();

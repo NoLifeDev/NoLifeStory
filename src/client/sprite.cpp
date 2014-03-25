@@ -33,89 +33,106 @@
 #include <unordered_map>
 
 namespace nl {
-    struct texture {
-        GLfloat top, left, bottom, right, layer;
-        std::chrono::steady_clock::time_point last_use;
-    };
-    struct block {
-        GLint x, y, z;
-        GLint size;
-    };
-    double const tau{6.28318530717958647692528676655900576839433879875021};
-    std::unordered_map<size_t, texture> textures{};
-    std::array<std::vector<block>, 64> blocks{};
-    bool bound{false};
-    GLuint vbo = 0;
-    GLuint atlas{};
-    GLint atlas_size{};
-    size_t npot(size_t n) {
-        --n;
-        n |= n >> 1;
-        n |= n >> 2;
-        n |= n >> 4;
-        n |= n >> 8;
-        n |= n >> 16;
+    namespace {
+        struct texture {
+            GLfloat top, left, bottom, right, layer;
+            std::chrono::steady_clock::time_point last_use;
+        };
+        struct block {
+            GLint x, y, z;
+            GLint size;
+        };
+        struct vertex {
+            GLfloat r, g, b, a;
+            GLfloat x, y;
+            GLfloat s, t, p;
+        };
+        double const tau{6.28318530717958647692528676655900576839433879875021};
+        std::unordered_map<size_t, texture> textures{};
+        std::array<std::vector<block>, 64> blocks{};
+        bool bound{false};
+        GLuint vbo = 0;
+        GLuint atlas{};
+        GLint atlas_size{};
+        std::vector<vertex> vertices{};
+        size_t npot(size_t n) {
+            --n;
+            n |= n >> 1;
+            n |= n >> 2;
+            n |= n >> 4;
+            n |= n >> 8;
+            n |= n >> 16;
 #if SIZE_MAX == UINT64_MAX
-        n |= n >> 32;
+            n |= n >> 32;
 #endif
-        ++n;
-        return n;
-    }
-    size_t lzcnt(size_t n) {
+            ++n;
+            return n;
+        }
+        size_t lzcnt(size_t n) {
 #if SIZE_MAX == UINT64_MAX
-        return __lzcnt64(n);
+            return __lzcnt64(n);
 #else
-        return __lzcnt(n);
+            return __lzcnt(n);
 #endif
-    }
-    texture & get_texture(bitmap const & p_bitmap) {
-        if (!bound) {
-            sprite::reinit();
         }
-        auto it = textures.emplace(std::piecewise_construct, std::make_tuple(p_bitmap.id()), std::make_tuple());
-        auto & tex = it.first->second;
-        if (it.second) {
-            auto size = npot(std::max(p_bitmap.width(), p_bitmap.height()));
-            if (size > static_cast<size_t>(atlas_size)) {
-                throw std::runtime_error{"Texture is too big"};
+        void reinit() {
+            glEnable(GL_TEXTURE_3D);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBindTexture(GL_TEXTURE_3D, atlas);
+            glLoadIdentity();
+            vertices.clear();
+            bound = true;
+        }
+        texture & get_texture(bitmap const & p_bitmap) {
+            if (!bound) {
+                reinit();
             }
-            if (!size) {
-                throw std::runtime_error{"Invalid texture size"};
-            }
-            auto index = 63 - lzcnt(size);
-            auto found = false;
-            for (auto i = index; i < blocks.size(); ++i) {
-                if (!blocks[i].empty()) {
-                    while (size_t{1} << i != size) {
-                        auto b = blocks[i].back();
-                        blocks[i].pop_back();
-                        --i;
-                        auto s = b.size / 2;
-                        blocks[i].push_back({b.x, b.y, b.z, s});
-                        blocks[i].push_back({b.x + s, b.y, b.z, s});
-                        blocks[i].push_back({b.x + s, b.y + s, b.z, s});
-                        blocks[i].push_back({b.x, b.y + s, b.z, s});
-                    }
-                    found = true;
-                    break;
+            auto it = textures.emplace(std::piecewise_construct, std::make_tuple(p_bitmap.id()), std::make_tuple());
+            auto & tex = it.first->second;
+            if (it.second) {
+                auto size = npot(std::max(p_bitmap.width(), p_bitmap.height()));
+                if (size > static_cast<size_t>(atlas_size)) {
+                    throw std::runtime_error{"Texture is too big"};
                 }
+                if (!size) {
+                    throw std::runtime_error{"Invalid texture size"};
+                }
+                auto index = 63 - lzcnt(size);
+                auto found = false;
+                for (auto i = index; i < blocks.size(); ++i) {
+                    if (!blocks[i].empty()) {
+                        while (size_t{1} << i != size) {
+                            auto b = blocks[i].back();
+                            blocks[i].pop_back();
+                            --i;
+                            auto s = b.size / 2;
+                            blocks[i].push_back({b.x, b.y, b.z, s});
+                            blocks[i].push_back({b.x + s, b.y, b.z, s});
+                            blocks[i].push_back({b.x + s, b.y + s, b.z, s});
+                            blocks[i].push_back({b.x, b.y + s, b.z, s});
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw std::runtime_error{"Out of space"};
+                }
+                auto bl = blocks[index].back();
+                blocks[index].pop_back();
+                auto sf = static_cast<GLfloat>(atlas_size);
+                tex.left = bl.x / sf;
+                tex.right = (bl.x + p_bitmap.width()) / sf;
+                tex.top = bl.y / sf;
+                tex.bottom = (bl.y + p_bitmap.height()) / sf;
+                tex.layer = (bl.z) / sf;
+                glTexSubImage3D(GL_TEXTURE_3D, 0, bl.x, bl.y, bl.z, p_bitmap.width(), p_bitmap.height(), 1, GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
+                window::check_errors();
             }
-            if (!found) {
-                throw std::runtime_error{"Out of space"};
-            }
-            auto bl = blocks[index].back();
-            blocks[index].pop_back();
-            auto sf = static_cast<GLfloat>(atlas_size);
-            tex.left = bl.x / sf;
-            tex.right = (bl.x + p_bitmap.width()) / sf;
-            tex.top = bl.y / sf;
-            tex.bottom = (bl.y + p_bitmap.height()) / sf;
-            tex.layer = (bl.z) / sf;
-            glTexSubImage3D(GL_TEXTURE_3D, 0, bl.x, bl.y, bl.z, p_bitmap.width(), p_bitmap.height(), 1, GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
-            window::check_errors();
+            tex.last_use = std::chrono::steady_clock::now();
+            return tex;
         }
-        tex.last_use = std::chrono::steady_clock::now();
-        return tex;
     }
     void sprite::init() {
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &atlas_size);
@@ -126,21 +143,23 @@ namespace nl {
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         auto maxblock = 63 - lzcnt(static_cast<size_t>(atlas_size));
         blocks[maxblock].push_back({0, 0, 0, atlas_size});
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
-    void sprite::reinit() {
-        glEnable(GL_TEXTURE_3D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBindTexture(GL_TEXTURE_3D, atlas);
-        bound = true;
-    }
-    void sprite::unbind() {
-        bound = false;
-        glBindTexture(GL_TEXTURE_3D, 0);
-        glDisable(GL_TEXTURE_3D);
-        glLoadIdentity();
-    }
-    void sprite::cleanup() {
+    void sprite::flush() {
+        if (bound) {
+            bound = false;
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(vertex)), vertices.data(), GL_STREAM_DRAW);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glColorPointer(4, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(0 * sizeof(GLfloat)));
+            glVertexPointer(2, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(4 * sizeof(GLfloat)));
+            glTexCoordPointer(3, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(6 * sizeof(GLfloat)));
+            glDrawArrays(GL_QUADS, 0, static_cast<GLsizei>(vertices.size()));
+        }
     }
     sprite::sprite(node o) : data(o) {
         if (data.data_type() == node::type::bitmap)
@@ -280,43 +299,41 @@ namespace nl {
             return;
         if (ybegin > view::height)
             return;
-        if (!config::rave) {
-            if (animated) {
-                auto dif = delay / next_delay;
-                glColor4d(1, 1, 1, dif * a1 + (1 - dif) * a0);
-            } else {
-                glColor4d(1, 1, 1, 1);
-            }
+        GLfloat alpha{1};
+        if (animated) {
+            auto dif = delay / next_delay;
+            alpha = static_cast<GLfloat>(dif * a1 + (1 - dif) * a0);
         }
         auto & tex = get_texture(curbit);
         for (x = xbegin; x <= xend; x += cx) {
             for (y = ybegin; y <= yend; y += cy) {
-                std::complex<double> v1{static_cast<double>(0), static_cast<double>(0)};
-                std::complex<double> v2{static_cast<double>(width), static_cast<double>(0)};
-                std::complex<double> v3{static_cast<double>(width), static_cast<double>(height)};
-                std::complex<double> v4{static_cast<double>(0), static_cast<double>(height)};
+                std::complex<double> vex[4] = {
+                    {0, 0},
+                    {static_cast<double>(width), 0},
+                    {static_cast<double>(width), static_cast<double>(height)},
+                    {0, static_cast<double>(height)}};
                 if (angle != 0) {
                     std::complex<double> rot{std::cos(angle), std::sin(angle)};
-                    v1 *= rot;
-                    v2 *= rot;
-                    v3 *= rot;
-                    v4 *= rot;
+                    for (auto & v : vex) {
+                        v *= rot;
+                    }
                 }
                 std::complex<double> pos{static_cast<double>(x), static_cast<double>(y)};
-                v1 += pos;
-                v2 += pos;
-                v3 += pos;
-                v4 += pos;
-                glBegin(GL_QUADS);
-                glTexCoord3f(tex.left, tex.top, tex.layer);
-                glVertex2d(v1.real(), v1.imag());
-                glTexCoord3f(tex.right, tex.top, tex.layer);
-                glVertex2d(v2.real(), v2.imag());
-                glTexCoord3f(tex.right, tex.bottom, tex.layer);
-                glVertex2d(v3.real(), v3.imag());
-                glTexCoord3f(tex.left, tex.bottom, tex.layer);
-                glVertex2d(v4.real(), v4.imag());
-                glEnd();
+                for (auto & v : vex) {
+                    v += pos;
+                }
+                vertices.push_back({1, 1, 1, alpha,
+                                   static_cast<GLfloat>(vex[0].real()), static_cast<GLfloat>(vex[0].imag()),
+                                   tex.left, tex.top, tex.layer});
+                vertices.push_back({1, 1, 1, alpha,
+                                   static_cast<GLfloat>(vex[1].real()), static_cast<GLfloat>(vex[1].imag()),
+                                   tex.right, tex.top, tex.layer});
+                vertices.push_back({1, 1, 1, alpha,
+                                   static_cast<GLfloat>(vex[2].real()), static_cast<GLfloat>(vex[2].imag()),
+                                   tex.right, tex.bottom, tex.layer});
+                vertices.push_back({1, 1, 1, alpha,
+                                   static_cast<GLfloat>(vex[3].real()), static_cast<GLfloat>(vex[3].imag()),
+                                   tex.left, tex.bottom, tex.layer});
             }
         }
     }

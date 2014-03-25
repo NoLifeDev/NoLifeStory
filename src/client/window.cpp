@@ -115,6 +115,7 @@ namespace nl {
         }
         //Once GLFW supports toggling fullscreen without recreating, change this method
         void recreate(bool fullscreen) {
+            sprite::flush();
             if (window)
                 glfwDestroyWindow(window);
             config::fullscreen = fullscreen;
@@ -139,7 +140,6 @@ namespace nl {
             glfwSetWindowSizeCallback(window, callback::resize);
             glfwSetKeyCallback(window, callback::key);
             last_title = std::chrono::steady_clock::now();
-            sprite::reinit();
         }
         void init() {
             if (glfwInit() != GL_TRUE)
@@ -200,9 +200,10 @@ namespace nl {
                     glfwSetWindowTitle(window, ("NoLifeStory {fps = " + std::to_string(time::fps) + "; map = " + map::current_name + ";};").c_str());
                 }
             }
-            glfwSwapBuffers(window);
+            sprite::flush();
             check_errors();
             glfwPollEvents();
+            glfwSwapBuffers(window);
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT);
         }

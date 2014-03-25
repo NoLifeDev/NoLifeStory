@@ -167,7 +167,7 @@ namespace nl {
             glLoadIdentity();
         }
         void draw_edges() {
-            sprite::unbind();
+            /*sprite::unbind();
             auto doclip = doside || dotop || dobottom;
             auto xmid = (right + left) / 2 - xmin;
             auto ymid = (top + bottom) / 2 - ymin;
@@ -195,7 +195,7 @@ namespace nl {
             glVertex2i(width, height);
             glVertex2i(nright, height);
             glVertex2i(nright, 0);
-            glEnd();
+            glEnd();*/
         }
     }
 }

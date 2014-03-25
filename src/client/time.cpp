@@ -36,7 +36,7 @@ namespace nl {
             delta_total = 0;
         }
         void draw() {
-            sprite::unbind();
+            /*sprite::unbind();
             glLoadIdentity();
             glColor4f(1, 0, 0, 1);
             glBegin(GL_LINE_STRIP);
@@ -49,7 +49,7 @@ namespace nl {
                 glVertex2i(static_cast<GLint>(i * 2),
                     static_cast<GLint>(std::chrono::duration_cast<std::chrono::microseconds>(frames[i] - frames[i - 1]).count() / 400));
             }
-            glEnd();
+            glEnd();*/
         }
         void update() {
             auto last = frames.back();
