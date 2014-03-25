@@ -31,6 +31,7 @@
 #include <deque>
 #include <iostream>
 #include <unordered_map>
+#include <vector>
 
 namespace nl {
     namespace {
@@ -54,7 +55,7 @@ namespace nl {
         GLuint vbo = 0;
         GLuint atlas{};
         GLint atlas_size{};
-        GLint layers{4};
+        GLint layers{1};
         std::vector<vertex> vertices{};
         size_t npot(size_t n) {
             --n;
@@ -70,7 +71,14 @@ namespace nl {
             return n;
         }
         size_t lzcnt(size_t n) {
-#if SIZE_MAX == UINT64_MAX
+#ifndef _MSC_VER
+            size_t i{64};
+            while (n) {
+                n >>= 1;
+                --i;
+            }
+            return i;
+#elif SIZE_MAX == UINT64_MAX
             return __lzcnt64(n);
 #else
             return __lzcnt(n);
