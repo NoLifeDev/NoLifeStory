@@ -50,38 +50,33 @@ namespace nl {
         };
         double const tau{6.28318530717958647692528676655900576839433879875021};
         std::unordered_map<size_t, texture> textures{};
-        std::array<std::vector<block>, 64> blocks{};
+        std::array<std::vector<block>, 32> blocks{};
         bool bound{false};
         GLuint vbo = 0;
         GLuint atlas{};
         GLint atlas_size{};
         GLint layers{1};
         std::vector<vertex> vertices{};
-        size_t npot(size_t n) {
+        GLint npot(GLint n) {
             --n;
             n |= n >> 1;
             n |= n >> 2;
             n |= n >> 4;
             n |= n >> 8;
             n |= n >> 16;
-#if SIZE_MAX == UINT64_MAX
-            n |= n >> 32;
-#endif
             ++n;
             return n;
         }
-        size_t lzcnt(size_t n) {
+        size_t lzcnt(GLint n) {
 #ifndef _MSC_VER
-            size_t i{64};
+            size_t i{32};
             while (n) {
                 n >>= 1;
                 --i;
             }
             return i;
-#elif SIZE_MAX == UINT64_MAX
-            return __lzcnt64(n);
 #else
-            return __lzcnt(n);
+            return __lzcnt(static_cast<unsigned>(n));
 #endif
         }
         void reinit() {
@@ -97,47 +92,54 @@ namespace nl {
             for (auto & b : blocks) {
                 b.clear();
             }
-            auto maxblock = 63 - lzcnt(static_cast<size_t>(atlas_size));
+            auto maxblock = 31 - lzcnt(atlas_size);
             for (auto i = 0; i < layers; ++i) {
                 blocks[maxblock].push_back({0, 0, i, atlas_size});
             }
         }
-        block get_block(size_t width, size_t height) {
-            auto size = npot(std::max(width, height));
-            if (size > static_cast<size_t>(atlas_size)) {
+        void carve_block(block const & p_block, GLint p_width, GLint p_height) {
+            if (p_block.size <= 8) {
+                return;
+            }
+            if (p_width > p_block.size && p_height > p_block.size) {
+                return;
+            }
+            if (p_width <= 0 || p_height <= 0) {
+                blocks[31 - lzcnt(p_block.size)].push_back(p_block);
+                return;
+            }
+            auto s = p_block.size / 2;
+            carve_block({p_block.x, p_block.y, p_block.z, s},
+                        p_width, p_height);
+            carve_block({p_block.x + s, p_block.y, p_block.z, s},
+                        p_width - s, p_height);
+            carve_block({p_block.x + s, p_block.y + s, p_block.z, s},
+                        p_width - s, p_height - s);
+            carve_block({p_block.x, p_block.y + s, p_block.z, s},
+                        p_width, p_height - s);
+        }
+        block get_block(GLint p_width, GLint p_height) {
+            auto size = npot(std::max(p_width, p_height));
+            if (size > atlas_size) {
                 throw std::runtime_error{"Texture is too big"};
             }
             if (!size) {
                 throw std::runtime_error{"Invalid texture size"};
             }
-            auto index = 63 - lzcnt(size);
-            auto found = false;
+            auto index = 31 - lzcnt(size);
             for (auto i = index; i < blocks.size(); ++i) {
                 if (!blocks[i].empty()) {
-                    while (size_t{1} << i != size) {
-                        auto b = blocks[i].back();
-                        blocks[i].pop_back();
-                        --i;
-                        auto s = b.size / 2;
-                        blocks[i].push_back({b.x, b.y, b.z, s});
-                        blocks[i].push_back({b.x + s, b.y, b.z, s});
-                        blocks[i].push_back({b.x + s, b.y + s, b.z, s});
-                        blocks[i].push_back({b.x, b.y + s, b.z, s});
-                    }
-                    found = true;
-                    break;
+                    auto b = blocks[i].back();
+                    blocks[i].pop_back();
+                    carve_block(b, p_width, p_height);
+                    return b;
                 }
             }
-            if (!found) {
-                sprite::flush();
-                log << "Wiping texture atlas" << std::endl;
-                reset_blocks();
-                textures.clear();
-                return get_block(width, height);
-            }
-            auto bl = blocks[index].back();
-            blocks[index].pop_back();
-            return bl;
+            sprite::flush();
+            log << "Wiping texture atlas" << std::endl;
+            reset_blocks();
+            textures.clear();
+            return get_block(p_width, p_height);
         }
         texture & get_texture(bitmap const & p_bitmap) {
             auto it = textures.find(p_bitmap.id());
