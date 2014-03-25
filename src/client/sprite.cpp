@@ -21,69 +21,125 @@
 #include "time.hpp"
 #include "view.hpp"
 #include "log.hpp"
+#include "window.hpp"
 #include <nx/bitmap.hpp>
 #include <GL/glew.h>
-#include <unordered_map>
+#include <array>
+#include <chrono>
+#include <cmath>
 #include <deque>
 #include <iostream>
-#include <cmath>
+#include <unordered_map>
 
 namespace nl {
-    double const pi = 3.14159265358979323846264338327950288419716939937510582;
-    std::unordered_map<size_t, GLuint> textures;
-    std::deque<size_t> loaded_textures;
-    size_t last_bound = 0;
+    struct texture {
+        GLfloat top, left, bottom, right, layer;
+        std::chrono::steady_clock::time_point last_use;
+    };
+    struct block {
+        GLint x, y, z;
+        GLint size;
+    };
+    double const tau{6.28318530717958647692528676655900576839433879875021};
+    std::unordered_map<size_t, texture> textures{};
+    std::array<std::vector<block>, 64> blocks{};
+    bool bound{false};
     GLuint vbo = 0;
+    GLuint atlas{};
+    GLint atlas_size{};
+    size_t npot(size_t n) {
+        --n;
+        n |= n >> 1;
+        n |= n >> 2;
+        n |= n >> 4;
+        n |= n >> 8;
+        n |= n >> 16;
+#if SIZE_MAX == UINT64_MAX
+        n |= n >> 32;
+#endif
+        ++n;
+        return n;
+    }
+    size_t lzcnt(size_t n) {
+#if SIZE_MAX == UINT64_MAX
+        return __lzcnt64(n);
+#else
+        return __lzcnt(n);
+#endif
+    }
+    texture & get_texture(bitmap const & p_bitmap) {
+        if (!bound) {
+            sprite::reinit();
+        }
+        auto it = textures.emplace(std::piecewise_construct, std::make_tuple(p_bitmap.id()), std::make_tuple());
+        auto & tex = it.first->second;
+        if (it.second) {
+            auto size = npot(std::max(p_bitmap.width(), p_bitmap.height()));
+            if (size > static_cast<size_t>(atlas_size)) {
+                throw std::runtime_error{"Texture is too big"};
+            }
+            if (!size) {
+                throw std::runtime_error{"Invalid texture size"};
+            }
+            auto index = 63 - lzcnt(size);
+            auto found = false;
+            for (auto i = index; i < blocks.size(); ++i) {
+                if (!blocks[i].empty()) {
+                    while (size_t{1} << i != size) {
+                        auto b = blocks[i].back();
+                        blocks[i].pop_back();
+                        --i;
+                        auto s = b.size / 2;
+                        blocks[i].push_back({b.x, b.y, b.z, s});
+                        blocks[i].push_back({b.x + s, b.y, b.z, s});
+                        blocks[i].push_back({b.x + s, b.y + s, b.z, s});
+                        blocks[i].push_back({b.x, b.y + s, b.z, s});
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                throw std::runtime_error{"Out of space"};
+            }
+            auto bl = blocks[index].back();
+            blocks[index].pop_back();
+            auto sf = static_cast<GLfloat>(atlas_size);
+            tex.left = bl.x / sf;
+            tex.right = (bl.x + p_bitmap.width()) / sf;
+            tex.top = bl.y / sf;
+            tex.bottom = (bl.y + p_bitmap.height()) / sf;
+            tex.layer = (bl.z) / sf;
+            glTexSubImage3D(GL_TEXTURE_3D, 0, bl.x, bl.y, bl.z, p_bitmap.width(), p_bitmap.height(), 1, GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
+            window::check_errors();
+        }
+        tex.last_use = std::chrono::steady_clock::now();
+        return tex;
+    }
     void sprite::init() {
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        float a[] = {0, 0, 1, 0, 1, 1, 0, 1};
-        glBufferData(GL_ARRAY_BUFFER, sizeof(a), a, GL_STATIC_DRAW);
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &atlas_size);
+        glGenTextures(1, &atlas);
+        glBindTexture(GL_TEXTURE_3D, atlas);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, atlas_size, atlas_size, 1, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        auto maxblock = 63 - lzcnt(static_cast<size_t>(atlas_size));
+        blocks[maxblock].push_back({0, 0, 0, atlas_size});
     }
     void sprite::reinit() {
-        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_TEXTURE_3D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glVertexPointer(2, GL_FLOAT, 0, nullptr);
-        glTexCoordPointer(2, GL_FLOAT, 0, nullptr);
-    }
-    void sprite::bind() {
-        if (curbit.id() == last_bound)
-            return;
-        if (!last_bound)
-            reinit();
-        last_bound = curbit.id();
-        auto & t = textures[curbit.id()];
-        if (!t) {
-            glGenTextures(1, &t);
-            glBindTexture(GL_TEXTURE_2D, t);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, curbit.width(), curbit.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, curbit.data());
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            loaded_textures.push_back(curbit.id());
-        } else {
-            glBindTexture(GL_TEXTURE_2D, t);
-        }
+        glBindTexture(GL_TEXTURE_3D, atlas);
+        bound = true;
     }
     void sprite::unbind() {
-        last_bound = 0;
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDisable(GL_TEXTURE_2D);
+        bound = false;
+        glBindTexture(GL_TEXTURE_3D, 0);
+        glDisable(GL_TEXTURE_3D);
         glLoadIdentity();
     }
     void sprite::cleanup() {
-        while (static_cast<int>(loaded_textures.size()) > config::max_textures) {
-            auto s = loaded_textures.front();
-            loaded_textures.pop_front();
-            auto it = textures.find(s);
-            glDeleteTextures(1, &it->second);
-            textures.erase(it);
-        }
     }
     sprite::sprite(node o) : data(o) {
         if (data.data_type() == node::type::bitmap)
@@ -125,7 +181,7 @@ namespace nl {
             movetype = current["moveType"];
             movew = current["moveW"];
             moveh = current["moveH"];
-            movep = current["moveP"].get_real(1000 * 2 * pi);
+            movep = current["moveP"].get_real(1000 * tau);
             mover = current["moveR"];
         }
         repeat = current["repeat"].get_bool();
@@ -172,13 +228,13 @@ namespace nl {
         case 0:
             break;
         case 1:
-            x += static_cast<int>(movew * sin(2 * pi * 1000 * time::delta_total / movep));
+            x += static_cast<int>(movew * sin(tau * 1000 * time::delta_total / movep));
             break;
         case 2:
-            y += static_cast<int>(moveh * sin(2 * pi * 1000 * time::delta_total / movep));
+            y += static_cast<int>(moveh * sin(tau * 1000 * time::delta_total / movep));
             break;
         case 3:
-            angle = 180 / pi * 2 * pi * 1000 * time::delta_total / mover;
+            angle = 360 * 1000 * time::delta_total / mover;
             break;
         default:
             log << "Unknown move type: " << movetype << std::endl;
@@ -223,72 +279,33 @@ namespace nl {
             return;
         if (ybegin > view::height)
             return;
-        if (!config::rave)
-        if (animated) {
-            auto dif = delay / next_delay;
-            glColor4d(1, 1, 1, dif * a1 + (1 - dif) * a0);
-        } else {
-            glColor4d(1, 1, 1, 1);
-        }
-        bind();
-        if (f & tilex && cx == width) {
-            if (f & tiley && cy == height) {
-                xend += cx;
-                yend += cy;
-                auto xm = (xend - xbegin) / cx;
-                auto ym = (yend - ybegin) / cy;
-                glLoadIdentity();
-                glBegin(GL_QUADS);
-                glTexCoord2i(0, 0);
-                glVertex2i(xbegin, ybegin);
-                glTexCoord2i(xm, 0);
-                glVertex2i(xend, ybegin);
-                glTexCoord2i(xm, ym);
-                glVertex2i(xend, yend);
-                glTexCoord2i(0, ym);
-                glVertex2i(xbegin, yend);
-                glEnd();
+        if (!config::rave) {
+            if (animated) {
+                auto dif = delay / next_delay;
+                glColor4d(1, 1, 1, dif * a1 + (1 - dif) * a0);
             } else {
-                xend += cx;
-                auto xm = (xend - xbegin) / cx;
+                glColor4d(1, 1, 1, 1);
+            }
+        }
+        auto & tex = get_texture(curbit);
+        for (x = xbegin; x <= xend; x += cx) {
+            for (y = ybegin; y <= yend; y += cy) {
                 glLoadIdentity();
+                glTranslated(x + originx, y + originy, 0);
+                glRotated(angle, 0, 0, 1);
+                glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
+                glScaled(f & flipped ? -width : width, height, 1);
                 glBegin(GL_QUADS);
-                for (y = ybegin; y <= yend; y += cy) {
-                    glTexCoord2i(0, 0);
-                    glVertex2i(xbegin, y);
-                    glTexCoord2i(xm, 0);
-                    glVertex2i(xend, y);
-                    glTexCoord2i(xm, 1);
-                    glVertex2i(xend, y + height);
-                    glTexCoord2i(0, 1);
-                    glVertex2i(xbegin, y + height);
-                }
+                glTexCoord3f(tex.left, tex.top, tex.layer);
+                glVertex2i(0, 0);
+                glTexCoord3f(tex.right, tex.top, tex.layer);
+                glVertex2i(1, 0);
+                glTexCoord3f(tex.right, tex.bottom, tex.layer);
+                glVertex2i(1, 1);
+                glTexCoord3f(tex.left, tex.bottom, tex.layer);
+                glVertex2i(0, 1);
                 glEnd();
             }
-        } else if (f & tiley && cy == height) {
-            yend += cy;
-            auto ym = (yend - ybegin) / cy;
-            glLoadIdentity();
-            glBegin(GL_QUADS);
-            for (x = xbegin; x <= xend; x += cx) {
-                glTexCoord2i(0, 0);
-                glVertex2i(x, ybegin);
-                glTexCoord2i(1, 0);
-                glVertex2i(x + width, ybegin);
-                glTexCoord2i(1, ym);
-                glVertex2i(x + width, yend);
-                glTexCoord2i(0, ym);
-                glVertex2i(x, yend);
-            }
-            glEnd();
-        } else for (x = xbegin; x <= xend; x += cx)
-        for (y = ybegin; y <= yend; y += cy) {
-            glLoadIdentity();
-            glTranslated(x + originx, y + originy, 0);
-            glRotated(angle, 0, 0, 1);
-            glTranslated(f & flipped ? width - originx : -originx, -originy, 0);
-            glScaled(f & flipped ? -width : width, height, 1);
-            glDrawArrays(GL_QUADS, 0, 4);
         }
     }
     sprite::flags & operator|=(sprite::flags & a, sprite::flags b) {

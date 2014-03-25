@@ -23,6 +23,7 @@ namespace nl {
     namespace window {
         void init();
         void recreate(bool fullscreen);
+        void check_errors();
         void update();
         void unload();
         std::pair<double, double> mouse_pos();

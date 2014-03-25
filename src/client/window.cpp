@@ -172,16 +172,7 @@ namespace nl {
                 throw std::runtime_error("Your OpenGL is out of date. Please update your drivers and/or buy a new GPU.");
             sprite::init();
         }
-        void update() {
-            //Certain platforms exhibit terrible performance when updating the title too quickly
-            if (!config::fullscreen) {
-                auto now = std::chrono::steady_clock::now();
-                if (now - last_title > std::chrono::milliseconds(250)) {
-                    last_title = now;
-                    glfwSetWindowTitle(window, ("NoLifeStory {fps = " + std::to_string(time::fps) + "; map = " + map::current_name + ";};").c_str());
-                }
-            }
-            glfwSwapBuffers(window);
+        void check_errors() {
             auto err = glGetError();
             switch (err) {
             case GL_NO_ERROR:
@@ -199,6 +190,18 @@ namespace nl {
             default:
                 throw std::runtime_error("Unknown OpenGL error code " + std::to_string(err));
             }
+        }
+        void update() {
+            //Certain platforms exhibit terrible performance when updating the title too quickly
+            if (!config::fullscreen) {
+                auto now = std::chrono::steady_clock::now();
+                if (now - last_title > std::chrono::milliseconds(250)) {
+                    last_title = now;
+                    glfwSetWindowTitle(window, ("NoLifeStory {fps = " + std::to_string(time::fps) + "; map = " + map::current_name + ";};").c_str());
+                }
+            }
+            glfwSwapBuffers(window);
+            check_errors();
             glfwPollEvents();
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT);

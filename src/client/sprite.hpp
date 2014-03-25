@@ -39,7 +39,6 @@ namespace nl {
         static void reinit();
     private:
         void set_frame(int f);
-        void bind();
         node data, current;
         bitmap curbit;
         double delay, next_delay;
