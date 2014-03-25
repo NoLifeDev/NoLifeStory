@@ -54,6 +54,7 @@ namespace nl {
         GLuint vbo = 0;
         GLuint atlas{};
         GLint atlas_size{};
+        GLint layers{4};
         std::vector<vertex> vertices{};
         size_t npot(size_t n) {
             --n;
@@ -84,52 +85,73 @@ namespace nl {
             vertices.clear();
             bound = true;
         }
+        void reset_blocks() {
+            for (auto & b : blocks) {
+                b.clear();
+            }
+            auto maxblock = 63 - lzcnt(static_cast<size_t>(atlas_size));
+            for (auto i = 0; i < layers; ++i) {
+                blocks[maxblock].push_back({0, 0, i, atlas_size});
+            }
+        }
+        block get_block(size_t width, size_t height) {
+            auto size = npot(std::max(width, height));
+            if (size > static_cast<size_t>(atlas_size)) {
+                throw std::runtime_error{"Texture is too big"};
+            }
+            if (!size) {
+                throw std::runtime_error{"Invalid texture size"};
+            }
+            auto index = 63 - lzcnt(size);
+            auto found = false;
+            for (auto i = index; i < blocks.size(); ++i) {
+                if (!blocks[i].empty()) {
+                    while (size_t{1} << i != size) {
+                        auto b = blocks[i].back();
+                        blocks[i].pop_back();
+                        --i;
+                        auto s = b.size / 2;
+                        blocks[i].push_back({b.x, b.y, b.z, s});
+                        blocks[i].push_back({b.x + s, b.y, b.z, s});
+                        blocks[i].push_back({b.x + s, b.y + s, b.z, s});
+                        blocks[i].push_back({b.x, b.y + s, b.z, s});
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                sprite::flush();
+                log << "Wiping texture atlas" << std::endl;
+                reset_blocks();
+                textures.clear();
+                return get_block(width, height);
+            }
+            auto bl = blocks[index].back();
+            blocks[index].pop_back();
+            return bl;
+        }
         texture & get_texture(bitmap const & p_bitmap) {
+            auto it = textures.find(p_bitmap.id());
+            if (it != textures.end()) {
+                if (!bound) {
+                    reinit();
+                }
+                it->second.last_use = std::chrono::steady_clock::now();
+                return it->second;
+            }
+            auto bl = get_block(p_bitmap.width(), p_bitmap.height());
             if (!bound) {
                 reinit();
             }
-            auto it = textures.emplace(std::piecewise_construct, std::make_tuple(p_bitmap.id()), std::make_tuple());
-            auto & tex = it.first->second;
-            if (it.second) {
-                auto size = npot(std::max(p_bitmap.width(), p_bitmap.height()));
-                if (size > static_cast<size_t>(atlas_size)) {
-                    throw std::runtime_error{"Texture is too big"};
-                }
-                if (!size) {
-                    throw std::runtime_error{"Invalid texture size"};
-                }
-                auto index = 63 - lzcnt(size);
-                auto found = false;
-                for (auto i = index; i < blocks.size(); ++i) {
-                    if (!blocks[i].empty()) {
-                        while (size_t{1} << i != size) {
-                            auto b = blocks[i].back();
-                            blocks[i].pop_back();
-                            --i;
-                            auto s = b.size / 2;
-                            blocks[i].push_back({b.x, b.y, b.z, s});
-                            blocks[i].push_back({b.x + s, b.y, b.z, s});
-                            blocks[i].push_back({b.x + s, b.y + s, b.z, s});
-                            blocks[i].push_back({b.x, b.y + s, b.z, s});
-                        }
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    throw std::runtime_error{"Out of space"};
-                }
-                auto bl = blocks[index].back();
-                blocks[index].pop_back();
-                auto sf = static_cast<GLfloat>(atlas_size);
-                tex.left = bl.x / sf;
-                tex.right = (bl.x + p_bitmap.width()) / sf;
-                tex.top = bl.y / sf;
-                tex.bottom = (bl.y + p_bitmap.height()) / sf;
-                tex.layer = (bl.z) / sf;
-                glTexSubImage3D(GL_TEXTURE_3D, 0, bl.x, bl.y, bl.z, p_bitmap.width(), p_bitmap.height(), 1, GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
-                window::check_errors();
-            }
+            glTexSubImage3D(GL_TEXTURE_3D, 0, bl.x, bl.y, bl.z, p_bitmap.width(), p_bitmap.height(), 1, GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
+            auto & tex = textures[p_bitmap.id()];
+            auto sf = static_cast<GLfloat>(atlas_size);
+            tex.left = bl.x / sf;
+            tex.right = (bl.x + p_bitmap.width()) / sf;
+            tex.top = bl.y / sf;
+            tex.bottom = (bl.y + p_bitmap.height()) / sf;
+            tex.layer = bl.z / static_cast<GLfloat>(layers);
             tex.last_use = std::chrono::steady_clock::now();
             return tex;
         }
@@ -138,14 +160,11 @@ namespace nl {
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &atlas_size);
         glGenTextures(1, &atlas);
         glBindTexture(GL_TEXTURE_3D, atlas);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, atlas_size, atlas_size, 1, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, atlas_size, atlas_size, layers, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        auto maxblock = 63 - lzcnt(static_cast<size_t>(atlas_size));
-        blocks[maxblock].push_back({0, 0, 0, atlas_size});
+        reset_blocks();
         glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
     }
     void sprite::flush() {
         if (bound) {
@@ -324,16 +343,16 @@ namespace nl {
                 }
                 vertices.push_back({1, 1, 1, alpha,
                                    static_cast<GLfloat>(vex[0].real()), static_cast<GLfloat>(vex[0].imag()),
-                                   tex.left, tex.top, tex.layer});
+                                   f & flipped ? tex.right : tex.left, tex.top, tex.layer});
                 vertices.push_back({1, 1, 1, alpha,
                                    static_cast<GLfloat>(vex[1].real()), static_cast<GLfloat>(vex[1].imag()),
-                                   tex.right, tex.top, tex.layer});
+                                   f & flipped ? tex.left : tex.right, tex.top, tex.layer});
                 vertices.push_back({1, 1, 1, alpha,
                                    static_cast<GLfloat>(vex[2].real()), static_cast<GLfloat>(vex[2].imag()),
-                                   tex.right, tex.bottom, tex.layer});
+                                   f & flipped ? tex.left : tex.right, tex.bottom, tex.layer});
                 vertices.push_back({1, 1, 1, alpha,
                                    static_cast<GLfloat>(vex[3].real()), static_cast<GLfloat>(vex[3].imag()),
-                                   tex.left, tex.bottom, tex.layer});
+                                   f & flipped ? tex.right : tex.left, tex.bottom, tex.layer});
             }
         }
     }

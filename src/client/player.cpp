@@ -70,7 +70,7 @@ namespace nl {
             if (!window::get_key(GLFW_KEY_DOWN))
                 pos.down = false;
             pos.update();
-            if (last_tele + 0.5 > time::delta_total)
+            if (time::delta_total < 0.5)
                 return;
             for (portal & p : portals) {
                 if (p.x < pos.x - 40 || p.x > pos.x + 40 || p.y < pos.y - 40 || p.y > pos.y + 40)
