@@ -148,7 +148,7 @@ namespace nl {
             glfwWindowHint(GLFW_DEPTH_BITS, 0);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-            glfwWindowHint(GLFW_CONTEXT_ROBUSTNESS, GLFW_NO_RESET_NOTIFICATION);
+            //glfwWindowHint(GLFW_CONTEXT_ROBUSTNESS, GLFW_NO_RESET_NOTIFICATION);
             glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
             //We have to make an invisible context so we don't have to recreate everything whenever fullscreen is toggled
             //Once GLFW supports fullscreen toggling better, this can be removed.
