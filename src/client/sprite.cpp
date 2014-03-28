@@ -29,6 +29,7 @@
 #include <cmath>
 #include <complex>
 #include <deque>
+#include <iomanip>
 #include <iostream>
 #include <unordered_map>
 #include <vector>
@@ -38,6 +39,7 @@ namespace nl {
         struct texture {
             GLfloat top, left, bottom, right, layer;
             std::chrono::steady_clock::time_point last_use;
+            bitmap bit;
         };
         struct block {
             GLint x, y, z;
@@ -57,6 +59,7 @@ namespace nl {
         GLint atlas_size{};
         GLint layers{1};
         std::vector<vertex> vertices{};
+        texture & get_texture(bitmap const &);
         GLint npot(GLint n) {
             --n;
             n |= n >> 1;
@@ -88,7 +91,16 @@ namespace nl {
             vertices.clear();
             bound = true;
         }
+        void print_blocks() {
+            for (auto & b : blocks) {
+                if (!b.empty()) {
+                    log << "[" << b.size() << "x" << b.back().size << "]";
+                }
+            }
+            log << std::endl;
+        }
         void reset_blocks() {
+            print_blocks();
             for (auto & b : blocks) {
                 b.clear();
             }
@@ -96,9 +108,25 @@ namespace nl {
             for (auto i = 0; i < layers; ++i) {
                 blocks[maxblock].push_back({0, 0, i, atlas_size});
             }
+            std::vector<texture> old{};
+            for (auto && tex : textures) {
+                old.push_back(tex.second);
+            }
+            textures.clear();
+            std::sort(old.begin(), old.end(), [](texture const & p_one, texture const & p_two) {
+                return p_one.last_use > p_two.last_use;
+            });
+            old.erase(old.cbegin() + (old.cend() - old.cbegin()) / 2, old.cend());
+            std::sort(old.begin(), old.end(), [](texture const & p_one, texture const & p_two) {
+                return std::max(p_one.bit.width(), p_one.bit.height())
+                    > std::max(p_two.bit.width(), p_two.bit.height());
+            });
+            for (auto & i : old) {
+                get_texture(i.bit);
+            }
         }
         void carve_block(block const & p_block, GLint p_width, GLint p_height) {
-            if (p_block.size <= 8) {
+            if (p_block.size <= 16) {
                 return;
             }
             if (p_width > p_block.size && p_height > p_block.size) {
@@ -136,9 +164,8 @@ namespace nl {
                 }
             }
             sprite::flush();
-            log << "Wiping texture atlas" << std::endl;
+            log << "Compacting texture atlas" << std::endl;
             reset_blocks();
-            textures.clear();
             return get_block(p_width, p_height);
         }
         texture & get_texture(bitmap const & p_bitmap) {
@@ -163,6 +190,7 @@ namespace nl {
             tex.bottom = (bl.y + p_bitmap.height()) / sf;
             tex.layer = bl.z / static_cast<GLfloat>(layers);
             tex.last_use = std::chrono::steady_clock::now();
+            tex.bit = p_bitmap;
             return tex;
         }
     }
