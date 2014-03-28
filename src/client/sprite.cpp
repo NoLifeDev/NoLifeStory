@@ -31,6 +31,7 @@
 #include <deque>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <unordered_map>
 #include <vector>
 
@@ -43,7 +44,7 @@ namespace nl {
         };
         struct block {
             GLint x, y, z;
-            GLint size;
+            GLint w, h;
         };
         struct vertex {
             GLfloat r, g, b, a;
@@ -52,7 +53,7 @@ namespace nl {
         };
         double const tau{6.28318530717958647692528676655900576839433879875021};
         std::unordered_map<size_t, texture> textures{};
-        std::array<std::vector<block>, 32> blocks{};
+        std::multimap<GLint, block> blocks{};
         bool bound{false};
         GLuint vbo = 0;
         GLuint atlas{};
@@ -60,28 +61,6 @@ namespace nl {
         GLint layers{1};
         std::vector<vertex> vertices{};
         texture & get_texture(bitmap const &);
-        GLint npot(GLint n) {
-            --n;
-            n |= n >> 1;
-            n |= n >> 2;
-            n |= n >> 4;
-            n |= n >> 8;
-            n |= n >> 16;
-            ++n;
-            return n;
-        }
-        size_t lzcnt(GLint n) {
-#ifndef _MSC_VER
-            size_t i{32};
-            while (n) {
-                n >>= 1;
-                --i;
-            }
-            return i;
-#else
-            return __lzcnt(static_cast<unsigned>(n));
-#endif
-        }
         void reinit() {
             glEnable(GL_TEXTURE_3D);
             glEnable(GL_BLEND);
@@ -91,22 +70,10 @@ namespace nl {
             vertices.clear();
             bound = true;
         }
-        void print_blocks() {
-            for (auto & b : blocks) {
-                if (!b.empty()) {
-                    log << "[" << b.size() << "x" << b.back().size << "]";
-                }
-            }
-            log << std::endl;
-        }
         void reset_blocks() {
-            print_blocks();
-            for (auto & b : blocks) {
-                b.clear();
-            }
-            auto maxblock = 31 - lzcnt(atlas_size);
+            blocks.clear();
             for (auto i = 0; i < layers; ++i) {
-                blocks[maxblock].push_back({0, 0, i, atlas_size});
+                blocks.insert({atlas_size, {0, 0, i, atlas_size, atlas_size}});
             }
             std::vector<texture> old{};
             for (auto && tex : textures) {
@@ -116,52 +83,36 @@ namespace nl {
             std::sort(old.begin(), old.end(), [](texture const & p_one, texture const & p_two) {
                 return p_one.last_use > p_two.last_use;
             });
-            old.erase(old.cbegin() + (old.cend() - old.cbegin()) / 2, old.cend());
+            old.erase(old.cbegin() + (old.cend() - old.cbegin()) / 8, old.cend());
             std::sort(old.begin(), old.end(), [](texture const & p_one, texture const & p_two) {
-                return std::max(p_one.bit.width(), p_one.bit.height())
-                    > std::max(p_two.bit.width(), p_two.bit.height());
+                return p_one.bit.width() > p_two.bit.width();
             });
             for (auto & i : old) {
                 get_texture(i.bit);
             }
         }
-        void carve_block(block const & p_block, GLint p_width, GLint p_height) {
-            if (p_block.size <= 16) {
-                return;
-            }
-            if (p_width > p_block.size && p_height > p_block.size) {
-                return;
-            }
-            if (p_width <= 0 || p_height <= 0) {
-                blocks[31 - lzcnt(p_block.size)].push_back(p_block);
-                return;
-            }
-            auto s = p_block.size / 2;
-            carve_block({p_block.x, p_block.y, p_block.z, s},
-                        p_width, p_height);
-            carve_block({p_block.x + s, p_block.y, p_block.z, s},
-                        p_width - s, p_height);
-            carve_block({p_block.x + s, p_block.y + s, p_block.z, s},
-                        p_width - s, p_height - s);
-            carve_block({p_block.x, p_block.y + s, p_block.z, s},
-                        p_width, p_height - s);
-        }
         block get_block(GLint p_width, GLint p_height) {
-            auto size = npot(std::max(p_width, p_height));
-            if (size > atlas_size) {
+            if (std::max(p_width, p_height) > atlas_size) {
                 throw std::runtime_error{"Texture is too big"};
             }
-            if (!size) {
+            if (p_width == 0 || p_height == 0) {
                 throw std::runtime_error{"Invalid texture size"};
             }
-            auto index = 31 - lzcnt(size);
-            for (auto i = index; i < blocks.size(); ++i) {
-                if (!blocks[i].empty()) {
-                    auto b = blocks[i].back();
-                    blocks[i].pop_back();
-                    carve_block(b, p_width, p_height);
+            auto it = blocks.lower_bound(p_width);
+            while (it != blocks.end()) {
+                block b = it->second;
+                if (b.h >= p_height) {
+                    blocks.erase(it);
+                    if (b.w - p_width > b.h - p_height) {
+                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.z, b.w - p_width, b.h}});
+                        blocks.insert({p_width, {b.x, b.y + p_height, b.z, p_width, b.h - p_height}});
+                    } else {
+                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.z, b.w - p_width, p_height}});
+                        blocks.insert({b.w, {b.x, b.y + p_height, b.z, b.w, b.h - p_height}});
+                    }
                     return b;
                 }
+                ++it;
             }
             sprite::flush();
             log << "Compacting texture atlas" << std::endl;
@@ -216,6 +167,20 @@ namespace nl {
             glVertexPointer(2, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(4 * sizeof(GLfloat)));
             glTexCoordPointer(3, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(6 * sizeof(GLfloat)));
             glDrawArrays(GL_QUADS, 0, static_cast<GLsizei>(vertices.size()));
+            //Debug code to view the texture atlas
+            /*glDisable(GL_BLEND);
+            glBegin(GL_QUADS);
+            glColor4f(1, 1, 1, 1);
+            glTexCoord2i(0, 0);
+            glVertex2i(0, 0);
+            glTexCoord2i(1, 0);
+            glVertex2i(view::width, 0);
+            glTexCoord2i(1, 1);
+            glVertex2i(view::width, view::height);
+            glTexCoord2i(0, 1);
+            glVertex2i(0, view::height);
+            glEnd();
+            glEnable(GL_BLEND);*/
         }
     }
     sprite::sprite(node o) : data(o) {
