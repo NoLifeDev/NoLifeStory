@@ -24,6 +24,7 @@
 #include "window.hpp"
 #include <nx/bitmap.hpp>
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <array>
 #include <chrono>
 #include <cmath>
@@ -40,7 +41,6 @@ namespace nl {
         struct texture {
             GLfloat top, left, bottom, right, layer;
             std::chrono::steady_clock::time_point last_use;
-            bitmap bit;
         };
         struct block {
             GLint x, y, z;
@@ -75,21 +75,7 @@ namespace nl {
             for (auto i = 0; i < layers; ++i) {
                 blocks.insert({atlas_size, {0, 0, i, atlas_size, atlas_size}});
             }
-            std::vector<texture> old{};
-            for (auto && tex : textures) {
-                old.push_back(tex.second);
-            }
             textures.clear();
-            std::sort(old.begin(), old.end(), [](texture const & p_one, texture const & p_two) {
-                return p_one.last_use > p_two.last_use;
-            });
-            old.erase(old.cbegin() + (old.cend() - old.cbegin()) / 8, old.cend());
-            std::sort(old.begin(), old.end(), [](texture const & p_one, texture const & p_two) {
-                return p_one.bit.width() > p_two.bit.width();
-            });
-            for (auto & i : old) {
-                get_texture(i.bit);
-            }
         }
         block get_block(GLint p_width, GLint p_height) {
             if (std::max(p_width, p_height) > atlas_size) {
@@ -141,7 +127,6 @@ namespace nl {
             tex.bottom = (bl.y + p_bitmap.height()) / sf;
             tex.layer = bl.z / static_cast<GLfloat>(layers);
             tex.last_use = std::chrono::steady_clock::now();
-            tex.bit = p_bitmap;
             return tex;
         }
     }
@@ -167,20 +152,21 @@ namespace nl {
             glVertexPointer(2, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(4 * sizeof(GLfloat)));
             glTexCoordPointer(3, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(6 * sizeof(GLfloat)));
             glDrawArrays(GL_QUADS, 0, static_cast<GLsizei>(vertices.size()));
-            //Debug code to view the texture atlas
-            /*glDisable(GL_BLEND);
-            glBegin(GL_QUADS);
-            glColor4f(1, 1, 1, 1);
-            glTexCoord2i(0, 0);
-            glVertex2i(0, 0);
-            glTexCoord2i(1, 0);
-            glVertex2i(view::width, 0);
-            glTexCoord2i(1, 1);
-            glVertex2i(view::width, view::height);
-            glTexCoord2i(0, 1);
-            glVertex2i(0, view::height);
-            glEnd();
-            glEnable(GL_BLEND);*/
+            if (window::get_key(GLFW_KEY_T)) {
+                glDisable(GL_BLEND);
+                glBegin(GL_QUADS);
+                glColor4f(1, 1, 1, 1);
+                glTexCoord2i(0, 0);
+                glVertex2i(0, 0);
+                glTexCoord2i(1, 0);
+                glVertex2i(view::width, 0);
+                glTexCoord2i(1, 1);
+                glVertex2i(view::width, view::height);
+                glTexCoord2i(0, 1);
+                glVertex2i(0, view::height);
+                glEnd();
+                glEnable(GL_BLEND);
+            }
         }
     }
     sprite::sprite(node o) : data(o) {
@@ -344,16 +330,16 @@ namespace nl {
                 for (auto & v : vex) {
                     v += pos;
                 }
-                vertices.push_back({1, 1, 1, alpha,
+                vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[0].real()), static_cast<GLfloat>(vex[0].imag()),
                                    f & flipped ? tex.right : tex.left, tex.top, tex.layer});
-                vertices.push_back({1, 1, 1, alpha,
+                vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[1].real()), static_cast<GLfloat>(vex[1].imag()),
                                    f & flipped ? tex.left : tex.right, tex.top, tex.layer});
-                vertices.push_back({1, 1, 1, alpha,
+                vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[2].real()), static_cast<GLfloat>(vex[2].imag()),
                                    f & flipped ? tex.left : tex.right, tex.bottom, tex.layer});
-                vertices.push_back({1, 1, 1, alpha,
+                vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[3].real()), static_cast<GLfloat>(vex[3].imag()),
                                    f & flipped ? tex.right : tex.left, tex.bottom, tex.layer});
             }

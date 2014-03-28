@@ -31,7 +31,7 @@
 #include <iostream>
 
 namespace nl {
-    double const pi = 3.14159265358979323846264338327950288419716939937510582;
+    double const tau{6.28318530717958647692528676655900576839433879875021};
     namespace view {
         int x = 0, y = 0;
         int width = 0, height = 0;
@@ -42,6 +42,7 @@ namespace nl {
         bool doside = false, dotop = false, dobottom = false;
         int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
         double tx = 0, ty = 0;
+        float r = 1, g = 1, b = 1;
         template <typename T>
         void restrict(T & x, T & y) {
             if (right - left <= width)
@@ -139,18 +140,20 @@ namespace nl {
             restrict(fx, fy);
             if (config::rave) {
                 std::random_device engine;
-                auto num = std::pow(std::sin(time::delta_total * 2.088 * 2 * pi) * 0.5 + 0.5, 4) * 8;
+                auto num = std::pow(std::sin(time::delta_total * 2.088 * tau) * 0.5 + 0.5, 4) * 8;
                 std::uniform_real_distribution<double> dist(-num, num);
                 rx += dist(engine);
                 ry += dist(engine);
-                auto d = floor(time::delta_total * 2.088 - 0.1) * 1.95;
-                auto r = sin(d), g = sin(d + 2 / 3. * pi), b = sin(d + 4 / 3. * pi);
+                auto d = floor(time::delta_total * 2.088) * 1.95;
+                r = static_cast<float>(sin(d));
+                g = static_cast<float>(sin(d + 1 / 3. * tau));
+                b = static_cast<float>(sin(d + 2 / 3. * tau));
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                GLfloat c[] = {static_cast<GLfloat>(r), static_cast<GLfloat>(g), static_cast<GLfloat>(b), 1};
+                GLfloat c[4] = {1 - r, 1 - g, 1 - b, 1};
                 glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
-                glColor4d(1 - r, 1 - g, 1 - b, 1);
             } else {
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                r = 1, g = 1, b = 1;
             }
             rx *= 0.90;
             ry *= 0.90;
