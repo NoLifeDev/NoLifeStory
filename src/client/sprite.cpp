@@ -39,42 +39,39 @@
 namespace nl {
     namespace {
         struct texture {
-            GLfloat top, left, bottom, right, layer;
+            GLfloat top, left, bottom, right;
             std::chrono::steady_clock::time_point last_use;
         };
         struct block {
-            GLint x, y, z;
+            GLint x, y;
             GLint w, h;
         };
         struct vertex {
             GLfloat r, g, b, a;
             GLfloat x, y;
-            GLfloat s, t, p;
+            GLfloat s, t;
         };
         double const tau{6.28318530717958647692528676655900576839433879875021};
         std::unordered_map<size_t, texture> textures{};
         std::multimap<GLint, block> blocks{};
         bool bound{false};
-        GLuint vbo = 0;
+        GLuint vbo{};
         GLuint atlas{};
         GLint atlas_size{};
-        GLint layers{1};
         std::vector<vertex> vertices{};
         texture & get_texture(bitmap const &);
         void reinit() {
-            glEnable(GL_TEXTURE_3D);
+            glEnable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBindTexture(GL_TEXTURE_3D, atlas);
+            glBindTexture(GL_TEXTURE_2D, atlas);
             glLoadIdentity();
             vertices.clear();
             bound = true;
         }
         void reset_blocks() {
             blocks.clear();
-            for (auto i = 0; i < layers; ++i) {
-                blocks.insert({atlas_size, {0, 0, i, atlas_size, atlas_size}});
-            }
+            blocks.insert({atlas_size, {0, 0, atlas_size, atlas_size}});
             textures.clear();
         }
         block get_block(GLint p_width, GLint p_height) {
@@ -90,11 +87,11 @@ namespace nl {
                 if (b.h >= p_height) {
                     blocks.erase(it);
                     if (b.w - p_width > b.h - p_height) {
-                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.z, b.w - p_width, b.h}});
-                        blocks.insert({p_width, {b.x, b.y + p_height, b.z, p_width, b.h - p_height}});
+                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.w - p_width, b.h}});
+                        blocks.insert({p_width, {b.x, b.y + p_height, p_width, b.h - p_height}});
                     } else {
-                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.z, b.w - p_width, p_height}});
-                        blocks.insert({b.w, {b.x, b.y + p_height, b.z, b.w, b.h - p_height}});
+                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.w - p_width, p_height}});
+                        blocks.insert({b.w, {b.x, b.y + p_height, b.w, b.h - p_height}});
                     }
                     return b;
                 }
@@ -118,14 +115,13 @@ namespace nl {
             if (!bound) {
                 reinit();
             }
-            glTexSubImage3D(GL_TEXTURE_3D, 0, bl.x, bl.y, bl.z, p_bitmap.width(), p_bitmap.height(), 1, GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
+            glTexSubImage2D(GL_TEXTURE_2D, 0, bl.x, bl.y, p_bitmap.width(), p_bitmap.height(), GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
             auto & tex = textures[p_bitmap.id()];
             auto sf = static_cast<GLfloat>(atlas_size);
             tex.left = bl.x / sf;
             tex.right = (bl.x + p_bitmap.width()) / sf;
             tex.top = bl.y / sf;
             tex.bottom = (bl.y + p_bitmap.height()) / sf;
-            tex.layer = bl.z / static_cast<GLfloat>(layers);
             tex.last_use = std::chrono::steady_clock::now();
             return tex;
         }
@@ -133,10 +129,10 @@ namespace nl {
     void sprite::init() {
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &atlas_size);
         glGenTextures(1, &atlas);
-        glBindTexture(GL_TEXTURE_3D, atlas);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, atlas_size, atlas_size, layers, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, atlas);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas_size, atlas_size, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         reset_blocks();
         glGenBuffers(1, &vbo);
     }
@@ -332,16 +328,16 @@ namespace nl {
                 }
                 vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[0].real()), static_cast<GLfloat>(vex[0].imag()),
-                                   f & flipped ? tex.right : tex.left, tex.top, tex.layer});
+                                   f & flipped ? tex.right : tex.left, tex.top});
                 vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[1].real()), static_cast<GLfloat>(vex[1].imag()),
-                                   f & flipped ? tex.left : tex.right, tex.top, tex.layer});
+                                   f & flipped ? tex.left : tex.right, tex.top});
                 vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[2].real()), static_cast<GLfloat>(vex[2].imag()),
-                                   f & flipped ? tex.left : tex.right, tex.bottom, tex.layer});
+                                   f & flipped ? tex.left : tex.right, tex.bottom});
                 vertices.push_back({view::r, view::g, view::b, alpha,
                                    static_cast<GLfloat>(vex[3].real()), static_cast<GLfloat>(vex[3].imag()),
-                                   f & flipped ? tex.right : tex.left, tex.bottom, tex.layer});
+                                   f & flipped ? tex.right : tex.left, tex.bottom});
             }
         }
     }
