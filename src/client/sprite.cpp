@@ -146,8 +146,12 @@ namespace nl {
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glColorPointer(4, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(0 * sizeof(GLfloat)));
             glVertexPointer(2, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(4 * sizeof(GLfloat)));
-            glTexCoordPointer(3, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(6 * sizeof(GLfloat)));
+            glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), reinterpret_cast<GLvoid const *>(6 * sizeof(GLfloat)));
             glDrawArrays(GL_QUADS, 0, static_cast<GLsizei>(vertices.size()));
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
             if (window::get_key(GLFW_KEY_T)) {
                 glDisable(GL_BLEND);
                 glBegin(GL_QUADS);
