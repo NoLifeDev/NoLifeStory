@@ -53,7 +53,8 @@ namespace nl {
         };
         double const tau{6.28318530717958647692528676655900576839433879875021};
         std::unordered_map<size_t, texture> textures{};
-        std::multimap<GLint, block> blocks{};
+        std::multimap<GLint, block> hblocks{};
+        std::multimap<GLint, block> wblocks{};
         bool bound{false};
         GLuint vbo{};
         GLuint atlas{};
@@ -69,10 +70,21 @@ namespace nl {
             vertices.clear();
             bound = true;
         }
+        void add_block(GLint x, GLint y, GLint w, GLint h) {
+            if (w <= 0 || h <= 0) {
+                return;
+            }
+            if (w > h) {
+                hblocks.insert({h, {x, y, w, h}});
+            } else {
+                wblocks.insert({w, {x, y, w, h}});
+            }
+        }
         void reset_blocks() {
-            blocks.clear();
-            blocks.insert({atlas_size, {0, 0, atlas_size, atlas_size}});
+            hblocks.clear();
+            wblocks.clear();
             textures.clear();
+            add_block(0, 0, atlas_size, atlas_size);
         }
         block get_block(GLint p_width, GLint p_height) {
             if (std::max(p_width, p_height) > atlas_size) {
@@ -81,26 +93,35 @@ namespace nl {
             if (p_width == 0 || p_height == 0) {
                 throw std::runtime_error{"Invalid texture size"};
             }
-            auto it = blocks.lower_bound(p_width);
-            while (it != blocks.end()) {
-                block b = it->second;
-                if (b.h >= p_height) {
-                    blocks.erase(it);
-                    if (b.w - p_width > b.h - p_height) {
-                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.w - p_width, b.h}});
-                        blocks.insert({p_width, {b.x, b.y + p_height, p_width, b.h - p_height}});
-                    } else {
-                        blocks.insert({b.w - p_width, {b.x + p_width, b.y, b.w - p_width, p_height}});
-                        blocks.insert({b.w, {b.x, b.y + p_height, b.w, b.h - p_height}});
-                    }
-                    return b;
-                }
-                ++it;
+            auto itw = std::find_if(wblocks.lower_bound(p_width), wblocks.end(),
+                                    [&](std::pair<GLint const, block> const & p) {
+                return p_height <= p.second.h;
+            });
+            auto ith = std::find_if(hblocks.lower_bound(p_height), hblocks.end(),
+                                    [&](std::pair<GLint const, block> const & p) {
+                return p_width <= p.second.w;
+            });
+            block b;
+            if (itw != wblocks.end() && (ith == hblocks.end() || itw->first - p_width <= ith->first - p_height)) {
+                b = itw->second;
+                wblocks.erase(itw);
+            } else if (ith != hblocks.end()) {
+                b = ith->second;
+                hblocks.erase(ith);
+            } else {
+                sprite::flush();
+                log << "Wiping texture atlas" << std::endl;
+                reset_blocks();
+                return get_block(p_width, p_height);
             }
-            sprite::flush();
-            log << "Compacting texture atlas" << std::endl;
-            reset_blocks();
-            return get_block(p_width, p_height);
+            if (b.w - p_width > b.h - p_height) {
+                add_block(b.x + p_width, b.y, b.w - p_width, b.h);
+                add_block(b.x, b.y + p_height, p_width, b.h - p_height);
+            } else {
+                add_block(b.x + p_width, b.y, b.w - p_width, p_height);
+                add_block(b.x, b.y + p_height, b.w, b.h - p_height);
+            }
+            return b;
         }
         texture & get_texture(bitmap const & p_bitmap) {
             auto it = textures.find(p_bitmap.id());
