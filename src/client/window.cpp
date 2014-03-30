@@ -143,7 +143,9 @@ namespace nl {
             glfwSetKeyCallback(window, callback::key);
             last_title = std::chrono::steady_clock::now();
         }
+        LARGE_INTEGER freq;
         void init() {
+            QueryPerformanceFrequency(&freq);
             if (glfwInit() != GL_TRUE)
                 throw std::runtime_error("Failed to initialize GLFW");
             glfwWindowHint(GLFW_STENCIL_BITS, 0);
@@ -205,8 +207,7 @@ namespace nl {
             sprite::flush();
             check_errors();
             glfwPollEvents();
-            LARGE_INTEGER freq, first, last;
-            QueryPerformanceFrequency(&freq);
+            LARGE_INTEGER first, last;
             QueryPerformanceCounter(&first);
             glfwSwapBuffers(window);
             QueryPerformanceCounter(&last);
