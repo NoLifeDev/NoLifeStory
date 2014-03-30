@@ -13,7 +13,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>lz4.lib;glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;glfw.lib;libmpg123.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
