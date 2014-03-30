@@ -30,6 +30,8 @@
 #include <memory>
 #include <string>
 #include <chrono>
+#include <iostream>
+#include <Windows.h>
 
 namespace nl {
     namespace window {
@@ -203,7 +205,15 @@ namespace nl {
             sprite::flush();
             check_errors();
             glfwPollEvents();
+            LARGE_INTEGER freq, first, last;
+            QueryPerformanceFrequency(&freq);
+            QueryPerformanceCounter(&first);
             glfwSwapBuffers(window);
+            QueryPerformanceCounter(&last);
+            auto diff = (last.QuadPart - first.QuadPart) * 1000 / freq.QuadPart;
+            if (diff > 20) {
+                std::cout << diff << std::endl;
+            }
             glClearColor(0, 0, 0, 0);
             glClear(GL_COLOR_BUFFER_BIT);
         }

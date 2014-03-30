@@ -47,7 +47,9 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <ClCompile Include="../src/client/tile.cpp" />
-    <ClCompile Include="../src/client/window.cpp" />
+    <ClCompile Include="../src/client/window.cpp">
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+    </ClCompile>
     <ClCompile Include="../src/client/map.cpp" />
     <ClCompile Include="../src/client/main.cpp" />
     <ClCompile Include="../src/client/sprite.cpp" />
