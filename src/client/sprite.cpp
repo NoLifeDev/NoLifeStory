@@ -271,7 +271,7 @@ namespace nl {
             y -= view::ymin;
         }
         //Handling movetypes
-        auto angle = 0.;
+        float angle{0};
         switch (movetype) {
         case 0:
             break;
@@ -282,7 +282,7 @@ namespace nl {
             y += static_cast<int>(moveh * sin(tau * 1000 * time::delta_total / movep));
             break;
         case 3:
-            angle = tau * 1000 * time::delta_total / mover;
+            angle = static_cast<float>(tau * 1000 * time::delta_total / mover);
             break;
         default:
             log << "Unknown move type: " << movetype << std::endl;
@@ -333,34 +333,56 @@ namespace nl {
             alpha = static_cast<GLfloat>(dif * a1 + (1 - dif) * a0);
         }
         auto & tex = get_texture(curbit);
+        std::array<std::complex<float>, 4> vex;
+        if (angle != 0) {
+            vex = {{
+                {static_cast<float>(f & flipped ? originx - width : 0 - originx),
+                static_cast<float>(0 - originy)},
+                {static_cast<float>(f & flipped ? originx - 0 : width - originx),
+                static_cast<float>(0 - originy)},
+                {static_cast<float>(f & flipped ? originx - 0 : width - originx),
+                static_cast<float>(height - originy)},
+                {static_cast<float>(f & flipped ? originx - width : 0 - originx),
+                static_cast<float>(height - originy)}
+            }};
+            std::complex<float> rot{std::cos(angle), std::sin(angle)};
+            for (auto & v : vex) {
+                v *= rot;
+            }
+            std::complex<float> trans{
+                static_cast<float>(f & flipped ? width - originx : originx),
+                static_cast<float>(originy)
+            };
+            for (auto & v : vex) {
+                v += trans;
+            }
+        } else {
+            vex = {{
+                {0, 0},
+                {static_cast<float>(width), 0},
+                {static_cast<float>(width), static_cast<float>(height)},
+                {0, static_cast<float>(height)},
+            }};
+        }
+
         for (x = xbegin; x <= xend; x += cx) {
             for (y = ybegin; y <= yend; y += cy) {
-                std::complex<double> vex[4] = {
-                    {0, 0},
-                    {static_cast<double>(width), 0},
-                    {static_cast<double>(width), static_cast<double>(height)},
-                    {0, static_cast<double>(height)}};
-                if (angle != 0) {
-                    std::complex<double> rot{std::cos(angle), std::sin(angle)};
-                    for (auto & v : vex) {
-                        v *= rot;
-                    }
-                }
-                std::complex<double> pos{static_cast<double>(x), static_cast<double>(y)};
-                for (auto & v : vex) {
+                std::complex<float> pos{static_cast<float>(x), static_cast<float>(y)};
+                auto tvex = vex;
+                for (auto & v : tvex) {
                     v += pos;
                 }
                 vertices.push_back({view::r, view::g, view::b, alpha,
-                                   static_cast<GLfloat>(vex[0].real()), static_cast<GLfloat>(vex[0].imag()),
+                                   tvex[0].real(), tvex[0].imag(),
                                    f & flipped ? tex.right : tex.left, tex.top});
                 vertices.push_back({view::r, view::g, view::b, alpha,
-                                   static_cast<GLfloat>(vex[1].real()), static_cast<GLfloat>(vex[1].imag()),
+                                   tvex[1].real(), tvex[1].imag(),
                                    f & flipped ? tex.left : tex.right, tex.top});
                 vertices.push_back({view::r, view::g, view::b, alpha,
-                                   static_cast<GLfloat>(vex[2].real()), static_cast<GLfloat>(vex[2].imag()),
+                                   tvex[2].real(), tvex[2].imag(),
                                    f & flipped ? tex.left : tex.right, tex.bottom});
                 vertices.push_back({view::r, view::g, view::b, alpha,
-                                   static_cast<GLfloat>(vex[3].real()), static_cast<GLfloat>(vex[3].imag()),
+                                   tvex[3].real(), tvex[3].imag(),
                                    f & flipped ? tex.right : tex.left, tex.bottom});
             }
         }
