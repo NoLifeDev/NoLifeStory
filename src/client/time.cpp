@@ -27,6 +27,7 @@
 namespace nl {
     namespace time {
         using clock = std::chrono::high_resolution_clock;
+        using seconds_double = std::chrono::duration<double>;
         unsigned fps = 0;
         double delta = 0, delta_total = 0;
         std::deque<clock::time_point> frames;
@@ -61,12 +62,12 @@ namespace nl {
             auto now = clock::now();
             if (config::limit_fps && now - last < step_size)
                 now = last + step_size;
-            delta = std::chrono::duration_cast<std::chrono::duration<double>>(now - last).count();
+            delta = std::chrono::duration_cast<seconds_double>(now - last).count();
             if (delta < 0)
                 delta = 0;
             if (delta > 0.05)
                 delta = 0.05;
-            delta_total = std::chrono::duration_cast<std::chrono::duration<double>>(now - first).count();
+            delta_total = std::chrono::duration_cast<seconds_double>(now - first).count();
             while (!frames.empty() && now - frames.front() > std::chrono::seconds(1))
                 frames.pop_front();
             frames.push_back(now);

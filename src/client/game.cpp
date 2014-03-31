@@ -23,8 +23,8 @@
 #include "view.hpp"
 #include "map.hpp"
 #include "sound.hpp"
+#include "sprite.hpp"
 #include <nx/nx.hpp>
-#include <iostream>
 
 namespace nl {
     namespace game {
@@ -32,6 +32,7 @@ namespace nl {
         void init() {
             window::init();
             config::load();
+            sprite::init();
             time::reset();
             nx::load_all();
             music::init();

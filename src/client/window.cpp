@@ -170,7 +170,6 @@ namespace nl {
             }
             if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5)
                 throw std::runtime_error("Your OpenGL is out of date. Please update your drivers and/or buy a new GPU.");
-            sprite::init();
         }
         void check_errors() {
             auto err = glGetError();

@@ -58,7 +58,6 @@ namespace nl {
         bool bound{false};
         GLuint vbo{};
         GLuint atlas{};
-        GLint atlas_size{};
         std::vector<vertex> vertices{};
         texture & get_texture(bitmap const &);
         void reinit() {
@@ -84,13 +83,13 @@ namespace nl {
             hblocks.clear();
             wblocks.clear();
             textures.clear();
-            add_block(0, 0, atlas_size, atlas_size);
+            add_block(0, 0, config::atlas_size, config::atlas_size);
         }
         block get_block(GLint p_width, GLint p_height) {
-            if (std::max(p_width, p_height) > atlas_size) {
+            if (std::max(p_width, p_height) > config::atlas_size) {
                 throw std::runtime_error{"Texture is too big"};
             }
-            if (p_width == 0 || p_height == 0) {
+            if (p_width <= 0 || p_height <= 0) {
                 throw std::runtime_error{"Invalid texture size"};
             }
             auto itw = std::find_if(wblocks.lower_bound(p_width), wblocks.end(),
@@ -138,7 +137,7 @@ namespace nl {
             }
             glTexSubImage2D(GL_TEXTURE_2D, 0, bl.x, bl.y, p_bitmap.width(), p_bitmap.height(), GL_BGRA, GL_UNSIGNED_BYTE, p_bitmap.data());
             auto & tex = textures[p_bitmap.id()];
-            auto sf = static_cast<GLfloat>(atlas_size);
+            auto sf = static_cast<GLfloat>(config::atlas_size);
             tex.left = bl.x / sf;
             tex.right = (bl.x + p_bitmap.width()) / sf;
             tex.top = bl.y / sf;
@@ -148,10 +147,10 @@ namespace nl {
         }
     }
     void sprite::init() {
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &atlas_size);
+        log << "Using an atlas size of " << config::atlas_size << std::endl;
         glGenTextures(1, &atlas);
         glBindTexture(GL_TEXTURE_2D, atlas);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, atlas_size, atlas_size, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config::atlas_size, config::atlas_size, 0, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         reset_blocks();
@@ -174,7 +173,7 @@ namespace nl {
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             if (window::get_key(GLFW_KEY_T)) {
-                glDisable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
                 glBegin(GL_QUADS);
                 glColor4f(1, 1, 1, 1);
                 glTexCoord2i(0, 0);
@@ -186,7 +185,7 @@ namespace nl {
                 glTexCoord2i(0, 1);
                 glVertex2i(0, view::height);
                 glEnd();
-                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }
         }
     }

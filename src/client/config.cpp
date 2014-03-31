@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "config.hpp"
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <map>
 #include <string>
@@ -33,9 +34,9 @@ namespace nl {
         bool vsync = true;
         bool limit_fps = false;
         int target_fps = 100;
-        int max_textures = 4000;
         int window_width = 1024, window_height = 768;
         int fullscreen_width = 1024, fullscreen_height = 768;
+        int atlas_size = 0;
         //Stuff to hold configs and their mappings
         struct mapping {
             std::function<void()> save;
@@ -86,6 +87,7 @@ namespace nl {
             fullscreen_width = mode->width;
             fullscreen_height = mode->height;
             target_fps = mode->refreshRate;
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE, &atlas_size);
             //Then map the configs
             map_bool("rave", rave);
             map_bool("fullscreen", fullscreen);
@@ -93,11 +95,11 @@ namespace nl {
             map_bool("capfps", limit_fps);
             map_bool("stretch", stretch);
             map_int("fps", target_fps);
-            map_int("maxtextures", max_textures);
             map_int("winwidth", window_width);
             map_int("winheight", window_height);
             map_int("fullwidth", fullscreen_width);
             map_int("fullheight", fullscreen_height);
+            map_int("atlassize", atlas_size);
             //First we save the defaults in case the config file doesn't have them
             for (auto const & m : mappings)
                 m.second.save();

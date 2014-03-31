@@ -26,9 +26,9 @@ namespace nl {
         extern bool vsync;
         extern bool limit_fps;
         extern int target_fps;
-        extern int max_textures;
         extern int window_width, window_height;
         extern int fullscreen_width, fullscreen_height;
+        extern int atlas_size;
         void save();
         void load();
     }
