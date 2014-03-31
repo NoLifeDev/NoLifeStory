@@ -42,8 +42,8 @@ namespace nl {
         double delay, next_delay;
         double movew, moveh, movep, mover;
         double a0, a1;
-        int movetype = 0;
-        int frame;
+        int movetype{0};
+        int frame, last_valid{0};
         int originx, originy;
         int width, height;
         bool repeat, animated;

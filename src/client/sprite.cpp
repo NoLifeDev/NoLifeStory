@@ -218,8 +218,24 @@ namespace nl {
             if (n.data_type() == node::type::bitmap)
                 curbit = n;
         }
-        if (!curbit)
-            return;
+        if (!curbit) {
+            if (!animated || frame == 0) {
+                return;
+            }
+            auto actual = data[frame % (last_valid + 1)];
+            curbit = actual;
+            if (actual["source"]) {
+                std::string str = actual["source"];
+                auto n = actual.root().resolve(str.substr(str.find_first_of('/') + 1));
+                if (n.data_type() == node::type::bitmap)
+                    curbit = n;
+            }
+            if (!curbit) {
+                return;
+            }
+        } else {
+            last_valid = f;
+        }
         width = curbit.width();
         height = curbit.height();
         auto o = current["origin"];
