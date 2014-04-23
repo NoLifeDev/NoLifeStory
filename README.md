@@ -11,7 +11,13 @@ While it will technically run on 32bit hardware, it won't be able to work with l
 ## Compilers
 
 Supported compilers are MSVC 2013, latest Clang, and latest GCC.
-Please note, if you are using GCC or Clang, make sure you are using the latest libc++ which has proper regex support.
+
+Caveats:
+GCC <4.9's libstdc++ has incomplete regex support.
+Due to this, NoLifeClient won't be able to read/write NoLifeClient.cfg
+
+libstdc++ does not support <codecvt> at all yet so NoLifeWzToNx relies on terrible C code to do utf-16 -> utf-8 when <codecvt> is not available.
+If you are using Clang, you have the option to build with libc++, which does support it.
 
 ## Dependencies
 

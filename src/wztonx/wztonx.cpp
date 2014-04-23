@@ -28,12 +28,6 @@
 #  include <sys/mman.h>
 #  include <unistd.h>
 #endif
-#ifndef _MSC_VER
-#  ifndef __clang__
-#    define NL_GCC
-#    warning "You are using a terrible compiler"
-#  endif
-#endif
 
 #include <zlib.h>
 #include <lz4.h>
@@ -41,7 +35,7 @@
 
 #include <iostream>
 #include <fstream>
-#ifndef NL_GCC
+#ifndef NL_NO_CODECVT
 #  include <codecvt>
 #endif
 #include <vector>
@@ -305,7 +299,7 @@ namespace nl {
         std::vector<std::string> strings;
         std::string str_buf;
         std::u16string wstr_buf;
-#ifndef NL_GCC
+#ifndef NL_NO_CODECVT
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
 #endif
         char8_t const * u8key = nullptr;
@@ -321,7 +315,7 @@ namespace nl {
         std::string wzfilename, nxfilename;
         //Methods
         std::string convert_str(std::u16string const & p_str) {
-#ifndef NL_GCC
+#ifndef NL_NO_CODECVT
             return convert.to_bytes(p_str);
 #else
             std::array<char, 0x10000> buf;
@@ -957,7 +951,7 @@ namespace nl {
     };
 }
 int main(int argc, char ** argv) {
-#ifdef NL_GCC
+#ifdef NL_NO_CODECVT
     std::setlocale(LC_ALL, "en_US.utf8");
 #endif
     std::filebuf file;

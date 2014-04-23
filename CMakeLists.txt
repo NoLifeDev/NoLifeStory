@@ -1,13 +1,21 @@
 project(NoLifeStory)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
-include(cmake/common.cmake)
 
-# If you're using GCC 4.8 it will build and run, but the cfg file won't work
-# GCC 4.9 should support <regex> and therefore cfg files
-# GCC does not support <codecvt> at all yet so NoLifeWzToNx relies on terrible C code to do utf-16 -> utf-8 when <codecvt> is not available
-detect_system(OPERATING_SYSTEM)
+# Option to build with libc++ if using Clang on Linux
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+    option(USE_LIBCXX "Use libc++ instead of the default C++ standard library" OFF)
+    if(USE_LIBCXX)
+        add_compile_options(-stdlib=libc++)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+    endif()
+endif()
+
+# Set some things up for GCC/Clang
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     add_compile_options(-std=c++11)
+    if(NOT USE_LIBCXX)
+        add_definitions(-DNL_NO_CODECVT)
+    endif()
 endif()
 
 # Modular building of subprojects:
