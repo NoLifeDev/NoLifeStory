@@ -4,6 +4,6 @@ include(../../cmake/common.cmake)
 
 aux_source_directory(. NOLIFEWZTONX_SOURCES)
 add_executable(NoLifeWzToNx ${NOLIFEWZTONX_SOURCES})
-target_link_libraries(NoLifeWzToNx c++abi z lz4)
+target_link_libraries(NoLifeWzToNx z lz4)
 
 install(TARGETS NoLifeWzToNx DESTINATION bin)

@@ -159,7 +159,7 @@ namespace nl {
                 }
             }
         }
-        std::sort(sub_parts.begin(), sub_parts.end(), [](sub_part & a, sub_part & b) {
+        std::sort(sub_parts.begin(), sub_parts.end(), [](sub_part const & a, sub_part const & b) {
             return a.z > b.z;
         });
         auto flags = sprite::relative;

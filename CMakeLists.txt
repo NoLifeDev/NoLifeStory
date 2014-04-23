@@ -2,17 +2,12 @@ project(NoLifeStory)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include(cmake/common.cmake)
 
-# At the moment, we assume Clang with libc++ is used to build WzToNx
+# If you're using GCC 4.8 it will build and run, but the cfg file won't work
+# GCC 4.9 should support <regex> and therefore cfg files
+# GCC does not support <codecvt> at all yet so NoLifeWzToNx relies on terrible C code to do utf-16 -> utf-8 when <codecvt> is not available
 detect_system(OPERATING_SYSTEM)
-if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-message(STATUS "${PROJECT_NAME}: Enabling Clang C++11 support")
-message(STATUS "${PROJECT_NAME}: Make sure libc++ is installed")
-add_compile_options(-std=c++11 -stdlib=libc++)
-if(${OPERATING_SYSTEM} MATCHES "Linux")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++ -lc++abi")
-endif()
-else()
-message(FATAL_ERROR "Only Clang and msvc are supported")
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    add_compile_options(-std=c++11)
 endif()
 
 # Modular building of subprojects:

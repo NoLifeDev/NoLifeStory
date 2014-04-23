@@ -28,6 +28,12 @@
 #  include <sys/mman.h>
 #  include <unistd.h>
 #endif
+#ifndef _MSC_VER
+#  ifndef __clang__
+#    define NL_GCC
+#    warning "You are using a terrible compiler"
+#  endif
+#endif
 
 #include <zlib.h>
 #include <lz4.h>
@@ -35,7 +41,9 @@
 
 #include <iostream>
 #include <fstream>
-#include <codecvt>
+#ifndef NL_GCC
+#  include <codecvt>
+#endif
 #include <vector>
 #include <map>
 #include <cstdint>
@@ -44,6 +52,7 @@
 #include <chrono>
 #include <numeric>
 #include <iomanip>
+#include <cstring>
 
 namespace nl {
     //Some typedefs
@@ -239,7 +248,7 @@ namespace nl {
             offset += sizeof(T);
         }
         void write(void const * buf, size_t size) {
-            memcpy(offset, buf, size);
+            std::memcpy(offset, buf, size);
             offset += size;
         }
     };
@@ -296,7 +305,9 @@ namespace nl {
         std::vector<std::string> strings;
         std::string str_buf;
         std::u16string wstr_buf;
+#ifndef NL_GCC
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+#endif
         char8_t const * u8key = nullptr;
         char16_t const * u16key = nullptr;
         std::vector<std::pair<id_t, int32_t>> imgs;
@@ -309,6 +320,16 @@ namespace nl {
         bool client, hc;
         std::string wzfilename, nxfilename;
         //Methods
+        std::string convert_str(std::u16string const & p_str) {
+#ifndef NL_GCC
+            return convert.to_bytes(p_str);
+#else
+            std::array<char, 0x10000> buf;
+            std::wstring wbuf{p_str.cbegin(), p_str.cend()};
+            auto size = std::wcstombs(buf.data(), wbuf.data(), buf.size());
+            return{buf.data(), size};
+#endif
+        }
         id_t add_string(std::string str) {
             if (str.length() > std::numeric_limits<uint16_t>::max())
                 throw std::runtime_error("String is too long!");
@@ -334,7 +355,7 @@ namespace nl {
                 wstr_buf.resize(slen);
                 for (auto i = 0u; i < slen; ++i, ++mask)
                     wstr_buf[i] = static_cast<char16_t>(ows[i] ^ u16key[i] ^ mask);
-                return add_string(convert.to_bytes(wstr_buf));
+                return add_string(convert_str(wstr_buf));
             }
             if (len < 0) {
                 auto slen = len == -128 ? in.read<uint32_t>() : -len;
@@ -351,7 +372,7 @@ namespace nl {
                     for (auto & c : wstr_buf) {
                         c = cp1252[c];
                     }
-                    add_string(convert.to_bytes(wstr_buf));
+                    return add_string(convert_str(wstr_buf));
                 }
                 return add_string(str_buf);
             }
@@ -403,7 +424,7 @@ namespace nl {
         }
         void sort_nodes(id_t first, id_t count) {
             std::sort(nodes.begin() + first, nodes.begin() + first + count,
-                      [this](node & n1, node & n2) {
+                      [this](node const & n1, node const & n2) {
                 return strings[n1.name] < strings[n2.name];
             });
         }
@@ -936,6 +957,9 @@ namespace nl {
     };
 }
 int main(int argc, char ** argv) {
+#ifdef NL_GCC
+    std::setlocale(LC_ALL, "en_US.utf8");
+#endif
     std::filebuf file;
     file.open("NoLifeWzToNx.log", std::ios::out);
     std::clog.rdbuf(&file);
