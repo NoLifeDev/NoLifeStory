@@ -10,8 +10,12 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND "${CMAKE_SYSTEM_NAME}" MATCHES
     endif()
 endif()
 
+# Set some things up for GCC/Clang
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     add_compile_options(-std=c++11)
+    if(NOT USE_LIBCXX)
+        add_definitions(-DNL_NO_CODECVT)
+    endif()
 endif()
 
 # Modular building of subprojects:
