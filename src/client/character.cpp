@@ -130,7 +130,11 @@ namespace nl {
                     } else for (auto n : p.m_node["map"]) {
                         auto it = mappings.find(n.name());
                         if (it != mappings.end()) {
-                            p.x = it->second.x - n.x();
+                            if (flipped) {
+                                p.x = it->second.x + n.x();
+                            } else {
+                                p.x = it->second.x - n.x();
+                            }
                             p.y = it->second.y - n.y();
                             p.done = true;
                         }
@@ -140,7 +144,11 @@ namespace nl {
                             auto it = mappings.find(n.name());
                             if (it == mappings.end()) {
                                 mapping m;
-                                m.x = p.x + n.x();
+                                if (flipped) {
+                                    m.x = p.x - n.x();
+                                } else {
+                                    m.x = p.x + n.x();
+                                }
                                 m.y = p.y + n.y();
                                 mappings.insert(std::make_pair(n.name(), m));
                             }
@@ -154,9 +162,13 @@ namespace nl {
         std::sort(sub_parts.begin(), sub_parts.end(), [](sub_part & a, sub_part & b) {
             return a.z > b.z;
         });
+        auto flags = sprite::relative;
+        if (flipped) {
+            flags |= sprite::flipped;
+        }
         for (auto & p : sub_parts) {
             sprite spr = p.m_node;
-            spr.draw(p.x, p.y, sprite::relative);
+            spr.draw(p.x, p.y, flags);
         }
     }
     void character::update() {
