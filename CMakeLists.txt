@@ -1,6 +1,15 @@
 project(NoLifeStory)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
+# Option to build with libc++ if using Clang on Linux
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" AND "${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
+    option(USE_LIBCXX "Use libc++ instead of the default C++ standard library" OFF)
+    if(USE_LIBCXX)
+        add_compile_options(-stdlib=libc++)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
+    endif()
+endif()
+
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     add_compile_options(-std=c++11)
 endif()
