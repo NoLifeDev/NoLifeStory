@@ -25,6 +25,7 @@
 #include <nx/bitmap.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
