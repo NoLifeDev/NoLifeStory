@@ -127,10 +127,12 @@ namespace nl {
             ty = player::ch.pos.y;
             auto dx = tx - fx;
             auto dy = ty - fy;
-            dx = std::copysign(std::max(std::abs(dx) - 30, 0.), dx);
-            dy = std::copysign(std::max(std::abs(dy) - 30, 0.), dy);
-            auto sx = dx * time::delta * 3;
-            auto sy = dy * time::delta * 3;
+            auto adx = std::max(std::abs(dx) - 30, 0.);
+            auto ady = std::max(std::abs(dy) - 30, 0.);
+            auto sx = adx == 0 ? 0 :
+                std::copysign(std::pow(adx, 1.5) + 30, dx) * time::delta * 0.2;
+            auto sy = ady == 0 ? 0 :
+                std::copysign(std::pow(ady, 1.5) + 30, dy) * time::delta * 0.2;
             if (abs(sx) > abs(tx - fx))
                 sx = tx - fx;
             if (abs(sy) > abs(ty - fy))

@@ -41,10 +41,15 @@ namespace nl {
             ch.m_parts.emplace_back(2000);
             ch.m_parts.emplace_back(12000);
             ch.m_parts.emplace_back(30000);
-            ch.m_parts.emplace_back(1050000);
             ch.m_parts.emplace_back(1000000);
+            ch.m_parts.emplace_back(1050000);
+            ch.m_parts.emplace_back(1070000);
+            ch.m_parts.emplace_back(1080000);
+            ch.m_parts.emplace_back(1090000);
+            ch.m_parts.emplace_back(1100000);
         }
         void respawn(std::string port) {
+            last_tele = time::delta_total;
             std::vector<std::pair<int, int>> spawns;
             for (auto & p : portals)
                 if (p.pn == port)
@@ -77,7 +82,7 @@ namespace nl {
             if (!window::get_key(GLFW_KEY_DOWN))
                 ch.pos.down = false;
             ch.update();
-            if (time::delta_total < 0.5)
+            if (time::delta_total < last_tele + 0.5)
                 return;
             for (portal & p : portals) {
                 if (p.x < ch.pos.x - 40 || p.x > ch.pos.x + 40 ||
@@ -90,7 +95,6 @@ namespace nl {
                         break;
                 case 3:
                     map::load(std::to_string(p.tm), p.tn);
-                    last_tele = time::delta_total;
                     return;
                 }
             }

@@ -48,9 +48,9 @@ namespace nl {
     double const shoe_swim_speed_v = 1;
     double const shoe_walk_acc = 1;
     double const shoe_walk_drag = 1;
-    double const shoe_walk_jump = 1.2;
+    double const shoe_walk_jump = 1.0;
     double const shoe_walk_slant = 0.9;
-    double const shoe_walk_speed = 1.4;
+    double const shoe_walk_speed = 1.0;
     double const slip_force = 60000;
     double const slip_speed = 120;
     double const swim_force = 120000;
