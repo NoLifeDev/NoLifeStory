@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifeClient - Part of the NoLifeStory project                           //
-// Copyright © 2013 Peter Atashian                                          //
+// Copyright © 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -16,54 +16,21 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.    //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "game.hpp"
-#include "window.hpp"
-#include "config.hpp"
-#include "time.hpp"
-#include "view.hpp"
-#include "map.hpp"
-#include "sound.hpp"
-#include "player.hpp"
-#include "sprite.hpp"
-#include <nx/nx.hpp>
+#pragma once
+#include "physics.hpp"
 
 namespace nl {
-    namespace game {
-        bool over = false;
-        void init() {
-            window::init();
-            config::load();
-            sprite::init();
-            time::reset();
-            nx::load_all();
-            music::init();
-            window::recreate(config::fullscreen);
-            map::init();
-            player::init();
-        }
-        void loop() {
-            view::update();
-            map::update();
-            map::render();
-            time::update();
-            window::update();
-        }
-        void unload() {
-            music::unload();
-            config::save();
-            window::unload();
-        }
-        void play() {
-            init();
-            while (!over)
-                loop();
-            unload();
-        }
-        void shut_down() {
-            over = true;
-        }
-        bool is_over() {
-            return over;
-        }
-    }
+    struct character {
+        struct part {
+            part(unsigned);
+            void set(unsigned);
+            unsigned m_id;
+            node m_node;
+        };
+        void render();
+        void update();
+        physics pos;
+        bool flipped{false};
+        std::vector<part> m_parts;
+    };
 }

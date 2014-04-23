@@ -116,15 +116,15 @@ namespace nl {
             doside = !!info["LBSide"];
             dobottom = !!info["LBBottom"];
             dotop = !!info["LBTop"];
-            tx = player::pos.x;
-            ty = player::pos.y;
+            tx = player::ch.pos.x;
+            ty = player::ch.pos.y;
             fx = tx;
             fy = ty;
             update();
         }
         void update() {
-            tx = player::pos.x;
-            ty = player::pos.y;
+            tx = player::ch.pos.x;
+            ty = player::ch.pos.y;
             auto dx = tx - fx;
             auto dy = ty - fy;
             dx = std::copysign(std::max(std::abs(dx) - 30, 0.), dx);

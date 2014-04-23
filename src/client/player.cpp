@@ -24,6 +24,7 @@
 #include "view.hpp"
 #include "window.hpp"
 #include "log.hpp"
+#include "character.hpp"
 #include <nx/nx.hpp>
 #include <nx/node.hpp>
 #include <GL/glew.h>
@@ -33,10 +34,16 @@
 
 namespace nl {
     namespace player {
-        physics pos;
         double last_tele = time::delta_total;
-        sprite spr;
         bool mouse_fly = false;
+        character ch;
+        void init() {
+            ch.m_parts.emplace_back(2000);
+            ch.m_parts.emplace_back(12000);
+            ch.m_parts.emplace_back(30000);
+            ch.m_parts.emplace_back(1050000);
+            ch.m_parts.emplace_back(1000000);
+        }
         void respawn(std::string port) {
             std::vector<std::pair<int, int>> spawns;
             for (auto & p : portals)
@@ -44,41 +51,42 @@ namespace nl {
                     spawns.emplace_back(p.x, p.y);
             if (!spawns.empty()) {
                 auto spawn = spawns[rand() % spawns.size()];
-                pos.reset(spawn.first, spawn.second - 20);
+                ch.pos.reset(spawn.first, spawn.second - 20);
             } else {
                 log << "Failed to find portal " << port << " for map " << map::current_name;
                 if (port != "sp")
                     respawn("sp");
                 else
-                    pos.reset(0, 0);
+                    ch.pos.reset(0, 0);
             }
-            spr = nx::mob["1210102.img"]["stand"];
         }
         void update() {
             if (mouse_fly) {
                 auto p = window::mouse_pos();
-                pos.reset(p.first + view::xmin, p.second + view::ymin);
+                ch.pos.reset(p.first + view::xmin, p.second + view::ymin);
             }
-            if (!window::get_key(GLFW_KEY_RIGHT_SHIFT) && !window::get_key(GLFW_KEY_LEFT_SHIFT))
+            if (!window::get_key(GLFW_KEY_RIGHT_SHIFT) &&
+                !window::get_key(GLFW_KEY_LEFT_SHIFT))
                 mouse_fly = false;
             if (!window::get_key(GLFW_KEY_LEFT))
-                pos.left = false;
+                ch.pos.left = false;
             if (!window::get_key(GLFW_KEY_RIGHT))
-                pos.right = false;
+                ch.pos.right = false;
             if (!window::get_key(GLFW_KEY_UP))
-                pos.up = false;
+                ch.pos.up = false;
             if (!window::get_key(GLFW_KEY_DOWN))
-                pos.down = false;
-            pos.update();
+                ch.pos.down = false;
+            ch.update();
             if (time::delta_total < 0.5)
                 return;
             for (portal & p : portals) {
-                if (p.x < pos.x - 40 || p.x > pos.x + 40 || p.y < pos.y - 40 || p.y > pos.y + 40)
+                if (p.x < ch.pos.x - 40 || p.x > ch.pos.x + 40 ||
+                    p.y < ch.pos.y - 40 || p.y > ch.pos.y + 40)
                     continue;
                 switch (p.pt) {//Handle stuff like bouncies here
                 case 1:
                 case 2:
-                    if (!pos.up)
+                    if (!ch.pos.up)
                         break;
                 case 3:
                     map::load(std::to_string(p.tm), p.tn);
@@ -88,10 +96,7 @@ namespace nl {
             }
         }
         void render() {
-            auto flags = sprite::relative;
-            if (pos.right && !pos.left)
-                flags |= sprite::flipped;
-            spr.draw(static_cast<int>(pos.x), static_cast<int>(pos.y), flags);
+            ch.render();
         }
     }
 }

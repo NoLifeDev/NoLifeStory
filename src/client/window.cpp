@@ -67,7 +67,7 @@ namespace nl {
                     switch (key) {
                     case GLFW_KEY_LEFT_ALT:
                     case GLFW_KEY_RIGHT_ALT:
-                        player::pos.jump();
+                        player::ch.pos.jump();
                         break;
                     default:;
                     }
@@ -75,16 +75,16 @@ namespace nl {
                 case GLFW_PRESS:
                     switch (key) {
                     case GLFW_KEY_LEFT:
-                        player::pos.left = true;
+                        player::ch.pos.left = true;
                         break;
                     case GLFW_KEY_RIGHT:
-                        player::pos.right = true;
+                        player::ch.pos.right = true;
                         break;
                     case GLFW_KEY_UP:
-                        player::pos.up = true;
+                        player::ch.pos.up = true;
                         break;
                     case GLFW_KEY_DOWN:
-                        player::pos.down = true;
+                        player::ch.pos.down = true;
                         break;
                     case GLFW_KEY_LEFT_SHIFT:
                     case GLFW_KEY_RIGHT_SHIFT:
@@ -92,7 +92,7 @@ namespace nl {
                         break;
                     case GLFW_KEY_LEFT_ALT:
                     case GLFW_KEY_RIGHT_ALT:
-                        player::pos.jump();
+                        player::ch.pos.jump();
                         break;
                     case GLFW_KEY_ENTER:
                         if (mod & GLFW_MOD_ALT)

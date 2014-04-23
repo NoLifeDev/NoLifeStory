@@ -18,12 +18,14 @@
 
 #pragma once
 #include "physics.hpp"
+#include "character.hpp"
 #include <string>
 
 namespace nl {
     namespace player {
-        extern physics pos;
         extern bool mouse_fly;
+        extern character ch;
+        void init();
         void respawn(std::string port);
         void update();
         void render();

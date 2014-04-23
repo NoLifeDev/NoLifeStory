@@ -33,6 +33,7 @@
     <ClInclude Include="../src/client/view.hpp" />
     <ClInclude Include="../src/client/physics.hpp" />
     <ClInclude Include="../src/client/player.hpp" />
+    <ClInclude Include="..\src\client\character.hpp" />
     <ClInclude Include="..\src\client\log.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +56,7 @@
     <ClCompile Include="../src/client/view.cpp" />
     <ClCompile Include="../src/client/physics.cpp" />
     <ClCompile Include="../src/client/player.cpp" />
+    <ClCompile Include="..\src\client\character.cpp" />
     <ClCompile Include="..\src\client\log.cpp" />
   </ItemGroup>
 </Project>
