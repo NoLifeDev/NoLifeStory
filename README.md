@@ -1,4 +1,3 @@
-
 # NoLifeStory
 
 A group of C++ projects that have no life.
@@ -16,7 +15,7 @@ Caveats:
 GCC <4.9's libstdc++ has incomplete regex support.
 Due to this, NoLifeClient won't be able to read/write NoLifeClient.cfg
 
-libstdc++ does not support <codecvt> at all yet so NoLifeWzToNx relies on terrible C code to do utf-16 -> utf-8 when <codecvt> is not available.
+libstdc++ does not support `<codecvt>` at all yet so NoLifeWzToNx relies on terrible C code to do utf-16 -> utf-8 when `<codecvt>` is not available.
 If you are using Clang, you have the option to build with libc++, which does support it.
 
 ## Dependencies
