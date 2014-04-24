@@ -47,6 +47,8 @@
 #include <numeric>
 #include <iomanip>
 #include <cstring>
+#include <array>
+#include <locale>
 
 namespace nl {
     //Some typedefs
