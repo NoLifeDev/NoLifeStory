@@ -368,10 +368,9 @@ namespace nl {
                 if (std::any_of(str_buf.begin(), str_buf.end(), [](char const & c) {
                     return static_cast<uint8_t>(c) >= 0x80;
                 })) {
-                    wstr_buf.assign(str_buf.begin(), str_buf.end());
-                    for (auto & c : wstr_buf) {
-                        c = cp1252[c];
-                    }
+                    std::transform(str_buf.cbegin(), str_buf.cend(), std::back_inserter(wstr_buf), [](char c) {
+                       return cp1252[static_cast<unsigned char>(c)];
+                    });
                     return add_string(convert_str(wstr_buf));
                 }
                 return add_string(str_buf);
