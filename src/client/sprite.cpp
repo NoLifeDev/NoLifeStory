@@ -374,11 +374,12 @@ namespace nl {
                 v += trans;
             }
         } else {
+            float zero{0.f}; // Work around GCC 4.9.0 specific bug
             vex = {{
-                {0, 0},
-                {static_cast<float>(width), 0},
+                {zero, zero},
+                {static_cast<float>(width), zero},
                 {static_cast<float>(width), static_cast<float>(height)},
-                {0, static_cast<float>(height)},
+                {zero, static_cast<float>(height)},
             }};
         }
 
