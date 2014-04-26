@@ -1,7 +1,6 @@
 project(NoLifeClient)
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 include_directories(..)
-include(../../cmake/common.cmake)
 
 # Find packages
 find_package(OpenGL REQUIRED)

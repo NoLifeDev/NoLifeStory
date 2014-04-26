@@ -45,6 +45,9 @@ namespace nl {
         void load(std::string name, std::string port) {
             if (name.size() < 9)
                 name.insert(0, 9 - name.size(), '0');
+            if (name == current_name) {
+                return player::respawn(port);
+            }
             auto m = old_style ? map_node[name + ".img"] :
                 map_node[std::string("Map") + name[0]][name + ".img"];
             //If the map is invalid just ignore it

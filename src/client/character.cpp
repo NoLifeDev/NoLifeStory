@@ -67,6 +67,9 @@ namespace nl {
         case 109:
             m_node = nx::character["Shield"][name];
             break;
+        case 110:
+            m_node = nx::character["Cape"][name];
+            break;
         case 101:
         case 102:
         case 103:
