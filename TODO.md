@@ -6,17 +6,18 @@ If you want to contribute to NoLifeStory, looking here is a good place to get an
 NoLifeClient
 ------------
 
-* Text drawing using actual font rendering with freetype
-* Cleanup and finish physics
-* Play music from file for rave mode
-* Special portal behaviors like bouncy stuff
 * Character animation
+* Emotes
+* Input overhaul
+* Finish up physics
+* Special portal behaviors like bouncy stuff
+* Add the black box view border around the edges for small maps
+* Figure out how to cleanly deal with the bottom view boundary
 * Playback of small sounds, not just music
+* Text drawing using actual font rendering with freetype
 * Mobs and npcs
 * User Interface (styled after windows 8 metro and new VS theme, but better)
 * Implement networking , using that libuv code I was working on for NoLifePony
-* Add the black box view border around the edges for small maps
-* Figure out how to cleanly deal with the bottom view boundary
 
 NoLifeServer
 --------------
