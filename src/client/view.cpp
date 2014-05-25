@@ -38,21 +38,32 @@ namespace nl {
         double fx = 0, fy = 0;
         double rx = 0, ry = 0;
         int left = 0, right = 0, top = 0, bottom = 0;
+        int leftin{0}, rightin{0}, topin{0}, bottomin{0};
         int cleft = 0, cright = 0, ctop = 0, cbottom = 0;
         bool doside = false, dotop = false, dobottom = false;
         int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
         double tx = 0, ty = 0;
         float r = 1, g = 1, b = 1;
+        int bottomoffset = 250;
         template <typename T>
-        void restrict(T & x, T & y) {
-            if (right - left <= width)
-            x = (right + left) / 2;
-            else
-                x = std::max<T>(std::min<T>(x, right - width / 2), left + width / 2);
-            if (bottom - top <= height)
+        void restrict(T & x, T & y){
+            if (right - left <= width) {
+                x = (right + left) / 2;
+            } else {
+                x = std::max<T>(std::min<T>(x, rightin), leftin);
+            }
+            if (bottom - top <= height) {
                 y = (bottom + top) / 2;
-            else
-                y = std::max<T>(std::min<T>(y, bottom - height / 2), top + height / 2);
+            } else {
+                y = std::max<T>(std::min<T>(y, bottomin), topin);
+            }
+        }
+            //wat
+            void update_inner() {
+            leftin = left + width / 2;
+            rightin = right - width / 2;
+            topin = top + (height - bottomoffset);
+            bottomin = bottom - bottomoffset;
         }
         void resize(int w, int h) {
             width = w;
@@ -69,6 +80,7 @@ namespace nl {
                 width = 800;
                 height = 600;
             }
+            update_inner();
         }
         void reset() {
             auto info = map::current["info"];
@@ -77,16 +89,6 @@ namespace nl {
                 bottom = info["VRBottom"];
                 left = info["VRLeft"];
                 right = info["VRRight"];
-                if (bottom - top < 600) {
-                    auto d = (600 - bottom + top) / 2;
-                    bottom += d;
-                    top -= d;
-                }
-                if (right - left < 800) {
-                    auto d = (800 - right + left) / 2;
-                    right += d;
-                    left -= d;
-                }
             } else {
                 left = std::numeric_limits<int>::max();
                 right = std::numeric_limits<int>::min();
@@ -106,8 +108,6 @@ namespace nl {
                 }
                 top -= 256;
                 bottom += 64;
-                if (top > bottom - 600)
-                    top = bottom - 600;
             }
             ctop = info["LBTop"];
             cbottom = info["LBBottom"];
@@ -120,6 +120,7 @@ namespace nl {
             ty = player::ch.pos.y;
             fx = tx;
             fy = ty;
+            update_inner();
             update();
         }
         void update() {
@@ -127,15 +128,15 @@ namespace nl {
             ty = player::ch.pos.y;
             auto dx = tx - fx;
             auto dy = ty - fy;
-            auto adx = std::max(std::abs(dx) - 30, 0.);
-            auto ady = std::max(std::abs(dy) - 30, 0.);
+            auto adx = std::max(std::abs(dx) - 28, 0.);
+            auto ady = std::max(std::abs(dy) - 28, 0.);
             auto sx = adx == 0 ? 0 :
-                std::copysign(std::pow(adx, 1.5) + 30, dx) * time::delta * 0.2;
+                std::copysign(std::pow(adx, 1.5) + 28, dx) * time::delta * 0.2;
             auto sy = ady == 0 ? 0 :
-                std::copysign(std::pow(ady, 1.5) + 30, dy) * time::delta * 0.2;
-            if (abs(sx) > abs(tx - fx))
+                std::copysign(std::pow(ady, 1.5) + 28, dy) * time::delta * 0.2;
+            if (std::abs(sx) > std::abs(tx - fx))
                 sx = tx - fx;
-            if (abs(sy) > abs(ty - fy))
+            if (std::abs(sy) > std::abs(ty - fy))
                 sy = ty - fy;
             fx += sx;
             fy += sy;
@@ -146,30 +147,30 @@ namespace nl {
                 std::uniform_real_distribution<double> dist(-num, num);
                 rx += dist(engine);
                 ry += dist(engine);
-                auto d = floor(time::delta_total * 2.088) * 1.95;
-                r = static_cast<float>(sin(d));
-                g = static_cast<float>(sin(d + 1 / 3. * tau));
-                b = static_cast<float>(sin(d + 2 / 3. * tau));
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-                GLfloat c[4] = {1 - r, 1 - g, 1 - b, 1};
-                glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
+                auto d = std::floor(time::delta_total * 2.088) * 1.95;
+                r = static_cast<float>(std::sin(d));
+                g = static_cast<float>(std::sin(d + 1 / 3. * tau));
+                b = static_cast<float>(std::sin(d + 2 / 3. * tau));
+                ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+                ::GLfloat c[4] = {1 - r, 1 - g, 1 - b, 1};
+                ::glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
             } else {
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
                 r = 1, g = 1, b = 1;
             }
             rx *= 0.90;
             ry *= 0.90;
-            x = static_cast<int>(fx + rx);
-            y = static_cast<int>(fy + ry);
+            x = static_cast<int>(std::round(fx + rx));
+            y = static_cast<int>(std::round(fy + ry));
             xmin = x - width / 2;
             xmax = x + width / 2;
-            ymin = y - height / 2;
-            ymax = y + height / 2;
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(0, width, height, 0, -1, 1);
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
+            ymin = y - (height - bottomoffset);
+            ymax = y + bottomoffset;
+            ::glMatrixMode(GL_PROJECTION);
+            ::glLoadIdentity();
+            ::glOrtho(0, width, height, 0, -1, 1);
+            ::glMatrixMode(GL_MODELVIEW);
+            ::glLoadIdentity();
         }
         void draw_edges() {
             /*sprite::unbind();

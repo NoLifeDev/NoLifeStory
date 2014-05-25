@@ -6,6 +6,8 @@ If you want to contribute to NoLifeStory, looking here is a good place to get an
 NoLifeClient
 ------------
 
+* Fix background offsets again
+* Make sure character's horizontal speed remains the same on steep slopes
 * Character animation
 * Emotes
 * Input overhaul

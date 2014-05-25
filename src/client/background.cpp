@@ -53,50 +53,52 @@ namespace nl {
     void background::render() {
         auto dx = x;
         auto dy = y;
+        auto shiftx = rx * view::x / 100 + view::width / 2;
+        auto shifty = ry * view::y / 100 + view::height / 2;
         auto flags = sprite::none;
         if (flipped)
             flags |= sprite::flipped;
         switch (type) {
         case 0:
-            dx += rx * view::x / 100 + view::width / 2;
-            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
+            dx += shiftx;
+            dy += shifty;
             break;
         case 1:
             flags |= sprite::tilex;
-            dx += rx * view::x / 100 + view::width / 2;
-            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
+            dx += shiftx;
+            dy += shifty;
             break;
         case 2:
             flags |= sprite::tiley;
-            dx += rx * view::x / 100 + view::width / 2;
-            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
+            dx += shiftx;
+            dy += shifty;
             break;
         case 3:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
-            dx += rx * view::x / 100 + view::width / 2;
-            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
+            dx += shiftx;
+            dy += shifty;
             break;
         case 4:
             flags |= sprite::tilex;
             dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
-            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
+            dy += shifty;
             break;
         case 5:
             flags |= sprite::tiley;
-            dx += rx * view::x / 100 + view::width / 2;
+            dx += shiftx;
             dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
             break;
         case 6:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
             dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
-            dy += ry * (view::y + (view::height - 600) / 2) / 100 + view::height / 2 + (view::height - 600) / 2;
+            dy += shifty;
             break;
         case 7:
             flags |= sprite::tilex;
             flags |= sprite::tiley;
-            dx += rx * view::x / 100 + view::width / 2;
+            dx += shiftx;
             dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
             break;
         }
