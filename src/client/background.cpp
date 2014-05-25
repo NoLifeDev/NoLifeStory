@@ -53,8 +53,8 @@ namespace nl {
     void background::render() {
         auto dx = x;
         auto dy = y;
-        auto shiftx = rx * view::x / 100 + view::width / 2;
-        auto shifty = ry * view::y / 100 + view::height / 2;
+        auto shiftx = rx * (view::xmin + view::width / 2) / 100 + view::width / 2;
+        auto shifty = ry * (view::ymax - 300) / 100 + view::height / 2 + (view::height - 600) / 2;
         auto flags = sprite::none;
         if (flipped)
             flags |= sprite::flipped;
