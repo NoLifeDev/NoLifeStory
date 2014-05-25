@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "map.hpp"
+#include "config.hpp"
 #include "layer.hpp"
 #include "view.hpp"
 #include "foothold.hpp"
@@ -84,6 +85,7 @@ namespace nl {
             current = next;
             current_name = current.name();
             current_name.erase(current_name.find(".img"));
+            config::map = current_name;
             log << "Loading map " << current.name() << std::endl;
             time::reset();
             music::play();
@@ -98,7 +100,7 @@ namespace nl {
             map_node = nx::map["Map"];
             old_style = !map_node["Map0"];
             init_random();
-            load_random();
+            load(config::map, "sp");
             load_now();
         }
         void update() {

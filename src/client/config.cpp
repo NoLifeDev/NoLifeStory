@@ -37,6 +37,7 @@ namespace nl {
         int window_width = 1024, window_height = 768;
         int fullscreen_width = 1024, fullscreen_height = 768;
         int atlas_size = 0;
+        std::string map{"100000000"};
         //Stuff to hold configs and their mappings
         struct mapping {
             std::function<void()> save;
@@ -100,6 +101,7 @@ namespace nl {
             map_int("fullwidth", fullscreen_width);
             map_int("fullheight", fullscreen_height);
             map_int("atlassize", atlas_size);
+            map_string("map", map);
             //First we save the defaults in case the config file doesn't have them
             for (auto const & m : mappings)
                 m.second.save();

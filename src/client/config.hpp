@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <string>
 
 namespace nl {
     namespace config {
@@ -29,6 +30,7 @@ namespace nl {
         extern int window_width, window_height;
         extern int fullscreen_width, fullscreen_height;
         extern int atlas_size;
+        extern std::string map;
         void save();
         void load();
     }
