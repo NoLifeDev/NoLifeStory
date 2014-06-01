@@ -18,6 +18,7 @@
 
 #include "character.hpp"
 #include "sprite.hpp"
+#include "time.hpp"
 #include <nx/nx.hpp>
 #include <algorithm>
 #include <map>
@@ -92,6 +93,20 @@ namespace nl {
         } else if (pos.left && !pos.right) {
             flipped = false;
         }
+        auto set_state = [this](std::string p_state) {
+            if (state != p_state) {
+                state = p_state;
+                frame = 0;
+                delay = 0;
+            }
+        };
+        if (!pos.fh) {
+            set_state("jump");
+        } else if (pos.left ^ pos.right) {
+            set_state("walk1");
+        } else {
+            set_state("stand1");
+        }
         struct sub_part {
             node m_node;
             int x, y, z;
@@ -102,8 +117,16 @@ namespace nl {
         };
         std::map<std::string, mapping> mappings;
         std::vector<sub_part> sub_parts;
-        std::string state = "stand1";
-        std::string frame = "0";
+        auto anim = nx::character["00002000.img"][state][frame];
+        auto d = anim["delay"].get_real(100);
+        delay += time::delta * 1000;
+        if (delay >= d) {
+            delay -= d;
+            ++frame;
+            if (!nx::character["00002000.img"][state][frame]) {
+                frame = 0;
+            }
+        }
         auto zmap = nx::base["zmap.img"];
         for (auto & p : m_parts) {
             auto n = p.m_node[state][frame];
@@ -117,6 +140,7 @@ namespace nl {
                     sub_parts.back().done = false;
                     sub_parts.back().z = zmap[nn.name()];
                 } else {
+                    //What was I trying to do here?
                     auto str = nn.name();
                 }
             }
