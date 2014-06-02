@@ -100,7 +100,11 @@ namespace nl {
             map_node = nx::map["Map"];
             old_style = !map_node["Map0"];
             init_random();
+            load_random();//Just in case loading the config'd map fails
             load(config::map, "sp");
+            if (!next) {
+                throw std::runtime_error{"No map to load!"};
+            }
             load_now();
         }
         void update() {
