@@ -47,23 +47,21 @@ namespace nl {
         int bottomoffset = 250;
         template <typename T>
         void restrict(T & x, T & y){
-            if (right - left <= width) {
-                x = (right + left) / 2;
-            } else {
-                x = std::max<T>(std::min<T>(x, rightin), leftin);
-            }
-            if (bottom - top <= height) {
-                y = (bottom + top) / 2;
-            } else {
-                y = std::max<T>(std::min<T>(y, bottomin), topin);
-            }
+            x = std::max<T>(std::min<T>(x, rightin), leftin);
+            y = std::max<T>(std::min<T>(y, bottomin), topin);
         }
-            //wat
-            void update_inner() {
+        int fixing_vs_formatting; // don't ask
+        void update_inner() {
             leftin = left + width / 2;
             rightin = right - width / 2;
+            if (leftin > rightin) {
+                leftin = rightin = (leftin + rightin) / 2;
+            }
             topin = top + (height - bottomoffset);
             bottomin = bottom - bottomoffset;
+            if (topin > bottomin) {
+                topin = bottomin = (topin + bottomin) / 2;
+            }
         }
         void resize(int w, int h) {
             width = w;
