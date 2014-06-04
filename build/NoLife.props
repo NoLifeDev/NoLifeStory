@@ -20,7 +20,7 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -41,7 +41,6 @@
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <DisableSpecificWarnings>4265;4350;4510;4512;4514;4571;4610;4625;4626;4668;4710;4711;4820;4996</DisableSpecificWarnings>
-      <DisableLanguageExtensions>true</DisableLanguageExtensions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

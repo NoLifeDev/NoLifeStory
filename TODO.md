@@ -21,7 +21,7 @@ NoLifeClient
 * Implement networking , using that libuv code I was working on for NoLifePony
 
 NoLifeServer
---------------
+------------
 
 * Create a nice generic server wrapper that can load up various servers as services
 * Using libuv throughout
