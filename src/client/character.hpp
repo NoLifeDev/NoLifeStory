@@ -32,5 +32,8 @@ namespace nl {
         physics pos;
         bool flipped{false};
         std::vector<part> m_parts;
+        std::string state;
+        int frame{0};
+        double delay{0};
     };
 }
