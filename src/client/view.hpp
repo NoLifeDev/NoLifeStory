@@ -19,17 +19,17 @@
 #pragma once
 
 namespace nl {
-    namespace view {
-        extern int x, y;
-        extern double tx, ty;
-        extern double fx, fy;
-        extern int width, height;
-        extern int left, right, top, bottom;
-        extern int xmin, xmax, ymin, ymax;
-        extern float r, g, b;
-        void resize(int w, int h);
-        void reset();
-        void update();
-        void draw_edges();
-    }
+namespace view {
+extern int x, y;
+extern double tx, ty;
+extern double fx, fy;
+extern int width, height;
+extern int left, right, top, bottom;
+extern int xmin, xmax, ymin, ymax;
+extern float r, g, b;
+void resize(int w, int h);
+void reset();
+void update();
+void draw_edges();
+}
 }
