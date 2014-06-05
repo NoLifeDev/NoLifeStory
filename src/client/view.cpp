@@ -47,8 +47,8 @@ float r{1}, g{1}, b{1};
 int bottomoffset{250};
 template <typename T>
 void restrict(T &p_x, T &p_y) {
-    p_x = std::max<T>(std::min<T>(x, rightin), leftin);
-    p_y = std::max<T>(std::min<T>(y, bottomin), topin);
+    p_x = std::max<T>(std::min<T>(p_x, rightin), leftin);
+    p_y = std::max<T>(std::min<T>(p_y, bottomin), topin);
 }
 void update_inner() {
     leftin = left + width / 2;
