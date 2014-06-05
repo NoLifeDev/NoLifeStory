@@ -33,39 +33,34 @@
 namespace nl {
 double const tau{6.28318530717958647692528676655900576839433879875021};
 namespace view {
-int x = 0, y = 0;
-int width = 0, height = 0;
-double fx = 0, fy = 0;
-double rx = 0, ry = 0;
-int left = 0, right = 0, top = 0, bottom = 0;
+int x{0}, y{0};
+int width{0}, height{0};
+double fx{0}, fy{0};
+double rx{0}, ry{0};
+int left{0}, right{0}, top{0}, bottom{0};
 int leftin{0}, rightin{0}, topin{0}, bottomin{0};
-int cleft = 0, cright = 0, ctop = 0, cbottom = 0;
-bool doside = false, dotop = false, dobottom = false;
-int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
-double tx = 0, ty = 0;
-float r = 1, g = 1, b = 1;
-int bottomoffset = 250;
+int cleft{0}, cright{0}, ctop{0}, cbottom{0};
+bool doside{false}, dotop{false}, dobottom{false};
+int xmin{0}, xmax{0}, ymin{0}, ymax{0};
+double tx{0}, ty{0};
+float r{1}, g{1}, b{1};
+int bottomoffset{250};
 template <typename T>
-void restrict(T & x, T & y){
-    x = std::max<T>(std::min<T>(x, rightin), leftin);
-    y = std::max<T>(std::min<T>(y, bottomin), topin);
+void restrict(T &p_x, T &p_y) {
+    p_x = std::max<T>(std::min<T>(x, rightin), leftin);
+    p_y = std::max<T>(std::min<T>(y, bottomin), topin);
 }
-int fixing_vs_formatting; // don't ask
 void update_inner() {
     leftin = left + width / 2;
     rightin = right - width / 2;
-    if (leftin > rightin) {
-        leftin = rightin = (leftin + rightin) / 2;
-    }
+    if (leftin > rightin) { leftin = rightin = (leftin + rightin) / 2; }
     topin = top + (height - bottomoffset);
     bottomin = bottom - bottomoffset;
-    if (topin > bottomin) {
-        topin = bottomin = (topin + bottomin) / 2;
-    }
+    if (topin > bottomin) { topin = bottomin = (topin + bottomin) / 2; }
 }
-void resize(int w, int h) {
-    width = w;
-    height = h;
+void resize(int p_width, int p_height) {
+    width = p_width;
+    height = p_height;
     glViewport(0, 0, width, height);
     if (config::fullscreen) {
         config::fullscreen_width = width;
@@ -92,9 +87,8 @@ void reset() {
         right = std::numeric_limits<int>::min();
         top = std::numeric_limits<int>::max();
         bottom = std::numeric_limits<int>::min();
-        for (foothold & f : footholds) {
-            if (!f.initialized)
-                continue;
+        for (auto &f : footholds) {
+            if (!f.initialized) { continue; }
             left = std::min(left, f.x1);
             left = std::min(left, f.x2);
             right = std::max(right, f.x1);
@@ -128,21 +122,17 @@ void update() {
     auto dy = ty - fy;
     auto adx = std::max(std::abs(dx) - 28, 0.);
     auto ady = std::max(std::abs(dy) - 28, 0.);
-    auto sx = adx == 0 ? 0 :
-        std::copysign(std::pow(adx, 1.5) + 28, dx) * time::delta * 0.2;
-    auto sy = ady == 0 ? 0 :
-        std::copysign(std::pow(ady, 1.5) + 28, dy) * time::delta * 0.2;
-    if (std::abs(sx) > std::abs(tx - fx))
-        sx = tx - fx;
-    if (std::abs(sy) > std::abs(ty - fy))
-        sy = ty - fy;
+    auto sx = adx == 0 ? 0 : std::copysign(std::pow(adx, 1.5) + 28, dx) * time::delta * 0.2;
+    auto sy = ady == 0 ? 0 : std::copysign(std::pow(ady, 1.5) + 28, dy) * time::delta * 0.2;
+    if (std::abs(sx) > std::abs(tx - fx)) { sx = tx - fx; }
+    if (std::abs(sy) > std::abs(ty - fy)) { sy = ty - fy; }
     fx += sx;
     fy += sy;
     restrict(fx, fy);
     if (config::rave) {
         std::random_device engine;
         auto num = std::pow(std::sin(time::delta_total * 2.088 * tau) * 0.5 + 0.5, 4) * 8;
-        std::uniform_real_distribution<double> dist(-num, num);
+        std::uniform_real_distribution<double> dist{-num, num};
         rx += dist(engine);
         ry += dist(engine);
         auto d = std::floor(time::delta_total * 2.088) * 1.95;
@@ -150,7 +140,7 @@ void update() {
         g = static_cast<float>(std::sin(d + 1 / 3. * tau));
         b = static_cast<float>(std::sin(d + 2 / 3. * tau));
         ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-        ::GLfloat c[4] = {1 - r, 1 - g, 1 - b, 1};
+        ::GLfloat c[4]{1 - r, 1 - g, 1 - b, 1};
         ::glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, c);
     } else {
         ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
