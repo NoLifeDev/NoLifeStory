@@ -9,7 +9,7 @@ While it will technically run on 32bit hardware, it won't be able to work with l
 
 ## Compilers
 
-Supported compilers are MSVC 2013, Clang 3.4, GCC 4.8.2, and GCC 4.9
+Supported compilers are MSVC 14, Clang 3.4, GCC 4.8.2, and GCC 4.9
 
 Caveats:
 GCC <4.9's libstdc++ has incomplete regex support.

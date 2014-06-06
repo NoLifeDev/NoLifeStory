@@ -44,19 +44,19 @@ namespace nl {
     void foothold::load() {
         footholds.clear();
         auto s = 0u;
-        for (auto layer : map::current["foothold"])
-        for (auto group : layer)
-        for (auto id : group) {
-            s = std::max(static_cast<unsigned>(std::stoi(id.name())), s);
+        for (auto layern : map::current["foothold"])
+        for (auto groupn : layern)
+        for (auto idn : groupn) {
+            s = std::max(static_cast<unsigned>(std::stoi(idn.name())), s);
         }
         footholds.resize(s + 1);
-        for (auto layer : map::current["foothold"]) {
-            auto layern = static_cast<unsigned>(std::stoi(layer.name()));
-            for (auto group : layer) {
-                auto groupn = static_cast<unsigned>(std::stoi(group.name()));
-                for (auto id : group) {
-                    auto idn = static_cast<unsigned>(std::stoi(id.name()));
-                    footholds[idn] = foothold(id, idn, groupn, layern);
+        for (auto layern : map::current["foothold"]) {
+            auto layeri = static_cast<unsigned>(std::stoi(layern.name()));
+            for (auto groupn : layern) {
+                auto groupi = static_cast<unsigned>(std::stoi(groupn.name()));
+                for (auto idn : groupn) {
+                    auto idi = static_cast<unsigned>(std::stoi(idn.name()));
+                    footholds[idi] = foothold(idn, idi, groupi, layeri);
                 }
             }
         }

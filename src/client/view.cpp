@@ -131,6 +131,7 @@ void update() {
     restrict(fx, fy);
     if (config::rave) {
         std::random_device engine;
+        // TODO I should be using an mt19937_64 seeded by random_device
         auto num = std::pow(std::sin(time::delta_total * 2.088 * tau) * 0.5 + 0.5, 4) * 8;
         std::uniform_real_distribution<double> dist{-num, num};
         rx += dist(engine);

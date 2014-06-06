@@ -92,10 +92,10 @@ namespace nl {
         }
     }
     void physics::update() {
-        bool left = this->left && !this->right;
-        bool right = !this->left && this->right;
-        bool up = this->up && !this->down;
-        bool down = !this->up && this->down;
+        bool mleft = this->left && !this->right;
+        bool mright = !this->left && this->right;
+        bool mup = this->up && !this->down;
+        bool mdown = !this->up && this->down;
         bool flying = map::current["info"]["swim"].get_bool();
         while (time::delta_total > laststep) {
             laststep += 0.01;
@@ -103,8 +103,8 @@ namespace nl {
             if (lr) {
             } else if (fh) {
                 double const fx = fh->x2 - fh->x1, fy = fh->y2 - fh->y1, fx2 = fx * fx, fy2 = fy * fy, len = sqrt(fx2 + fy2);
-                double vr = vx * len / fx;
-                vr -= fh->force;
+                double mvr = vx * len / fx;
+                mvr -= fh->force;
                 double fs = (map::current["info"]["fs"] ? map::current["info"]["fs"] : 1.) / shoe_mass * delta;
                 double maxf = (flying ? swim_speed_dec : 1.) * walk_speed * shoe_walk_speed;
                 //double horz = shoe_walk_acc * walk_force;
@@ -113,33 +113,33 @@ namespace nl {
                 if (shoe_walk_slant < std::abs(slip)) {
                     double slipf = slip_force * slip;
                     double slips = slip_speed * slip;
-                    vr += left ? -drag * fs : right ? drag * fs : 0;
-                    vr = slips > 0 ? std::min(slips, vr + slipf * delta) : std::max(slips, vr + slipf * delta);
+                    mvr += mleft ? -drag * fs : mright ? drag * fs : 0;
+                    mvr = slips > 0 ? std::min(slips, mvr + slipf * delta) : std::max(slips, mvr + slipf * delta);
                 } else {
-                    vr = left ? vr < -maxf ? std::min(-maxf, vr + drag * fs) : std::max(-maxf, vr - shoe_walk_acc * walk_force * fs) :
-                        right ? vr > maxf ? std::max(maxf, vr - drag * fs) : std::min(maxf, vr + shoe_walk_acc * walk_force * fs) :
-                        vr < 0. ? std::min(0., vr + drag * fs) : vr > 0. ? std::max(0., vr - drag * fs) : vr;
+                    mvr = mleft ? mvr < -maxf ? std::min(-maxf, mvr + drag * fs) : std::max(-maxf, mvr - shoe_walk_acc * walk_force * fs) :
+                        mright ? mvr > maxf ? std::max(maxf, mvr - drag * fs) : std::min(maxf, mvr + shoe_walk_acc * walk_force * fs) :
+                        mvr < 0. ? std::min(0., mvr + drag * fs) : mvr > 0. ? std::max(0., mvr - drag * fs) : mvr;
                 }
-                vr += fh->force;
-                vx = vr * fx / len, vy = vr * fy / len;
+                mvr += fh->force;
+                vx = mvr * fx / len, vy = mvr * fy / len;
             } else {
                 if (flying) {
                     double vmid = shoe_swim_acc;
                     double vmax = shoe_swim_speed_h * swim_speed;
                     double shoefloat = float_drag_1 / shoe_mass * delta;
                     vx = vx < -vmax ? std::min(-vmax, vx + shoefloat) : vx > vmax ? std::max(vmax, vx - shoefloat) :
-                        left ? std::max(-vmax, vx - shoefloat) : right ? std::min(vmax, vx + shoefloat) :
+                        mleft ? std::max(-vmax, vx - shoefloat) : mright ? std::min(vmax, vx + shoefloat) :
                         vx > 0 ? std::max(0., vx - shoefloat) : std::min(0., vx + shoefloat);
                     double flys = fly_force / shoe_mass * delta * vmid;
-                    vy = up ? vy < vmax * 0.3 ? std::min(vmax * 0.3, vy + flys * 0.5) : std::max(vmax * 0.3, vy - flys) :
-                        down ? vy < vmax * 1.5 ? std::min(vmax * 1.5, vy + flys) : std::max(vmax * 1.5, vy - flys * 0.5) :
+                    vy = mup ? vy < vmax * 0.3 ? std::min(vmax * 0.3, vy + flys * 0.5) : std::max(vmax * 0.3, vy - flys) :
+                        mdown ? vy < vmax * 1.5 ? std::min(vmax * 1.5, vy + flys) : std::max(vmax * 1.5, vy - flys * 0.5) :
                         vy < vmax ? std::min(vmax, vy + flys) : std::max(vmax, vy - flys);
                 } else {
                     double shoefloat = float_drag_2 / shoe_mass * delta;
                     vy > 0 ? vy = std::max(0., vy - shoefloat) : vy = std::min(0., vy + shoefloat);
                     vy = std::min(vy + gravity_acc * delta, fall_speed);
-                    vx = left ? vx > -float_drag_2 * float_multiplier ? std::max(-float_drag_2 * float_multiplier, vx - 2 * shoefloat) : vx :
-                        right ? vx < float_drag_2 * float_multiplier ? std::min(float_drag_2 * float_multiplier, vx + 2 * shoefloat) : vx :
+                    vx = mleft ? vx > -float_drag_2 * float_multiplier ? std::max(-float_drag_2 * float_multiplier, vx - 2 * shoefloat) : vx :
+                        mright ? vx < float_drag_2 * float_multiplier ? std::min(float_drag_2 * float_multiplier, vx + 2 * shoefloat) : vx :
                         vy < fall_speed ? vx > 0 ? std::max(0., vx - float_coefficient * shoefloat) : std::min(0., vx + float_coefficient * shoefloat) :
                         vx > 0 ? std::max(0., vx - shoefloat) : std::min(0., vx + shoefloat);
                 }
