@@ -1,7 +1,7 @@
 *
+!.clang-format
 !.gitignore
 !.gitattributes
-!bgm.mp3
 !*.cmake
 !*.md
 !*.txt
