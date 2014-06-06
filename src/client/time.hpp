@@ -19,10 +19,10 @@
 #pragma once
 
 namespace nl {
-    namespace time {
-        extern unsigned fps;
-        extern double delta, delta_total;
-        void reset();
-        void update();
-    }
+namespace time {
+extern unsigned fps;
+extern double delta, delta_total;
+void reset();
+void update();
+}
 }
