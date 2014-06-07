@@ -14,7 +14,7 @@ endif()
 
 # Set some things up for GCC/Clang
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    add_compile_options(-std=c++11)
+    add_compile_options(-std=c++1y)
     if(WARN_MORE)
         add_compile_options(-pedantic -Wall)
         if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
