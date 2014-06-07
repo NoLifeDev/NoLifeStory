@@ -162,7 +162,7 @@ void update() {
     ::glLoadIdentity();
 }
 void draw_edges() {
-    /*sprite::unbind();
+    sprite::flush();
     auto doclip = doside || dotop || dobottom;
     auto xmid = (right + left) / 2 - xmin;
     auto ymid = (top + bottom) / 2 - ymin;
@@ -170,9 +170,12 @@ void draw_edges() {
     auto yb = std::max(0, (bottom - top - 768) / 2);
     auto nleft = doside ? xmid - 512 + cleft - xb : !doclip ? left - xmin : 0;
     auto nright = doside ? xmid + 512 - cright + xb : !doclip ? right - xmin : width;
-    auto ntop = dotop ? ymid - 384 + ctop - yb: !doclip ? top - ymin : 0;
-    auto nbottom = dobottom ? ymid + 319 - cbottom + yb: !doclip ? bottom - ymin : height;
-    glColor4d(0, 0, 0, 1);
+    auto ntop = dotop ? ymid - 384 + ctop - yb : !doclip ? top - ymin : 0;
+    auto nbottom = dobottom ? ymid + 319 - cbottom + yb : !doclip ? bottom - ymin : height;
+    auto comp = [](double p_x){
+        return std::sin(time::delta_total * 2 + p_x * tau) * 0.5 + 0.5;
+    };
+    glColor4d(comp(0), comp(0.4), comp(0.7), 0.5);
     glBegin(GL_QUADS);
     glVertex2i(0, 0);
     glVertex2i(width, 0);
@@ -190,7 +193,7 @@ void draw_edges() {
     glVertex2i(width, height);
     glVertex2i(nright, height);
     glVertex2i(nright, 0);
-    glEnd();*/
+    glEnd();
 }
 }
 }

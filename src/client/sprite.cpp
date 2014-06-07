@@ -188,6 +188,7 @@ namespace nl {
                 glEnd();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             }
+            glDisable(GL_TEXTURE_2D);
         }
     }
     sprite::sprite(node o) : data(o) {
