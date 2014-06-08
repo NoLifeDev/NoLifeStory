@@ -44,7 +44,7 @@ int main() {
     }
 }
 #ifdef _MSC_VER
-int wWinMain(void *, void *, wchar_t *, int) {
+int __stdcall wWinMain(void *, void *, wchar_t *, int) {
     main();
 }
 #endif

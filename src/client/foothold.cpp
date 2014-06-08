@@ -18,47 +18,66 @@
 
 #include "foothold.hpp"
 #include "map.hpp"
+#include "sprite.hpp"
+#include "view.hpp"
 #include <algorithm>
 #include <string>
+#include <GL/glew.h>
 
 namespace nl {
-    std::vector<foothold> footholds;
-    foothold::foothold(node n, unsigned id, unsigned group, unsigned layer)
-        : id(id), group(group), layer(layer) {
-        x1 = n["x1"];
-        x2 = n["x2"];
-        y1 = n["y1"];
-        y2 = n["y2"],
-        force = n["force"];
-        piece = n["piece"];
-        nextid = n["next"];
-        previd = n["prev"];
-        cant_through = n["cantThrough"].get_bool();
-        forbid_fall_down = n["forbidFallDown"].get_bool();
-        if (nextid < footholds.size())
-            next = &footholds[nextid];
-        if (previd < footholds.size())
-            prev = &footholds[previd];
-        initialized = true;
-    }
-    void foothold::load() {
-        footholds.clear();
-        auto s = 0u;
-        for (auto layern : map::current["foothold"])
-        for (auto groupn : layern)
-        for (auto idn : groupn) {
-            s = std::max(static_cast<unsigned>(std::stoi(idn.name())), s);
-        }
-        footholds.resize(s + 1);
-        for (auto layern : map::current["foothold"]) {
-            auto layeri = static_cast<unsigned>(std::stoi(layern.name()));
-            for (auto groupn : layern) {
-                auto groupi = static_cast<unsigned>(std::stoi(groupn.name()));
-                for (auto idn : groupn) {
-                    auto idi = static_cast<unsigned>(std::stoi(idn.name()));
-                    footholds[idi] = foothold(idn, idi, groupi, layeri);
-                }
+std::vector<foothold> footholds;
+foothold::foothold(node n, int id, int group, int layer) : id{id}, group{group}, layer{layer} {
+    x1 = n["x1"];
+    x2 = n["x2"];
+    y1 = n["y1"];
+    y2 = n["y2"];
+    force = n["force"];
+    piece = n["piece"];
+    nextid = n["next"];
+    previd = n["prev"];
+    cant_through = n["cantThrough"].get_bool();
+    forbid_fall_down = n["forbidFallDown"].get_bool();
+}
+void foothold::load() {
+    footholds.clear();
+    for (auto layern : map::current["foothold"]) {
+        auto layeri = std::stoi(layern.name());
+        for (auto groupn : layern) {
+            auto groupi = std::stoi(groupn.name());
+            for (auto idn : groupn) {
+                auto idi = std::stoi(idn.name());
+                footholds.emplace_back(idn, idi, groupi, layeri);
             }
         }
     }
+    std::sort(footholds.begin(), footholds.end(),
+              [](foothold const &p_1, foothold const &p_2) { return p_1.id < p_2.id; });
+    for (auto &fh : footholds) {
+        auto pred = [](foothold const &p_fh, int p_id) { return p_fh.id < p_id; };
+        auto nextit = std::lower_bound(footholds.cbegin(), footholds.cend(), fh.nextid, pred);
+        fh.next = nextit != footholds.cend() && nextit->id == fh.nextid ? &*nextit : nullptr;
+        auto previt = std::lower_bound(footholds.cbegin(), footholds.cend(), fh.previd, pred);
+        fh.prev = previt != footholds.cend() && previt->id == fh.previd ? &*previt : nullptr;
+    }
+}
+void foothold::draw_lines() {
+    sprite::flush();
+    glLoadIdentity();
+    glLineWidth(3);
+    glColor4f(0, 0, 0, 1);
+    glBegin(GL_LINES);
+    for (auto &fh : footholds) {
+        glVertex2i(fh.x1 - view::xmin, fh.y1 - view::ymin);
+        glVertex2i(fh.x2 - view::xmin, fh.y2 - view::ymin);
+    }
+    glEnd();
+    glLineWidth(1);
+    glColor4f(1, 0, 1, 1);
+    glBegin(GL_LINES);
+    for (auto &fh : footholds) {
+        glVertex2i(fh.x1 - view::xmin, fh.y1 - view::ymin);
+        glVertex2i(fh.x2 - view::xmin, fh.y2 - view::ymin);
+    }
+    glEnd();
+}
 }

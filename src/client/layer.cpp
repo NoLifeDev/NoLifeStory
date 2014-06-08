@@ -30,7 +30,7 @@ namespace nl {
                 o.render();
             for (auto & t : layers[i].tiles)
                 t.render();
-            if (player::ch.pos.layer == i)
+            if (player::ch.pos.layer == static_cast<int>(i))
                 player::render();
         }
     }

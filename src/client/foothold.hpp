@@ -21,20 +21,17 @@
 #include <vector>
 
 namespace nl {
-    class foothold {
-    public:
-        foothold(foothold const &) = default;
-        foothold() = default;
-        foothold & operator=(foothold const &) = default;
-        static void load();
-        foothold * next = nullptr, * prev = nullptr;
-        int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-        int force = 0, piece = 0;
-        unsigned nextid = 0, previd = 0;
-        unsigned id = 0, group = 0, layer = 0;
-        bool cant_through = false, forbid_fall_down = false, initialized = false;
-    private:
-        foothold(node, unsigned, unsigned, unsigned);
-    };
-    extern std::vector<foothold> footholds;
+class foothold {
+public:
+    foothold(node, int, int, int);
+    static void load();
+    static void draw_lines();
+    foothold const *next, *prev;
+    int x1, y1, x2, y2;
+    int force, piece;
+    int nextid, previd;
+    int id, group, layer;
+    bool cant_through, forbid_fall_down;
+};
+extern std::vector<foothold> footholds;
 }

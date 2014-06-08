@@ -88,7 +88,6 @@ void reset() {
         top = std::numeric_limits<int>::max();
         bottom = std::numeric_limits<int>::min();
         for (auto &f : footholds) {
-            if (!f.initialized) { continue; }
             left = std::min(left, f.x1);
             left = std::min(left, f.x2);
             right = std::max(right, f.x1);

@@ -87,6 +87,9 @@ namespace nl {
             current_name.erase(current_name.find(".img"));
             config::map = current_name;
             log << "Loading map " << current.name() << std::endl;
+            for (auto n : current["info"]) {
+                log << '\t' << n.name() << ": " << n.get_string() << std::endl;
+            }
             time::reset();
             music::play();
             layer::load();
@@ -120,6 +123,7 @@ namespace nl {
                 p.render();
             for (auto & b : foregrounds)
                 b.render();
+            foothold::draw_lines();
             view::draw_edges();
         }
     }

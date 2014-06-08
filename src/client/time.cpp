@@ -39,7 +39,7 @@ void reset() {
     delta_total = 0;
 }
 void draw() {
-    auto const xscale = 4;
+    auto const xscale = 8;
     auto const yscale = 8192;
     sprite::flush();
     glLoadIdentity();
