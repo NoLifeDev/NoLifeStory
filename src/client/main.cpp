@@ -25,8 +25,10 @@
 #include <iostream>
 #include <memory>
 
+#ifdef _WIN32
 #include <Windows.h>
 #include <DbgHelp.h>
+#endif
 
 namespace nl {
 void print_stack_trace() {
