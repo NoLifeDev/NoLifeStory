@@ -12,7 +12,7 @@
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>lz4.lib;glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;glfw.lib;libmpg123.lib;portaudio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lz4.lib;glew.lib;glu32.lib;opengl32.lib;NoLifeNx.lib;glfw.lib;libmpg123.lib;portaudio.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifeClient - Part of the NoLifeStory project                           //
-// Copyright © 2013 Peter Atashian                                          //
+// Copyright © 2014 Peter Atashian                                          //
 //                                                                          //
 // This program is free software: you can redistribute it and/or modify     //
 // it under the terms of the GNU Affero General Public License as           //
@@ -18,33 +18,72 @@
 
 #include "game.hpp"
 #include "log.hpp"
+
+#include <array>
+#include <csignal>
+#include <fstream>
 #include <iostream>
 #include <memory>
-#include <fstream>
 
-void terminated() {
-    std::cerr << "Fatal termination!" << std::endl;
+#include <Windows.h>
+#include <DbgHelp.h>
+
+namespace nl {
+void print_stack_trace() {
+#ifdef _WIN32
+    auto process = ::GetCurrentProcess();
+    ::SymInitialize(process, nullptr, true);
+    std::array<void *, 0x100> stack;
+    auto frames
+        = ::CaptureStackBackTrace(0, static_cast<::DWORD>(stack.size()), stack.data(), nullptr);
+    std::array<char, sizeof(::SYMBOL_INFO) + 0x100> symbol_raw;
+    auto symbol = reinterpret_cast<::SYMBOL_INFO *>(symbol_raw.data());
+    symbol->MaxNameLen = 0xFF;
+    symbol->SizeOfStruct = sizeof(::SYMBOL_INFO);
+    log << "Printing stack trace" << std::endl;
+    IMAGEHLP_LINE64 line;
+    line.SizeOfStruct = sizeof(line);
+    DWORD disp;
+    for (auto i = decltype(frames){0}; i < frames; ++i) {
+        ::SymFromAddr(process, reinterpret_cast<::DWORD64>(stack[i]), 0, symbol);
+        ::SymGetLineFromAddr64(process, reinterpret_cast<::DWORD64>(stack[i]), &disp, &line);
+        log << std::hex << symbol->Address << ": " << symbol->Name << " at " << std::dec
+            << line.FileName << ":" << line.LineNumber << std::endl;
+    }
+    log << "End of stack trace" << std::endl;
+#endif
+}
+void terminate_handler() {
+    log << "Unhandled exception!" << std::endl;
+    print_stack_trace();
     std::abort();
 }
 
-int main() {
-    try {
-        nl::log.open("NoLifeClient.log", std::ios::app);
-        std::set_terminate(terminated);
-        nl::log << "Starting up NoLifeClient" << std::endl;
-        nl::game::play();
-        nl::log << "Shutting down NoLifeClient" << std::endl;
-        return EXIT_SUCCESS;
-    } catch (std::exception const & e) {
-        nl::log << "Fatal uncaught exception: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    } catch (...) {
-        nl::log << "Fatal unknown exception!" << std::endl;
-        return EXIT_FAILURE;
-    }
+void sigserv_handler(int) {
+    log << "Segfault!" << std::endl;
+    print_stack_trace();
+    std::abort();
 }
-#ifdef _MSC_VER
-int __stdcall wWinMain(void *, void *, wchar_t *, int) {
-    main();
+void client() {
+    log.open("NoLifeClient.log", std::ios::app);
+    if (!log.is_open()) {
+        std::cerr << "Failed to open log" << std::endl;
+        std::abort();
+    }
+    std::set_terminate(terminate_handler);
+    std::signal(SIGSEGV, sigserv_handler);
+    nl::log << "Starting up NoLifeClient" << std::endl;
+    nl::game::play();
+    nl::log << "Shutting down NoLifeClient" << std::endl;
+}
+}
+int main() {
+    nl::client();
+}
+
+#ifdef _WIN32
+int WinMain(HINSTANCE, HINSTANCE, char *, int) {
+    nl::client();
+    return 0;
 }
 #endif

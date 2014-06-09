@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // NoLifeClient - Part of the NoLifeStory project                           //
-// Copyright © 2013 Peter Atashian                                          //
+// Copyright © 2014 Peter Atashian                                          //
 // Additional Authors                                                       //
 // 2013 Cedric Van Goethem                                                  //
 //                                                                          //
