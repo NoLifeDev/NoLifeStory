@@ -59,7 +59,7 @@ void terminate_handler() {
     std::abort();
 }
 
-void sigserv_handler(int) {
+void sigsegv_handler(int) {
     log << "Segfault!" << std::endl;
     print_stack_trace();
     std::abort();
@@ -71,15 +71,16 @@ void client() {
         std::abort();
     }
     std::set_terminate(terminate_handler);
-    std::signal(SIGSEGV, sigserv_handler);
-    nl::log << "Starting up NoLifeClient" << std::endl;
-    nl::game::play();
-    nl::log << "Shutting down NoLifeClient" << std::endl;
+    std::signal(SIGSEGV, sigsegv_handler);
+    log << "Starting up NoLifeClient" << std::endl;
+    try {
+        game::play();
+    } catch (std::exception &e) { log << "Fatal exception: " << e.what() << std::endl; }
+    log << "Shutting down NoLifeClient" << std::endl;
 }
 }
-int main() {
-    nl::client();
-}
+
+int main() { nl::client(); }
 
 #ifdef _WIN32
 int WinMain(HINSTANCE, HINSTANCE, char *, int) {
