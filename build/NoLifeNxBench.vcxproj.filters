@@ -10,8 +10,5 @@
     <ClCompile Include="../src/nxbench/nxbench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\nxbench\fraysa.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

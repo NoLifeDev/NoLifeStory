@@ -48,10 +48,9 @@ namespace nl {
         size_t load() {
             return file(filename).node_count();
         }
-        size_t recurse_sub(node const & n) {
+        size_t recurse_sub(node const &n) {
             size_t c = 1;
-            for (node const & nn : n)
-                c += nn.size() ? recurse_sub(nn) : 1;
+            for (node const &nn : n) { c += recurse_sub(nn); }
             return c;
         }
         size_t recurse_load() {
@@ -323,8 +322,7 @@ void fraysa();
 
 int main() {
     auto a = std::chrono::high_resolution_clock::now();
-    nl::file file{"Item.nx"};
-    nl::dump_tree(file, {});
+    nl::bench{};
     auto b = std::chrono::high_resolution_clock::now();
     std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(b - a).count() << std::endl;
     std::system("pause");

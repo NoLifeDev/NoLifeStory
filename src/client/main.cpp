@@ -47,8 +47,9 @@ void print_stack_trace() {
     line.SizeOfStruct = sizeof(line);
     DWORD disp;
     for (auto i = decltype(frames){0}; i < frames; ++i) {
-        ::SymFromAddr(process, reinterpret_cast<::DWORD64>(stack[i]), 0, symbol);
-        ::SymGetLineFromAddr64(process, reinterpret_cast<::DWORD64>(stack[i]), &disp, &line);
+        auto s = static_cast<::DWORD64>(reinterpret_cast<uintptr_t>(stack[i]));
+        ::SymFromAddr(process, s, 0, symbol);
+        ::SymGetLineFromAddr64(process, s, &disp, &line);
         log << std::hex << symbol->Address << ": " << symbol->Name << " at " << std::dec
             << line.FileName << ":" << line.LineNumber << std::endl;
     }
@@ -85,7 +86,7 @@ void client() {
 int main() { nl::client(); }
 
 #ifdef _WIN32
-int WinMain(HINSTANCE, HINSTANCE, char *, int) {
+int __stdcall WinMain(HINSTANCE, HINSTANCE, char *, int) {
     nl::client();
     return 0;
 }
