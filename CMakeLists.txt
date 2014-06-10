@@ -47,3 +47,8 @@ option(BUILD_WZTONX "Build wztonx" ON)
 if(BUILD_WZTONX)
     add_subdirectory(src/wztonx)
 endif()
+
+option(BUILD_NXBENCH "Build nxbench" OFF)
+if(BUILD_NXBENCH)
+    add_subdirectory(src/nxbench)
+endif()
