@@ -33,20 +33,17 @@ endif()
 #   This option only needs to be run once for every CMakeCache
 #   By default all subprojects will be built
 
-option(BUILD_NX "Choose to build nx library" ON)
+option(BUILD_NX "Build nx library" ON)
 if(BUILD_NX)
-  message(STATUS "Adding nx to build")
-  add_subdirectory(src/nx)
+    add_subdirectory(src/nx)
 endif()
 
-option(BUILD_CLIENT "Choose to build client" ON)
+option(BUILD_CLIENT "Build client" ON)
 if(BUILD_CLIENT)
-  message(STATUS "Adding client to build")
-  add_subdirectory(src/client)
+    add_subdirectory(src/client)
 endif()
 
-option(BUILD_WZTONX "Choose to build wztonx or not" ON)
+option(BUILD_WZTONX "Build wztonx" ON)
 if(BUILD_WZTONX)
-  message(STATUS "Adding wztonx to build")
-  add_subdirectory(src/wztonx)
+    add_subdirectory(src/wztonx)
 endif()
