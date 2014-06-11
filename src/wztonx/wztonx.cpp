@@ -33,22 +33,29 @@
 #include <lz4.h>
 #include <lz4hc.h>
 
-#include <iostream>
-#include <fstream>
+#include <algorithm>
+#include <array>
+#include <chrono>
 #ifndef NL_NO_CODECVT
 #include <codecvt>
 #endif
-#include <vector>
-#include <map>
 #include <cstdint>
-#include <unordered_map>
-#include <algorithm>
-#include <chrono>
-#include <numeric>
-#include <iomanip>
 #include <cstring>
-#include <array>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <locale>
+#include <map>
+#include <numeric>
+#include <regex>
+#include <unordered_map>
+#include <vector>
+
+namespace sys = std::tr2::sys;
+
+using namespace std::string_literals;
+using namespace std::chrono_literals;
 
 namespace nl {
 // Some typedefs
@@ -346,7 +353,7 @@ struct wztonx {
         }
         return 0;
     }
-    id_t read_prop_string(size_t offset) {
+    id_t read_prop_string(size_t p_offset) {
         auto a = in.read<uint8_t>();
         switch (a) {
         case 0x00:
@@ -354,7 +361,7 @@ struct wztonx {
             return read_enc_string();
         case 0x01:
         case 0x1B: {
-            auto o = in.read<int32_t>() + offset;
+            auto o = in.read<int32_t>() + p_offset;
             auto p = in.tell();
             in.seek(o);
             auto s = read_enc_string();
@@ -488,26 +495,26 @@ struct wztonx {
         for (auto it : directories) directory(it);
         nodes_to_sort.emplace_back(ni, count);
     }
-    void extended_property(id_t prop_node, size_t offset) {
+    void extended_property(id_t prop_node, size_t p_offset) {
         auto &n = nodes[prop_node];
-        auto &st = strings[read_prop_string(offset)];
+        auto &st = strings[read_prop_string(p_offset)];
         if (st == "Property") {
             in.skip(2);
-            sub_property(prop_node, offset);
+            sub_property(prop_node, p_offset);
         } else if (st == "Canvas") {
             in.skip(1);
             if (in.read<uint8_t>() == 1) {
                 in.skip(2);
-                sub_property(prop_node, offset);
+                sub_property(prop_node, p_offset);
             }
             // Have to recalculate n, because address may have changed
             // because sub_property may increase the size of nodes
-            auto &n = nodes[prop_node];
-            n.data_type = node::type::bitmap;
-            n.data.bitmap.id = static_cast<uint32_t>(bitmaps.size());
+            auto &nn = nodes[prop_node];
+            nn.data_type = node::type::bitmap;
+            nn.data.bitmap.id = static_cast<uint32_t>(bitmaps.size());
             bitmaps.push_back({in.tell(), reinterpret_cast<uint8_t const *>(u8key)});
-            n.data.bitmap.width = static_cast<uint16_t>(in.read_cint());
-            n.data.bitmap.height = static_cast<uint16_t>(in.read_cint());
+            nn.data.bitmap.width = static_cast<uint16_t>(in.read_cint());
+            nn.data.bitmap.height = static_cast<uint16_t>(in.read_cint());
         } else if (st == "Shape2D#Vector2D") {
             n.data_type = node::type::vector;
             n.data.vector[0] = in.read_cint();
@@ -522,7 +529,7 @@ struct wztonx {
                 auto &nn = nodes[ni + i];
                 auto es = std::to_string(i);
                 nn.name = add_string(std::move(es));
-                extended_property(ni, offset);
+                extended_property(ni, p_offset);
             }
             nodes_to_sort.emplace_back(ni, count);
         } else if (st == "Sound_DX8") {
@@ -538,11 +545,10 @@ struct wztonx {
         } else if (st == "UOL") {
             in.skip(1);
             n.data_type = node::type::uol;
-            n.data.string = read_prop_string(offset);
-        } else
-            throw std::runtime_error("Unknown sub property type: " + st);
+            n.data.string = read_prop_string(p_offset);
+        } else { throw std::runtime_error("Unknown sub property type: " + st); }
     }
-    void sub_property(id_t prop_node, size_t offset) {
+    void sub_property(id_t prop_node, size_t p_offset) {
         auto &n = nodes[prop_node];
         auto count = static_cast<id_t>(in.read_cint());
         auto ni = static_cast<id_t>(nodes.size());
@@ -551,7 +557,7 @@ struct wztonx {
         nodes.resize(nodes.size() + count);
         for (auto i = 0u; i < count; ++i) {
             auto &nn = nodes[ni + i];
-            nn.name = read_prop_string(offset);
+            nn.name = read_prop_string(p_offset);
             auto type = in.read<uint8_t>();
             uint8_t num;
             size_t p;
@@ -572,10 +578,9 @@ struct wztonx {
             case 0x04:
                 nn.data_type = node::type::real;
                 num = in.read<uint8_t>();
-                if (num == 0x80)
-                    nn.data.real = in.read<float>();
-                else
+                if (num == 0x80) { nn.data.real = in.read<float>(); } else {
                     nn.data.real = static_cast<int8_t>(num);
+                }
                 break;
             case 0x05:
                 nn.data_type = node::type::real;
@@ -583,20 +588,23 @@ struct wztonx {
                 break;
             case 0x08:
                 nn.data_type = node::type::string;
-                nn.data.string = read_prop_string(offset);
+                nn.data.string = read_prop_string(p_offset);
                 break;
             case 0x09:
                 p = in.read<int32_t>() + in.tell();
-                extended_property(ni + i, offset);
+                extended_property(ni + i, p_offset);
                 in.seek(p);
+                break;
+            case 0x13:
+                nn.data_type = node::type::integer;
+                nn.data.integer = in.read_cint();
                 break;
             case 0x14:
                 nn.data_type = node::type::integer;
                 num = in.read<uint8_t>();
-                if (num == 0x80)
-                    nn.data.integer = in.read<int64_t>();
-                else
+                if (num == 0x80) { nn.data.integer = in.read<int64_t>(); } else {
                     nn.data.integer = static_cast<int8_t>(num);
+                }
                 break;
             default:
                 throw std::runtime_error("Unknown sub property type: " + std::to_string(type));
@@ -747,12 +755,17 @@ struct wztonx {
             auto format = in.read_cint();
             format += in.read<uint8_t>();
             auto n1 = in.read<uint32_t>();
-            if (n1) std::clog << "0x" << std::setfill('0') << std::setw(8) << std::hex << n1;
+            if (n1) {
+                std::cout << "Report this: "
+                          << "0x" << std::setfill('0') << std::setw(8) << std::hex << n1;
+            }
             auto length = in.read<uint32_t>();
             auto n2 = in.read<uint8_t>();
-            if (n2)
-                std::clog << " 0x" << std::setfill('0') << std::setw(2) << std::hex << (unsigned)n2
-                          << std::endl;
+            if (n2) {
+                std::cout << "Report this: "
+                          << " 0x" << std::setfill('0') << std::setw(2) << std::hex
+                          << static_cast<unsigned>(n2) << std::endl;
+            }
             input.resize(length);
             auto size = width * height * 4;
             output.resize(static_cast<size_t>(size));
@@ -768,10 +781,10 @@ struct wztonx {
                 strm.avail_out = static_cast<unsigned>(output.size());
                 auto err = inflate(&strm, Z_FINISH);
                 if (err != Z_BUF_ERROR) {
-                    std::clog << "Zlib error " << std::dec << err << ": 0x" << std::setfill('0')
+                    std::cout << "Report this: " << std::dec << err << ": 0x" << std::setfill('0')
                               << std::setw(2) << std::hex << (unsigned)original[0] << " 0x"
                               << std::setfill('0') << std::setw(2) << std::hex
-                              << (unsigned)original[1] << std::endl;
+                              << static_cast<unsigned>(original[1]) << std::endl;
                     return false;
                 }
                 inflateEnd(&strm);
@@ -861,11 +874,10 @@ struct wztonx {
         }
         std::cout << "Done!" << std::endl;
     }
-    wztonx(std::string filename, bool client, bool hc) : client(client), hc(hc) {
-        wzfilename = filename;
-        filename.erase(filename.find_last_of('.')).append(".nx");
-        nxfilename = filename;
-        if (!std::ifstream(wzfilename).is_open()) return;
+    wztonx(sys::path filename, bool client, bool hc) : client(client), hc(hc) {
+        wzfilename = filename.u8string();
+        nxfilename = filename.replace_extension(".nx").u8string();
+        if (!std::ifstream{wzfilename}.is_open()) { return; }
         std::cout << wzfilename << " -> " << nxfilename << std::endl;
     }
     void convert_file() {
@@ -880,7 +892,7 @@ struct wztonx {
     }
 };
 struct imgtonx : wztonx {
-    imgtonx(std::string filename, bool client, bool hc) : wztonx{filename, client, hc} {}
+    imgtonx(sys::path filename, bool client, bool hc) : wztonx{filename, client, hc} {}
     void parse_file() override {
         std::cout << "Parsing input.......";
         in.open(wzfilename);
@@ -900,46 +912,48 @@ struct imgtonx : wztonx {
 };
 }
 int main(int argc, char **argv) {
+    auto a = std::chrono::high_resolution_clock::now();
 #ifdef NL_NO_CODECVT
     std::setlocale(LC_ALL, "en_US.utf8");
 #endif
-    std::filebuf file;
-    file.open("NoLifeWzToNx.log", std::ios::out);
-    std::clog.rdbuf(&file);
-    auto a = std::chrono::high_resolution_clock::now();
-    std::cout << R"rawraw(
-NoLifeWzToNx
-Copyright © 2013 Peter Atashian
+    std::cout << R"(NoLifeWzToNx
+Copyright © 2014 Peter Atashian
 Licensed under GNU Affero General Public License
 Converts WZ files into NX files
-
-NoLifeWzToNx.exe [-client] [-hc] [Firstfile.wz [Secondfile.wz [...]]]
-
--client : Specifies that bitmaps and audio should be included in the resulting nx file.
--hc : Use high quality LZ4 compression. Creates smaller files, but takes more time.
-
-If no files are specified, this program will automatically scan for all WZ files in the working directory.
-
-)rawraw";
-    std::vector<std::string> args = {argv + 1, argv + argc};
-    bool client = std::find(args.begin(), args.end(), "-client") != args.end();
-    bool hc = std::find(args.begin(), args.end(), "-hc") != args.end();
-    args.erase(
-        std::remove_if(args.begin(), args.end(), [](std::string const &s) { return s[0] == '-'; }),
-        args.end());
-    if (args.empty())
-        args = {"Base.wz",  "Character.wz", "Data.wz",   "Effect.wz",    "Etc.wz",   "Item.wz",
-                "Map.wz",   "Mob.wz",       "Morph.wz",  "Npc.wz",       "Quest.wz", "Reactor.wz",
-                "Skill.wz", "Sound.wz",     "String.wz", "TamingMob.wz", "UI.wz"};
-    for (std::string n : args) {
+)";
+    std::vector<std::string> args{argv + 1, argv + argc};
+    enum { client, server, none } type{none};
+    bool hc{false};
+    std::vector<sys::path> paths;
+    std::regex reg1{"--([a-z]+)"};
+    std::regex reg2{"-([a-z]+)"};
+    for (auto &arg : args) {
+        if (arg[0] != '-') {
+            paths.emplace_back(arg);
+            continue;
+        }
+        for (auto &c : arg) { c = std::tolower(c, std::locale::classic()); }
+        if (arg == "--client" || arg == "-c") {
+            type = client;
+        } else if (arg == "--server" || arg == "-s") {
+            type = server;
+        } else if (arg == "--lz4hc" || arg == "-h") { hc = true; }
+    }
+    auto convert = [&](sys::path const &p) {
         try {
-            if (n.find(".img") != std::string::npos) {
-                nl::imgtonx{n, client, hc}.convert_file();
-            } else { nl::wztonx{n, client, hc}.convert_file(); }
+            if (p.extension().u8string() == ".img") {
+                nl::imgtonx{p, type == client, hc}.convert_file();
+            } else { nl::wztonx{p, type == client, hc}.convert_file(); }
         } catch (std::exception const &e) { std::cerr << e.what() << std::endl; }
+    };
+    for (auto &p : paths) {
+        if (sys::is_regular_file(p)) { convert(p); } else if (sys::is_directory(p)) {
+            for (sys::recursive_directory_iterator it{p}, end{}; it != end; ++it) { convert(*it); }
+        }
     }
     auto b = std::chrono::high_resolution_clock::now();
-    std::cout << "Took " << std::chrono::duration_cast<std::chrono::seconds>(b - a).count()
-              << " seconds" << std::endl;
-    std::system("pause");
+    std::cout << "Took " << std::dec
+              << std::chrono::duration_cast<std::chrono::seconds>(b - a).count() << " seconds"
+              << std::endl;
+    std::cin.get();
 }
