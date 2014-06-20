@@ -41,7 +41,13 @@
 #endif
 #include <cstdint>
 #include <cstring>
+#ifndef NL_NO_STD_FILESYSTEM
 #include <filesystem>
+namespace sys = std::tr2::sys;
+#else
+#include <boost/filesystem.hpp>
+namespace sys = boost::filesystem;
+#endif
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -52,7 +58,15 @@
 #include <unordered_map>
 #include <vector>
 
-namespace sys = std::tr2::sys;
+namespace {
+    std::string u8string(const sys::path & path) {
+#ifndef NL_NO_STD_FILESYSTEM
+        return path.u8string();
+#else
+        return path.native();
+#endif
+    }
+}
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;
@@ -875,8 +889,8 @@ struct wztonx {
         std::cout << "Done!" << std::endl;
     }
     wztonx(sys::path filename, bool client, bool hc) : client(client), hc(hc) {
-        wzfilename = filename.u8string();
-        nxfilename = filename.replace_extension(".nx").u8string();
+        wzfilename = u8string(filename);
+        nxfilename = u8string(filename.replace_extension(".nx"));
         if (!std::ifstream{wzfilename}.is_open()) { return; }
         std::cout << wzfilename << " -> " << nxfilename << std::endl;
     }
@@ -941,7 +955,7 @@ Converts WZ files into NX files
     }
     auto convert = [&](sys::path const &p) {
         try {
-            if (p.extension().u8string() == ".img") {
+            if (u8string(p.extension()) == ".img") {
                 nl::imgtonx{p, type == client, hc}.convert_file();
             } else { nl::wztonx{p, type == client, hc}.convert_file(); }
         } catch (std::exception const &e) { std::cerr << e.what() << std::endl; }

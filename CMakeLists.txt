@@ -22,6 +22,7 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}" MATC
             add_compile_options(-Wno-nested-anon-types)
         endif()
     endif()
+    add_definitions(-DNL_NO_STD_FILESYSTEM)
     if(NOT USE_LIBCXX)
         add_definitions(-DNL_NO_CODECVT)
     endif()
