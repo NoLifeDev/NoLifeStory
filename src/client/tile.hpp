@@ -21,12 +21,13 @@
 #include <nx/node.hpp>
 
 namespace nl {
-    class tile {
-    public:
-        tile(node, node);
-        void render();
-        int x, y, z;
-    private:
-        sprite spr;
-    };
+class tile {
+public:
+    tile(node, node);
+    void render();
+    int x, y, z;
+
+private:
+    sprite spr;
+};
 }

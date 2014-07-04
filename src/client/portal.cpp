@@ -23,35 +23,33 @@
 #include <nx/nx.hpp>
 
 namespace nl {
-    std::vector<portal> portals;
-    node portal_sprites;
-    void portal::load() {
-        portal_sprites = nx::map["MapHelper.img"]["portal"]["game"];
-        portals.clear();
-        for (node n : map::current["portal"]) portals.emplace_back(n);
+std::vector<portal> portals;
+node portal_sprites;
+void portal::load() {
+    portal_sprites = nx::map["MapHelper.img"]["portal"]["game"];
+    portals.clear();
+    for (node n : map::current["portal"]) portals.emplace_back(n);
+}
+portal::portal(node n) : x(n["x"]), y(n["y"]), tm(n["tm"]), tn(n["tn"]), pt(n["pt"]), pn(n["pn"]) {
+    switch (pt) {
+    case 2:
+        spr = portal_sprites["pv"];
+        break;
+    case 10:
+        spr = portal_sprites["ph"]["default"];
+        break;
+    case 11:
+        spr = portal_sprites["psh"]["default"];
+        break;
     }
-    portal::portal(node n) :
-        x(n["x"]), y(n["y"]), tm(n["tm"]), tn(n["tn"]),
-        pt(n["pt"]), pn(n["pn"]) {
-        switch (pt) {
-        case 2:
-            spr = portal_sprites["pv"];
-            break;
-        case 10:
-            spr = portal_sprites["ph"]["default"];
-            break;
-        case 11:
-            spr = portal_sprites["psh"]["default"];
-            break;
-        }
+}
+void portal::render() {
+    switch (pt) {
+    case 2:
+    case 10:
+    case 11:
+        spr.draw(x, y, sprite::relative);
+        break;
     }
-    void portal::render() {
-        switch (pt) {
-        case 2:
-        case 10:
-        case 11:
-            spr.draw(x, y, sprite::relative);
-            break;
-        }
-    }
+}
 }

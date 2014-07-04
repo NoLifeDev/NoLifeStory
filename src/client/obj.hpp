@@ -21,15 +21,16 @@
 #include <nx/node.hpp>
 
 namespace nl {
-    class obj {
-    public:
-        obj(node);
-        void render();
-        int x, y, z, zm, zid;
-    private:
-        sprite spr;
-        int rx, ry;
-        int flow, cx, cy;
-        bool flip;
-    };
+class obj {
+public:
+    obj(node);
+    void render();
+    int x, y, z, zm, zid;
+
+private:
+    sprite spr;
+    int rx, ry;
+    int flow, cx, cy;
+    bool flip;
+};
 }

@@ -23,37 +23,30 @@
 #include <algorithm>
 
 namespace nl {
-    std::array<layer, 8> layers;
-    void layer::render() {
-        for (auto i = 0u; i < 8; ++i) {
-            for (auto & o : layers[i].objs)
-                o.render();
-            for (auto & t : layers[i].tiles)
-                t.render();
-            if (player::ch.pos.layer == static_cast<int>(i))
-                player::render();
-        }
+std::array<layer, 8> layers;
+void layer::render() {
+    for (auto i = 0u; i < 8; ++i) {
+        for (auto &o : layers[i].objs) o.render();
+        for (auto &t : layers[i].tiles) t.render();
+        if (player::ch.pos.layer == static_cast<int>(i)) player::render();
     }
-    void layer::load() {
-        auto tile_node = nx::map["Tile"];
-        for (auto i = 0u; i < 8; ++i) {
-            auto & l = layers[i];
-            auto n = map::current[i];
-            auto tn = tile_node[n["info"]["tS"] + ".img"];
-            l.objs.clear();
-            for (auto nn : n["obj"])
-                l.objs.emplace_back(nn);
-            std::sort(l.objs.begin(), l.objs.end(), [](obj const & a, obj const & b) {
-                if (a.z == b.z)
-                    return a.zid < b.zid;
-                return a.z < b.z;
-            });
-            l.tiles.clear();
-            for (auto nn : n["tile"])
-                l.tiles.emplace_back(nn, tn);
-            std::sort(l.tiles.begin(), l.tiles.end(), [](tile const & a, tile const & b) {
-                return a.z < b.z;
-            });
-        }
+}
+void layer::load() {
+    auto tile_node = nx::map["Tile"];
+    for (auto i = 0u; i < 8; ++i) {
+        auto &l = layers[i];
+        auto n = map::current[i];
+        auto tn = tile_node[n["info"]["tS"] + ".img"];
+        l.objs.clear();
+        for (auto nn : n["obj"]) l.objs.emplace_back(nn);
+        std::sort(l.objs.begin(), l.objs.end(), [](obj const &a, obj const &b) {
+            if (a.z == b.z) return a.zid < b.zid;
+            return a.z < b.z;
+        });
+        l.tiles.clear();
+        for (auto nn : n["tile"]) l.tiles.emplace_back(nn, tn);
+        std::sort(l.tiles.begin(), l.tiles.end(),
+                  [](tile const &a, tile const &b) { return a.z < b.z; });
     }
+}
 }

@@ -28,42 +28,37 @@
 #include <nx/nx.hpp>
 
 namespace nl {
-    namespace game {
-        bool over = false;
-        void init() {
-            window::init();
-            config::load();
-            sprite::init();
-            time::reset();
-            nx::load_all();
-            music::init();
-            window::recreate(config::fullscreen);
-            map::init();
-            player::init();
-        }
-        void loop() {
-            view::update();
-            map::update();
-            map::render();
-            time::update();
-            window::update();
-        }
-        void unload() {
-            music::unload();
-            config::save();
-            window::unload();
-        }
-        void play() {
-            init();
-            while (!over)
-                loop();
-            unload();
-        }
-        void shut_down() {
-            over = true;
-        }
-        bool is_over() {
-            return over;
-        }
-    }
+namespace game {
+bool over = false;
+void init() {
+    window::init();
+    config::load();
+    sprite::init();
+    time::reset();
+    nx::load_all();
+    music::init();
+    window::recreate(config::fullscreen);
+    map::init();
+    player::init();
+}
+void loop() {
+    view::update();
+    map::update();
+    map::render();
+    time::update();
+    window::update();
+}
+void unload() {
+    music::unload();
+    config::save();
+    window::unload();
+}
+void play() {
+    init();
+    while (!over) loop();
+    unload();
+}
+void shut_down() { over = true; }
+bool is_over() { return over; }
+}
 }

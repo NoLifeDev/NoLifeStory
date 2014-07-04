@@ -23,12 +23,10 @@ using namespace std::tr2::sys;
 #include "mapfile.h"
 #include "wz.h"
 namespace WZ {
-    extern bool Lazy;
+extern bool Lazy;
 }
 #include "wzimg.h"
 #include "wzcrypto.h"
 
 static_assert(sizeof(wchar_t) == 2, "");
-inline void die() {
-    throw(273);
-}
+inline void die() { throw(273); }

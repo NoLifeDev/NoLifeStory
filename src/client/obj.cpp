@@ -24,41 +24,35 @@
 #include <string>
 
 namespace nl {
-    obj::obj(node n) {
-        x = n["x"];
-        y = n["y"];
-        z = n["z"];
-        zm = n["zM"];
-        zid = std::stoi(n.name());
-        rx = n["rx"];
-        ry = n["ry"];
-        cx = n["cx"];
-        cy = n["cy"];
-        flow = n["flow"];
-        flip = n["f"].get_bool();
-        spr = nx::map["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
-        if (flow & 1 && !cx) {
-            cx = 1000;
-        }
-        if (flow & 2 && !cy) {
-            cy = 1000;
-        }
+obj::obj(node n) {
+    x = n["x"];
+    y = n["y"];
+    z = n["z"];
+    zm = n["zM"];
+    zid = std::stoi(n.name());
+    rx = n["rx"];
+    ry = n["ry"];
+    cx = n["cx"];
+    cy = n["cy"];
+    flow = n["flow"];
+    flip = n["f"].get_bool();
+    spr = nx::map["Obj"][n["oS"] + ".img"][n["l0"]][n["l1"]][n["l2"]];
+    if (flow & 1 && !cx) { cx = 1000; }
+    if (flow & 2 && !cy) { cy = 1000; }
+}
+void obj::render() {
+    auto flags = sprite::relative;
+    if (flip) { flags |= sprite::flipped; }
+    auto dx = x;
+    auto dy = y;
+    if (flow & 1) {
+        dx += static_cast<int>(rx * 5 * time::delta_total);
+        flags |= sprite::tilex;
     }
-    void obj::render() {
-        auto flags = sprite::relative;
-        if (flip) {
-            flags |= sprite::flipped;
-        }
-        auto dx = x;
-        auto dy = y;
-        if (flow & 1) {
-            dx += static_cast<int>(rx * 5 * time::delta_total);
-            flags |= sprite::tilex;
-        }
-        if (flow & 2) {
-            dy += static_cast<int>(ry * 5 * time::delta_total);
-            flags |= sprite::tiley;
-        }
-        spr.draw(dx, dy, flags, cx, cy);
+    if (flow & 2) {
+        dy += static_cast<int>(ry * 5 * time::delta_total);
+        flags |= sprite::tiley;
     }
+    spr.draw(dx, dy, flags, cx, cy);
+}
 }

@@ -19,5 +19,5 @@
 #include "log.hpp"
 
 namespace nl {
-    std::ofstream log;
+std::ofstream log;
 }

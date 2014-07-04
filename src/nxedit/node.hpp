@@ -18,6 +18,4 @@
 
 #pragma once
 
-class node {
-
-};
+class node {};

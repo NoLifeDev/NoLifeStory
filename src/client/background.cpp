@@ -23,85 +23,83 @@
 #include <nx/nx.hpp>
 
 namespace nl {
-    std::vector<background> backgrounds;
-    std::vector<background> foregrounds;
-    background::background(node n) {
-        x = n["x"];
-        y = n["y"];
-        z = n["z"];
-        rx = n["rx"];
-        ry = n["ry"];
-        cx = n["cx"];
-        cy = n["cy"];
-        type = n["type"];
-        flipped = n["f"].get_bool();
-        spr = nx::map["Back"][n["bS"] + ".img"]
-            [n["ani"].get_bool() ? "ani" : "back"][n["no"]];
+std::vector<background> backgrounds;
+std::vector<background> foregrounds;
+background::background(node n) {
+    x = n["x"];
+    y = n["y"];
+    z = n["z"];
+    rx = n["rx"];
+    ry = n["ry"];
+    cx = n["cx"];
+    cy = n["cy"];
+    type = n["type"];
+    flipped = n["f"].get_bool();
+    spr = nx::map["Back"][n["bS"] + ".img"][n["ani"].get_bool() ? "ani" : "back"][n["no"]];
+}
+void background::load() {
+    backgrounds.clear();
+    foregrounds.clear();
+    auto b = map::current["back"];
+    for (auto i = 0u; b[i]; ++i) {
+        auto n = b[i];
+        if (n["front"].get_bool())
+            foregrounds.emplace_back(n);
+        else
+            backgrounds.emplace_back(n);
     }
-    void background::load() {
-        backgrounds.clear();
-        foregrounds.clear();
-        auto b = map::current["back"];
-        for (auto i = 0u; b[i]; ++i) {
-            auto n = b[i];
-            if (n["front"].get_bool())
-                foregrounds.emplace_back(n);
-            else
-                backgrounds.emplace_back(n);
-        }
+}
+void background::render() {
+    auto dx = x;
+    auto dy = y;
+    auto shiftx = rx * (view::xmin + view::width / 2) / 100 + view::width / 2;
+    auto shifty = ry * (view::ymax - 300) / 100 + view::height / 2 + (view::height - 600) / 2;
+    auto flags = sprite::none;
+    if (flipped) flags |= sprite::flipped;
+    switch (type) {
+    case 0:
+        dx += shiftx;
+        dy += shifty;
+        break;
+    case 1:
+        flags |= sprite::tilex;
+        dx += shiftx;
+        dy += shifty;
+        break;
+    case 2:
+        flags |= sprite::tiley;
+        dx += shiftx;
+        dy += shifty;
+        break;
+    case 3:
+        flags |= sprite::tilex;
+        flags |= sprite::tiley;
+        dx += shiftx;
+        dy += shifty;
+        break;
+    case 4:
+        flags |= sprite::tilex;
+        dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
+        dy += shifty;
+        break;
+    case 5:
+        flags |= sprite::tiley;
+        dx += shiftx;
+        dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
+        break;
+    case 6:
+        flags |= sprite::tilex;
+        flags |= sprite::tiley;
+        dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
+        dy += shifty;
+        break;
+    case 7:
+        flags |= sprite::tilex;
+        flags |= sprite::tiley;
+        dx += shiftx;
+        dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
+        break;
     }
-    void background::render() {
-        auto dx = x;
-        auto dy = y;
-        auto shiftx = rx * (view::xmin + view::width / 2) / 100 + view::width / 2;
-        auto shifty = ry * (view::ymax - 300) / 100 + view::height / 2 + (view::height - 600) / 2;
-        auto flags = sprite::none;
-        if (flipped)
-            flags |= sprite::flipped;
-        switch (type) {
-        case 0:
-            dx += shiftx;
-            dy += shifty;
-            break;
-        case 1:
-            flags |= sprite::tilex;
-            dx += shiftx;
-            dy += shifty;
-            break;
-        case 2:
-            flags |= sprite::tiley;
-            dx += shiftx;
-            dy += shifty;
-            break;
-        case 3:
-            flags |= sprite::tilex;
-            flags |= sprite::tiley;
-            dx += shiftx;
-            dy += shifty;
-            break;
-        case 4:
-            flags |= sprite::tilex;
-            dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
-            dy += shifty;
-            break;
-        case 5:
-            flags |= sprite::tiley;
-            dx += shiftx;
-            dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
-            break;
-        case 6:
-            flags |= sprite::tilex;
-            flags |= sprite::tiley;
-            dx += static_cast<int>(time::delta_total * rx * 5) - view::x;
-            dy += shifty;
-            break;
-        case 7:
-            flags |= sprite::tilex;
-            flags |= sprite::tiley;
-            dx += shiftx;
-            dy += static_cast<int>(time::delta_total * ry * 5) - view::y;
-            break;
-        }
-        spr.draw(dx, dy, flags, cx, cy);
-    }
+    spr.draw(dx, dy, flags, cx, cy);
+}
 }

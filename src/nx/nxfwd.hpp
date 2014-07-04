@@ -19,8 +19,8 @@
 #pragma once
 
 namespace nl {
-    class node;
-    class file;
-    class bitmap;
-    class audio;
+class node;
+class file;
+class bitmap;
+class audio;
 }

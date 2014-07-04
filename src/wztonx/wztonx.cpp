@@ -59,13 +59,13 @@ namespace sys = boost::filesystem;
 #include <vector>
 
 namespace {
-    std::string u8string(const sys::path & path) {
+std::string u8string(const sys::path &path) {
 #ifndef NL_NO_STD_FILESYSTEM
-        return path.u8string();
+    return path.u8string();
 #else
-        return path.native();
+    return path.native();
 #endif
-    }
+}
 }
 
 using namespace std::string_literals;

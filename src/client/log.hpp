@@ -20,5 +20,5 @@
 #include <fstream>
 
 namespace nl {
-    extern std::ofstream log;
+extern std::ofstream log;
 }

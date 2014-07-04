@@ -20,18 +20,18 @@
 #include <string>
 
 namespace nl {
-    namespace config {
-        extern bool stretch;
-        extern bool rave;
-        extern bool fullscreen;
-        extern bool vsync;
-        extern bool limit_fps;
-        extern int target_fps;
-        extern int window_width, window_height;
-        extern int fullscreen_width, fullscreen_height;
-        extern int atlas_size;
-        extern std::string map;
-        void save();
-        void load();
-    }
+namespace config {
+extern bool stretch;
+extern bool rave;
+extern bool fullscreen;
+extern bool vsync;
+extern bool limit_fps;
+extern int target_fps;
+extern int window_width, window_height;
+extern int fullscreen_width, fullscreen_height;
+extern int atlas_size;
+extern std::string map;
+void save();
+void load();
+}
 }

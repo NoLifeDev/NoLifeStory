@@ -23,13 +23,14 @@
 #include <array>
 
 namespace nl {
-    class layer {
-    public:
-        static void render();
-        static void load();
-        std::vector<obj> objs;
-        std::vector<tile> tiles;
-    private:
-    };
-    extern std::array<layer, 8> layers;
+class layer {
+public:
+    static void render();
+    static void load();
+    std::vector<obj> objs;
+    std::vector<tile> tiles;
+
+private:
+};
+extern std::array<layer, 8> layers;
 }

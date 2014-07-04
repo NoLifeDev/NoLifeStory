@@ -22,12 +22,12 @@
 #include <string>
 
 namespace nl {
-    namespace player {
-        extern bool mouse_fly;
-        extern character ch;
-        void init();
-        void respawn(std::string port);
-        void update();
-        void render();
-    }
+namespace player {
+extern bool mouse_fly;
+extern character ch;
+void init();
+void respawn(std::string port);
+void update();
+void render();
+}
 }

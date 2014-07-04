@@ -21,14 +21,14 @@
 #include <string>
 
 namespace nl {
-    namespace map {
-        extern node current;
-        extern std::string current_name;
-        void init();
-        void random();
-        void load_random();
-        void load(std::string name, std::string port);
-        void update();
-        void render();
-    }
+namespace map {
+extern node current;
+extern std::string current_name;
+void init();
+void random();
+void load_random();
+void load(std::string name, std::string port);
+void update();
+void render();
+}
 }

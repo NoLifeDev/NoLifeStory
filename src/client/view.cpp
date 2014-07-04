@@ -171,9 +171,7 @@ void draw_edges() {
     auto nright = doside ? xmid + 512 - cright + xb : !doclip ? right - xmin : width;
     auto ntop = dotop ? ymid - 384 + ctop - yb : !doclip ? top - ymin : 0;
     auto nbottom = dobottom ? ymid + 319 - cbottom + yb : !doclip ? bottom - ymin : height;
-    auto comp = [](double p_x){
-        return std::sin(time::delta_total * 2 + p_x * tau) * 0.5 + 0.5;
-    };
+    auto comp = [](double p_x) { return std::sin(time::delta_total * 2 + p_x * tau) * 0.5 + 0.5; };
     glColor4d(comp(0), comp(0.4), comp(0.7), 0.5);
     glBegin(GL_QUADS);
     glVertex2i(0, 0);

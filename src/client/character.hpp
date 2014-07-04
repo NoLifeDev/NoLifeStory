@@ -20,20 +20,20 @@
 #include "physics.hpp"
 
 namespace nl {
-    struct character {
-        struct part {
-            part(unsigned);
-            void set(unsigned);
-            unsigned m_id;
-            node m_node;
-        };
-        void render();
-        void update();
-        physics pos;
-        bool flipped{false};
-        std::vector<part> m_parts;
-        std::string state;
-        int frame{0};
-        double delay{0};
+struct character {
+    struct part {
+        part(unsigned);
+        void set(unsigned);
+        unsigned m_id;
+        node m_node;
     };
+    void render();
+    void update();
+    physics pos;
+    bool flipped{false};
+    std::vector<part> m_parts;
+    std::string state;
+    int frame{0};
+    double delay{0};
+};
 }

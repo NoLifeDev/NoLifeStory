@@ -21,20 +21,20 @@
 #include <cstdint>
 
 namespace nl {
-    class physics {
-    public:
-        physics();
-        void update();
-        void reset(double x, double y);
-        void jump();
-        double x, y, r;
-        double vx, vy, vr;
-        int layer, group;
-        foothold const * fh, * djump;
-        void * lr;//Todo ladderropes
-        bool left, right, up, down;
-        double laststep;
-    private:
+class physics {
+public:
+    physics();
+    void update();
+    void reset(double x, double y);
+    void jump();
+    double x, y, r;
+    double vx, vy, vr;
+    int layer, group;
+    foothold const *fh, *djump;
+    void *lr; // Todo ladderropes
+    bool left, right, up, down;
+    double laststep;
 
-    };
+private:
+};
 }

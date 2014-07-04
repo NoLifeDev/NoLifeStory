@@ -22,18 +22,19 @@
 #include <vector>
 
 namespace nl {
-    class background {
-    public:
-        background(node);
-        void render();
-        static void load();
-        sprite spr;
-        int x, y, z;
-        int rx, ry, cx, cy;
-        int type;
-        bool flipped;
-    private:
-    };
-    extern std::vector<background> backgrounds;
-    extern std::vector<background> foregrounds;
+class background {
+public:
+    background(node);
+    void render();
+    static void load();
+    sprite spr;
+    int x, y, z;
+    int rx, ry, cx, cy;
+    int type;
+    bool flipped;
+
+private:
+};
+extern std::vector<background> backgrounds;
+extern std::vector<background> foregrounds;
 }

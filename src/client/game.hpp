@@ -19,9 +19,9 @@
 #pragma once
 
 namespace nl {
-    namespace game {
-        void play();
-        void shut_down();
-        bool is_over();
-    }
+namespace game {
+void play();
+void shut_down();
+bool is_over();
+}
 }

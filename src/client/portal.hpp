@@ -25,18 +25,19 @@
 #include <string>
 
 namespace nl {
-    class portal {
-    public:
-		portal(node);
-        static void load();
-		void render();
-		int pt, tm, delay;
-        int x, y;
-        int horizontal_impact, vertical_impact;
-        std::string script, pn, tn;
-        sprite spr;
-        bool only_once, hide_tooltip;
-    private:
-    };
-    extern std::vector<portal> portals;
+class portal {
+public:
+    portal(node);
+    static void load();
+    void render();
+    int pt, tm, delay;
+    int x, y;
+    int horizontal_impact, vertical_impact;
+    std::string script, pn, tn;
+    sprite spr;
+    bool only_once, hide_tooltip;
+
+private:
+};
+extern std::vector<portal> portals;
 }

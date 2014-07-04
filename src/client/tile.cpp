@@ -19,14 +19,12 @@
 #include "tile.hpp"
 
 namespace nl {
-    tile::tile(node n, node dn) {
-        x = n["x"];
-        y = n["y"];
-        auto nn = dn[n["u"]][n["no"]];
-        z = nn["z"];
-        spr = nn;
-    }
-    void tile::render() {
-        spr.draw(x, y, sprite::relative);
-    }
+tile::tile(node n, node dn) {
+    x = n["x"];
+    y = n["y"];
+    auto nn = dn[n["u"]][n["no"]];
+    z = nn["z"];
+    spr = nn;
+}
+void tile::render() { spr.draw(x, y, sprite::relative); }
 }
