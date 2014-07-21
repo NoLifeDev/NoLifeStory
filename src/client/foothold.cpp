@@ -17,6 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "foothold.hpp"
+#include "config.hpp"
 #include "map.hpp"
 #include "sprite.hpp"
 #include "view.hpp"
@@ -61,6 +62,7 @@ void foothold::load() {
     }
 }
 void foothold::draw_lines() {
+    if (!config::debug) { return; }
     sprite::flush();
     glLoadIdentity();
     glLineWidth(3);

@@ -303,4 +303,5 @@ int main() {
     std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(b - a).count()
               << std::endl;
     std::system("pause");
+    return EXIT_SUCCESS;
 }

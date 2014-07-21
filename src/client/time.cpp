@@ -39,6 +39,7 @@ void reset() {
     delta_total = 0;
 }
 void draw() {
+    if (!config::debug) { return; }
     auto const xscale = 8;
     auto const yscale = 8192;
     sprite::flush();

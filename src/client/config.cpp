@@ -33,6 +33,7 @@ bool rave = false;
 bool fullscreen = false;
 bool vsync = true;
 bool limit_fps = false;
+bool debug = false;
 int target_fps = 100;
 int window_width = 1024, window_height = 768;
 int fullscreen_width = 1024, fullscreen_height = 768;
@@ -83,6 +84,7 @@ void load() {
     map_bool("vsync", vsync);
     map_bool("capfps", limit_fps);
     map_bool("stretch", stretch);
+    map_bool("debug", debug);
     map_int("fps", target_fps);
     map_int("winwidth", window_width);
     map_int("winheight", window_height);

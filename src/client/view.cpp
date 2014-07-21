@@ -97,8 +97,8 @@ void reset() {
             bottom = std::max(bottom, f.y1);
             bottom = std::max(bottom, f.y2);
         }
-        top -= 256;
-        bottom += 64;
+        top -= 300;
+        bottom += 65 + 10;
     }
     ctop = info["LBTop"];
     cbottom = info["LBBottom"];
@@ -161,7 +161,7 @@ void update() {
     ::glLoadIdentity();
 }
 void draw_edges() {
-    sprite::flush();
+    if (!config::debug) { return; }
     auto doclip = doside || dotop || dobottom;
     auto xmid = (right + left) / 2 - xmin;
     auto ymid = (top + bottom) / 2 - ymin;

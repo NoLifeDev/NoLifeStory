@@ -26,6 +26,7 @@ extern bool rave;
 extern bool fullscreen;
 extern bool vsync;
 extern bool limit_fps;
+extern bool debug;
 extern int target_fps;
 extern int window_width, window_height;
 extern int fullscreen_width, fullscreen_height;
