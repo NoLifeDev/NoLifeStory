@@ -50,8 +50,8 @@ void print_stack_trace() {
         auto s = static_cast<::DWORD64>(reinterpret_cast<uintptr_t>(stack[i]));
         ::SymFromAddr(process, s, 0, symbol);
         ::SymGetLineFromAddr64(process, s, &disp, &line);
-        log << std::hex << symbol->Address << ": " << symbol->Name << " at " << std::dec
-            << line.FileName << ":" << line.LineNumber << std::endl;
+        log << std::hex << symbol->Address << ": " << std::dec << line.FileName << ":"
+            << line.LineNumber << " " << symbol->Name << std::endl;
     }
     log << "End of stack trace" << std::endl;
 #endif
@@ -76,9 +76,7 @@ void client() {
     std::set_terminate(terminate_handler);
     std::signal(SIGSEGV, sigsegv_handler);
     log << "Starting up NoLifeClient" << std::endl;
-    try {
-        game::play();
-    } catch (std::exception &e) { log << "Fatal exception: " << e.what() << std::endl; }
+    game::play();
     log << "Shutting down NoLifeClient" << std::endl;
 }
 }

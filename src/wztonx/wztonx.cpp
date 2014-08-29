@@ -291,7 +291,7 @@ struct wztonx {
     // Variables
     imapfile in;
     omapfile out;
-    std::vector<node> nodes = {{node{}}};
+    std::vector<node> nodes = std::vector<node>{{node{}}};
     std::vector<std::pair<id_t, id_t>> nodes_to_sort;
     std::unordered_map<uint32_t, id_t, identity<uint32_t>> string_map;
     std::vector<std::string> strings;
@@ -462,8 +462,17 @@ struct wztonx {
         return true;
     }
     void uol_fail(std::vector<id_t> &uol) {
-        // If we failed to resolve any uols, just turn them into useless empty nodes
-        nodes[uol.back()].data_type = node::type::none;
+        std::cerr << "Ivalid UOL: ";
+        for (auto id : uol) {
+            auto &n = nodes[id];
+            std::cerr << '/' << strings[n.name];
+        }
+        auto &n = nodes[uol.back()];
+        if (n.data_type == node::type::uol) {
+            std::cerr << " = \"" << strings[n.data.string] << "\"" << std::endl;
+            // If we failed to resolve any uols, just turn them into useless empty nodes
+            n.data_type = node::type::none;
+        } else { std::cerr << " claims to be an invalid UOL but isn't a UOL???" << std::endl; }
     }
     void directory(id_t dir_node) {
         std::vector<id_t> directories;
@@ -650,13 +659,16 @@ struct wztonx {
         add_string({});
         directory(0);
         for (auto &it : imgs) img(it.first, it.second);
+        finish_parse();
+    }
+    void finish_parse() {
         for (auto const &n : nodes_to_sort) sort_nodes(n.first, n.second);
         find_uols(0);
         for (;;) {
             auto it = std::remove_if(uols.begin(), uols.end(),
                                      [this](std::vector<id_t> const &v) { return resolve_uol(v); });
-            if (it == uols.begin() || it == uols.end()) break;
             uols.erase(it, uols.end());
+            if (it == uols.begin() || it == uols.end()) break;
         }
         for (auto &it : uols) uol_fail(it);
         std::cout << "Done!" << std::endl;
@@ -770,13 +782,13 @@ struct wztonx {
             format += in.read<uint8_t>();
             auto n1 = in.read<uint32_t>();
             if (n1) {
-                std::cout << "Report this: "
+                std::cerr << "Report this: "
                           << "0x" << std::setfill('0') << std::setw(8) << std::hex << n1;
             }
             auto length = in.read<uint32_t>();
             auto n2 = in.read<uint8_t>();
             if (n2) {
-                std::cout << "Report this: "
+                std::cerr << "Report this: "
                           << " 0x" << std::setfill('0') << std::setw(2) << std::hex
                           << static_cast<unsigned>(n2) << std::endl;
             }
@@ -795,7 +807,7 @@ struct wztonx {
                 strm.avail_out = static_cast<unsigned>(output.size());
                 auto err = inflate(&strm, Z_FINISH);
                 if (err != Z_BUF_ERROR) {
-                    std::cout << "Report this: " << std::dec << err << ": 0x" << std::setfill('0')
+                    std::cerr << "Report this: " << std::dec << err << ": 0x" << std::setfill('0')
                               << std::setw(2) << std::hex << (unsigned)original[0] << " 0x"
                               << std::setfill('0') << std::setw(2) << std::hex
                               << static_cast<unsigned>(original[1]) << std::endl;
@@ -912,16 +924,7 @@ struct imgtonx : wztonx {
         in.open(wzfilename);
         add_string({});
         img(0, 0);
-        for (auto const &n : nodes_to_sort) sort_nodes(n.first, n.second);
-        find_uols(0);
-        for (;;) {
-            auto it = std::remove_if(uols.begin(), uols.end(),
-                                     [this](std::vector<id_t> const &v) { return resolve_uol(v); });
-            if (it == uols.begin() || it == uols.end()) break;
-            uols.erase(it, uols.end());
-        }
-        for (auto &it : uols) uol_fail(it);
-        std::cout << "Done!" << std::endl;
+        finish_parse();
     }
 };
 }
