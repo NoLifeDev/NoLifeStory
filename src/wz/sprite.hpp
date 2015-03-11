@@ -5,9 +5,9 @@
 
 class Sprite {
     Sprite() : data(nullptr) {}
-    Sprite(const Sprite &other) : data(other.data) {}
+    Sprite(const Sprite & other) : data(other.data) {}
     class Data;
 
 private:
-    Data *data;
+    Data * data;
 };

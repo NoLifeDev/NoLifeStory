@@ -80,26 +80,28 @@ public:
     void SetParameters(int keylength, int blocklength = 128);
 
     // call this before any encryption with the key to use
-    void StartEncryption(const uint8_t *key);
+    void StartEncryption(const uint8_t * key);
     // encrypt a single block (default 128 bits, or uint8_t[16]) of data
-    void EncryptBlock(const uint8_t *datain, uint8_t *dataout);
+    void EncryptBlock(const uint8_t * datain, uint8_t * dataout);
     // Call this to encrypt any length data. Note the size is in BLOCKS, so you must
     // have enough space in datain and dataout to accomodate this. Pad your data before
     // calling, preferably using the padding methods listed below.
     // Decryption must use the same mode as the encryption.
-    void Encrypt(const uint8_t *datain, uint8_t *dataout, uint32_t numBlocks, BlockMode mode = CBC);
+    void Encrypt(const uint8_t * datain, uint8_t * dataout, uint32_t numBlocks,
+                 BlockMode mode = CBC);
 
     // call this before any decryption with the key to use
-    void StartDecryption(const uint8_t *key);
+    void StartDecryption(const uint8_t * key);
     // decrypt a single block (default 128 bits, or uint8_t[16]) of data
-    void DecryptBlock(const uint8_t *datain, uint8_t *dataout);
+    void DecryptBlock(const uint8_t * datain, uint8_t * dataout);
     // Call this to decrypt any length data. Note the size is in BLOCKS, so you must
     // have enough space in datain and dataout to accomodate this. Pad your data before
     // calling, preferably using the padding methods listed below. You must know the desired
     // length of the output data, since all the blocks are returned decrypted.
     // Encryption must use the same mode as the decryption.
-    void Decrypt(const uint8_t *datain, uint8_t *dataout, uint32_t numBlocks, BlockMode mode = CBC);
-    void TransformOFB(uint8_t *buffer, uint8_t *iv, int size);
+    void Decrypt(const uint8_t * datain, uint8_t * dataout, uint32_t numBlocks,
+                 BlockMode mode = CBC);
+    void TransformOFB(uint8_t * buffer, uint8_t * iv, int size);
 
 private:
     int Nb, Nk; // block and key length / 32, should be 4,6,or 8
@@ -108,7 +110,7 @@ private:
     uint8_t W[4 * 8 * 15]; // the expanded key
 
     // Key expansion code - makes local copy
-    void KeyExpansion(const uint8_t *key);
+    void KeyExpansion(const uint8_t * key);
 
 }; // class AES
 

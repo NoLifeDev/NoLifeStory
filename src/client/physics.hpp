@@ -31,7 +31,7 @@ public:
     double vx, vy, vr;
     int layer, group;
     foothold const *fh, *djump;
-    void *lr; // Todo ladderropes
+    void * lr; // Todo ladderropes
     bool left, right, up, down;
     double laststep;
 

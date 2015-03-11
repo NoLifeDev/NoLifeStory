@@ -51,7 +51,7 @@ void init() {
 void respawn(std::string port) {
     last_tele = time::delta_total;
     std::vector<std::pair<int, int>> spawns;
-    for (auto &p : portals)
+    for (auto & p : portals)
         if (p.pn == port) spawns.emplace_back(p.x, p.y);
     if (!spawns.empty()) {
         auto spawn = spawns[rand() % spawns.size()];
@@ -77,7 +77,7 @@ void update() {
     if (!window::get_key(GLFW_KEY_DOWN)) ch.pos.down = false;
     ch.update();
     if (time::delta_total < last_tele + 0.5) return;
-    for (portal &p : portals) {
+    for (portal & p : portals) {
         if (p.x < ch.pos.x - 40 || p.x > ch.pos.x + 40 || p.y < ch.pos.y - 40
             || p.y > ch.pos.y + 40)
             continue;
@@ -85,9 +85,7 @@ void update() {
         case 1:
         case 2:
             if (!ch.pos.up) break;
-        case 3:
-            map::load(std::to_string(p.tm), p.tn);
-            return;
+        case 3: map::load(std::to_string(p.tm), p.tn); return;
         }
     }
 }

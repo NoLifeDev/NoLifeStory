@@ -4,9 +4,9 @@
 ///////////////////////////////////
 
 namespace WZ {
-extern uint8_t *Key;
-extern uint8_t *AKey;
-extern uint16_t *WKey;
+extern uint8_t * Key;
+extern uint8_t * AKey;
+extern uint16_t * WKey;
 extern int16_t EncVersion;
 extern uint32_t VersionHash;
 extern uint8_t Keys[3][0x10000];

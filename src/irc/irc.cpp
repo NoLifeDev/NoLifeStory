@@ -74,7 +74,7 @@ std::string get_next() {
     return s;
 }
 std::string to_lower(std::string s) {
-    for (char &c : s) c = std::tolower(c, std::locale::classic());
+    for (char & c : s) c = std::tolower(c, std::locale::classic());
     return s;
 }
 void handle() {
@@ -161,8 +161,8 @@ void lookup_map(std::string s) {
         for (auto n2 : n1) {
             auto found = n2.name().find(s) != std::string::npos
                          || std::any_of(n2.begin(), n2.end(), [&](node n) {
-                                return n.get_string().find(s) != std::string::npos;
-                            });
+                             return n.get_string().find(s) != std::string::npos;
+                         });
             if (!found) continue;
             found_anything = true;
             std::string result = "map " + n2.name() + " { ";

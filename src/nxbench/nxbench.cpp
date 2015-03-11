@@ -46,23 +46,23 @@ class bench {
     std::string const filename = "Data.nx";
     file const nxfile = {filename};
     size_t load() { return file(filename).node_count(); }
-    size_t recurse_sub(node const &n) {
+    size_t recurse_sub(node const & n) {
         size_t c = 1;
-        for (node const &nn : n) { c += recurse_sub(nn); }
+        for (node const & nn : n) { c += recurse_sub(nn); }
         return c;
     }
     size_t recurse_load() { return recurse_sub(file(filename)); }
     size_t recurse() { return recurse_sub(nxfile); }
-    size_t recurse_search_sub(node const &n) {
+    size_t recurse_search_sub(node const & n) {
         size_t c = 1;
-        for (node const &nn : n)
+        for (node const & nn : n)
             c += n[nn.name()] == nn ? nn.size() ? recurse_search_sub(nn) : 1 : 0;
         return c;
     }
     size_t recurse_search() { return recurse_search_sub(nxfile); }
-    size_t recurse_decompress_sub(node const &n) {
+    size_t recurse_decompress_sub(node const & n) {
         size_t c = n.get_bitmap().data() ? 1u : 0u;
-        for (node const &nn : n) c += recurse_decompress_sub(nn);
+        for (node const & nn : n) c += recurse_decompress_sub(nn);
         return c;
     }
     size_t recurse_decompress() { return recurse_decompress_sub(nxfile); }
@@ -141,7 +141,7 @@ struct dump {
         root(s);
     }
     ~dump() { write(); }
-    dump &root(std::string s) {
+    dump & root(std::string s) {
         nodes.clear();
         if (s == "Base")
             nodes.emplace_back(nx::base, "Base");
@@ -177,7 +177,7 @@ struct dump {
             nodes.emplace_back(nx::ui, "Base/UI");
         return *this;
     }
-    dump &name(std::string s) {
+    dump & name(std::string s) {
         std::vector<info> new_nodes;
         for (auto it : nodes) {
             auto n = it.n[s];
@@ -186,14 +186,14 @@ struct dump {
         nodes.swap(new_nodes);
         return *this;
     }
-    dump &all() {
+    dump & all() {
         std::vector<info> new_nodes;
         for (auto it : nodes)
             for (auto n : it.n) new_nodes.emplace_back(n, it.path + '/' + n.name());
         nodes.swap(new_nodes);
         return *this;
     }
-    dump &regex(std::string s) {
+    dump & regex(std::string s) {
         std::vector<info> new_nodes;
         std::regex reg(s, std::regex_constants::optimize | std::regex_constants::extended);
         for (auto it : nodes)
@@ -203,47 +203,40 @@ struct dump {
         nodes.swap(new_nodes);
         return *this;
     }
-    dump &filter_type(node::type t) {
+    dump & filter_type(node::type t) {
         auto it = std::remove_if(nodes.begin(), nodes.end(),
-                                 [&](info &i) { return t != i.n.data_type(); });
+                                 [&](info & i) { return t != i.n.data_type(); });
         nodes.erase(it, nodes.end());
         return *this;
     }
-    dump &filter_value(std::string v) {
+    dump & filter_value(std::string v) {
         auto it = std::remove_if(nodes.begin(), nodes.end(),
-                                 [&](info &i) { return v != i.n.get_string(); });
+                                 [&](info & i) { return v != i.n.get_string(); });
         nodes.erase(it, nodes.end());
         return *this;
     }
-    dump &has_child(std::string s) {
-        auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info &i) { return !i.n[s]; });
+    dump & has_child(std::string s) {
+        auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info & i) { return !i.n[s]; });
         nodes.erase(it, nodes.end());
         return *this;
     }
-    dump &not_has_child(std::string s) {
-        auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info &i) { return i.n[s]; });
+    dump & not_has_child(std::string s) {
+        auto it = std::remove_if(nodes.begin(), nodes.end(), [&](info & i) { return i.n[s]; });
         nodes.erase(it, nodes.end());
         return *this;
     }
     std::string get_value(node n) {
         auto s = n.name() + '.';
         switch (n.data_type()) {
-        case node::type::audio:
-            return s + "audio";
-        case node::type::bitmap:
-            return s + "bitmap";
-        case node::type::integer:
-            return s + "integer=" + n.get_string();
-        case node::type::none:
-            return s + "none";
-        case node::type::real:
-            return s + "real=" + n.get_string();
-        case node::type::string:
-            return s + "string=" + n.get_string();
+        case node::type::audio: return s + "audio";
+        case node::type::bitmap: return s + "bitmap";
+        case node::type::integer: return s + "integer=" + n.get_string();
+        case node::type::none: return s + "none";
+        case node::type::real: return s + "real=" + n.get_string();
+        case node::type::string: return s + "string=" + n.get_string();
         case node::type::vector:
             return s + "vector=" + std::to_string(n.x()) + "," + std::to_string(n.y());
-        default:
-            throw std::runtime_error("Wat");
+        default: throw std::runtime_error("Wat");
         }
     }
     std::string make_line(std::string s) {
@@ -262,12 +255,12 @@ struct dump {
             for (auto n : it.n) children.emplace(n.name());
         }
         file << make_line("Values") << std::endl;
-        for (auto &s : values)
+        for (auto & s : values)
             file << std::setw(4) << std::right << s.second << "x " << s.first << std::endl;
         file << make_line("Children") << std::endl;
-        for (auto &s : children) file << "* [[/" << s << "|" << s << "]]" << std::endl;
+        for (auto & s : children) file << "* [[/" << s << "|" << s << "]]" << std::endl;
         file << make_line("Paths") << std::endl;
-        for (auto &s : paths) file << "* " << s << std::endl;
+        for (auto & s : paths) file << "* " << s << std::endl;
     }
 };
 void dump_tree(node n, std::string path) {

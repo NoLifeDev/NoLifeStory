@@ -43,6 +43,6 @@ private:
     int width, height;
     bool repeat, animated;
 };
-sprite::flags &operator|=(sprite::flags &, sprite::flags);
+sprite::flags & operator|=(sprite::flags &, sprite::flags);
 sprite::flags operator|(sprite::flags, sprite::flags);
 }

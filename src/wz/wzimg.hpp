@@ -24,7 +24,7 @@ public:
 
 private:
     int32_t len;
-    uint8_t *data;
+    uint8_t * data;
     uint32_t offset;
     MapFile file;
 };
@@ -39,7 +39,7 @@ public:
             n.Set(this);
     }
     void Parse();
-    void *operator new(size_t);
+    void * operator new(size_t);
 
 private:
     Node n;

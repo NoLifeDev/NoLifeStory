@@ -26,7 +26,7 @@ class bitmap {
 public:
     bitmap() = default;
     bitmap(bitmap const &) = default;
-    bitmap &operator=(bitmap const &) = default;
+    bitmap & operator=(bitmap const &) = default;
     // Comparison operators, useful for containers
     bool operator==(bitmap const &) const;
     bool operator<(bitmap const &) const;
@@ -36,7 +36,7 @@ public:
     // Do not free the pointer returned by this method
     // Every time this function is called
     // any previous pointers returned by this method become invalid
-    void const *data() const;
+    void const * data() const;
     uint16_t width() const;
     uint16_t height() const;
     uint32_t length() const;
@@ -45,7 +45,7 @@ public:
 
 private:
     bitmap(void const *, uint16_t, uint16_t);
-    void const *m_data = nullptr;
+    void const * m_data = nullptr;
     uint16_t m_width = 0;
     uint16_t m_height = 0;
     friend node;

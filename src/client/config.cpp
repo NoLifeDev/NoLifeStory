@@ -47,11 +47,11 @@ struct mapping {
 std::map<std::string, std::string> configs;
 std::map<std::string, mapping> mappings;
 // These mappings provide an easy way to map a variable to a config
-void map_string(std::string const &n, std::string &v) {
+void map_string(std::string const & n, std::string & v) {
     mappings[n].save = [&v, n] { configs[n] = v; };
     mappings[n].load = [&v, n] { v = configs[n]; };
 }
-void map_int(std::string const &n, int &v) {
+void map_int(std::string const & n, int & v) {
     mappings[n].save = [&v, n] { configs[n] = std::to_string(v); };
     mappings[n].load = [&v, n] {
         // Try catch this to prevent crashes from user stupidity
@@ -60,16 +60,16 @@ void map_int(std::string const &n, int &v) {
         } catch (std::exception const &) {}
     };
 }
-void map_bool(std::string const &n, bool &v) {
+void map_bool(std::string const & n, bool & v) {
     mappings[n].save = [&v, n] { configs[n] = v ? "true" : "false"; };
     mappings[n].load = [&v, n] { v = configs[n] == "true" ? true : false; };
 }
 void save() {
     // Write the variables to their configs
-    for (auto const &m : mappings) m.second.save();
+    for (auto const & m : mappings) m.second.save();
     // Then save the config itself
     std::ofstream file("NoLifeClient.cfg");
-    for (auto const &c : configs) file << c.first << " = " << c.second << '\n';
+    for (auto const & c : configs) file << c.first << " = " << c.second << '\n';
 }
 void load() {
     // First set some runtime defaults
@@ -93,7 +93,7 @@ void load() {
     map_int("atlassize", atlas_size);
     map_string("map", map);
     // First we save the defaults in case the config file doesn't have them
-    for (auto const &m : mappings) m.second.save();
+    for (auto const & m : mappings) m.second.save();
     // Now we load the config itself
     std::ifstream file("NoLifeClient.cfg");
     std::regex reg("[ \t]*([a-z0-9.-]+)[ \t]*=[ \t]*([a-z0-9.-]+)[ \t]*",
@@ -103,12 +103,12 @@ void load() {
         while (!file.eof()) {
             getline(file, line);
             transform(line.cbegin(), line.cend(), line.begin(),
-                      [](char const &c) { return std::tolower(c, std::locale::classic()); });
+                      [](char const & c) { return std::tolower(c, std::locale::classic()); });
             std::smatch m;
             if (!std::regex_match(line, m, reg)) continue;
             configs[m[1]] = m[2];
         }
-    for (auto const &m : mappings) m.second.load();
+    for (auto const & m : mappings) m.second.load();
     // And then we save the config back
     save();
 }

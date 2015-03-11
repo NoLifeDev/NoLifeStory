@@ -52,9 +52,9 @@ void foothold::load() {
         }
     }
     std::sort(footholds.begin(), footholds.end(),
-              [](foothold const &p_1, foothold const &p_2) { return p_1.id < p_2.id; });
-    for (auto &fh : footholds) {
-        auto pred = [](foothold const &p_fh, int p_id) { return p_fh.id < p_id; };
+              [](foothold const & p_1, foothold const & p_2) { return p_1.id < p_2.id; });
+    for (auto & fh : footholds) {
+        auto pred = [](foothold const & p_fh, int p_id) { return p_fh.id < p_id; };
         auto nextit = std::lower_bound(footholds.cbegin(), footholds.cend(), fh.nextid, pred);
         fh.next = nextit != footholds.cend() && nextit->id == fh.nextid ? &*nextit : nullptr;
         auto previt = std::lower_bound(footholds.cbegin(), footholds.cend(), fh.previd, pred);
@@ -68,7 +68,7 @@ void foothold::draw_lines() {
     glLineWidth(3);
     glColor4f(0, 0, 0, 1);
     glBegin(GL_LINES);
-    for (auto &fh : footholds) {
+    for (auto & fh : footholds) {
         glVertex2i(fh.x1 - view::xmin, fh.y1 - view::ymin);
         glVertex2i(fh.x2 - view::xmin, fh.y2 - view::ymin);
     }
@@ -76,7 +76,7 @@ void foothold::draw_lines() {
     glLineWidth(1);
     glColor4f(1, 0, 1, 1);
     glBegin(GL_LINES);
-    for (auto &fh : footholds) {
+    for (auto & fh : footholds) {
         glVertex2i(fh.x1 - view::xmin, fh.y1 - view::ymin);
         glVertex2i(fh.x2 - view::xmin, fh.y2 - view::ymin);
     }

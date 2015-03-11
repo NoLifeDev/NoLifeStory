@@ -21,12 +21,12 @@
 #include <vector>
 
 namespace nl {
-bitmap::bitmap(void const *d, uint16_t w, uint16_t h) : m_data(d), m_width(w), m_height(h) {}
-bool bitmap::operator<(bitmap const &o) const { return m_data < o.m_data; }
-bool bitmap::operator==(bitmap const &o) const { return m_data == o.m_data; }
+bitmap::bitmap(void const * d, uint16_t w, uint16_t h) : m_data(d), m_width(w), m_height(h) {}
+bool bitmap::operator<(bitmap const & o) const { return m_data < o.m_data; }
+bool bitmap::operator==(bitmap const & o) const { return m_data == o.m_data; }
 bitmap::operator bool() const { return m_data ? true : false; }
 std::vector<char> bitmap_buf;
-void const *bitmap::data() const {
+void const * bitmap::data() const {
     if (!m_data) return nullptr;
     auto const l = length();
     if (l + 0x20 > bitmap_buf.size()) bitmap_buf.resize(l + 0x20);

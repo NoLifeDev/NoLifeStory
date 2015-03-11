@@ -11,12 +11,12 @@ public:
     union vt {
         double dreal;
         int ireal;
-        char *string;
-        Img *img;
+        char * string;
+        Img * img;
     } value;
-    Data *parent;
-    char *name;
-    Data *children;
+    Data * parent;
+    char * name;
+    Data * children;
     uint16_t num;
     enum class Type : uint8_t { none, dreal, ireal, string, uol, sprite, sound, img } type;
 
@@ -26,15 +26,15 @@ private:
 
 Node::Node() : data(nullptr) {}
 
-Node::Node(Data *data) : data(data) {}
+Node::Node(Data * data) : data(data) {}
 
-Node::Node(Data &data) : data(&data) {}
+Node::Node(Data & data) : data(&data) {}
 
-Node::Node(const Node &other) : data(other.data) {}
+Node::Node(const Node & other) : data(other.data) {}
 
-Node Node::operator=(const Node &other) { return data = other.data; }
+Node Node::operator=(const Node & other) { return data = other.data; }
 
-Node Node::operator[](const char *key) const {
+Node Node::operator[](const char * key) const {
     if (!data) return Node();
     if (strcmp(key, "..") == 0) return data->parent;
     if (strcmp(key, ".") == 0) return *this;
@@ -50,11 +50,11 @@ Node Node::operator[](const char *key) const {
 }
 
 Node Node::operator[](string key) const { return operator[](key.c_str()); }
-Node Node::operator[](char *key) const { return operator[]((const char *)key); }
+Node Node::operator[](char * key) const { return operator[]((const char *)key); }
 
 Node Node::operator[](int key) const { return operator[](to_string(key).c_str()); }
 
-Node Node::g(char *key, int n) {
+Node Node::g(char * key, int n) {
     data->children[n].name = key;
     data->children[n].parent = this->data;
     return data->children[n];
@@ -72,21 +72,17 @@ void Node::InitTop(string s) {
     data->parent = this->data;
 }
 
-void Node::Assign(const Node &other) { data = other.data; }
+void Node::Assign(const Node & other) { data = other.data; }
 
 Node::operator bool() const { return data == nullptr; }
 
 Node::operator string() const {
     if (!data) return string();
     switch (data->type) {
-    case Data::Type::ireal:
-        return to_string(data->value.ireal);
-    case Data::Type::dreal:
-        return to_string(data->value.dreal);
-    case Data::Type::string:
-        return data->value.string;
-    default:
-        return string();
+    case Data::Type::ireal: return to_string(data->value.ireal);
+    case Data::Type::dreal: return to_string(data->value.dreal);
+    case Data::Type::string: return data->value.string;
+    default: return string();
     }
 }
 
@@ -120,13 +116,13 @@ if (!data) return Sound();
 return data->sound;
 }*/
 
-void Node::Set(char *v) {
+void Node::Set(char * v) {
     if (!v) v = AllocString(1);
     data->value.string = v;
     data->type = Data::Type::string;
 }
 
-void Node::SetUOL(char *v) {
+void Node::SetUOL(char * v) {
     data->value.string = v;
     data->type = Data::Type::uol;
 }
@@ -149,7 +145,7 @@ void Node::Set(const Sound& v) {
 data->sound = v;
 }*/
 
-void Node::Set(Img *img) {
+void Node::Set(Img * img) {
     data->value.img = img;
     data->type = Data::Type::img;
 }
@@ -157,10 +153,10 @@ void Node::Set(Img *img) {
 void Node::Resolve() {
     if (!data) return;
     if (data->type == Data::Type::uol) {
-        char *s = data->value.string;
-        static char *parts[10];
+        char * s = data->value.string;
+        static char * parts[10];
         int n = 1;
-        char *it = s;
+        char * it = s;
         parts[0] = s;
         while (*it != '\0') {
             if (*it == '/') {
@@ -182,7 +178,7 @@ void Node::Resolve() {
 }
 
 void Node::Reserve(int n) {
-    static Data *d = nullptr;
+    static Data * d = nullptr;
     static size_t remain = 0;
     if (remain < n) {
         d = (Data *)calloc(0x10000, sizeof(Data));
@@ -212,19 +208,19 @@ Node Node::end() const {
     return data->children + data->num;
 }
 
-Node &Node::operator++() {
+Node & Node::operator++() {
     ++data;
     return *this;
 }
 
-Node &Node::operator--() {
+Node & Node::operator--() {
     --data;
     return *this;
 }
 
-bool Node::operator==(const Node &other) const { return data == other.data; }
+bool Node::operator==(const Node & other) const { return data == other.data; }
 
-bool Node::operator!=(const Node &other) const { return data != other.data; }
+bool Node::operator!=(const Node & other) const { return data != other.data; }
 
-Node &Node::operator*() { return *this; }
+Node & Node::operator*() { return *this; }
 }

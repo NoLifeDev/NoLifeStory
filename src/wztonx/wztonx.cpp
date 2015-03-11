@@ -55,11 +55,12 @@ namespace sys = boost::filesystem;
 #include <map>
 #include <numeric>
 #include <regex>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace {
-std::string u8string(const sys::path &path) {
+std::string u8string(const sys::path & path) {
 #ifndef NL_NO_STD_FILESYSTEM
     return path.u8string();
 #else
@@ -82,7 +83,7 @@ typedef int32_t int_t;
 extern key_t key_bms[65536];
 extern key_t key_gms[65536];
 extern key_t key_kms[65536];
-key_t const *keys[3] = {key_bms, key_gms, key_kms};
+key_t const * keys[3] = {key_bms, key_gms, key_kms};
 // Tables for color lookups
 uint8_t const table4[0x10] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
                               0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
@@ -121,15 +122,15 @@ char16_t const cp1252[0x100] = {
 // Identity operation because C++ doesn't have such a template. Surprising, I know.
 template <typename T>
 struct identity {
-    T const &operator()(T const &v) const { return v; }
+    T const & operator()(T const & v) const { return v; }
 };
 // Input memory mapped file
 struct imapfile {
-    char const *base = nullptr;
-    char const *offset = nullptr;
+    char const * base = nullptr;
+    char const * offset = nullptr;
 #ifdef _WIN32
-    void *file_handle = nullptr;
-    void *map_handle = nullptr;
+    void * file_handle = nullptr;
+    void * map_handle = nullptr;
     void open(std::string p) {
         file_handle = CreateFileA(p.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
                                   FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
@@ -173,7 +174,7 @@ struct imapfile {
     void skip(size_t n) { offset += n; }
     template <typename T>
     T read() {
-        auto &v = *reinterpret_cast<T const *>(offset);
+        auto & v = *reinterpret_cast<T const *>(offset);
         offset += sizeof(T);
         return v;
     }
@@ -184,11 +185,11 @@ struct imapfile {
 };
 // Output memory mapped file
 struct omapfile {
-    char *base = nullptr;
-    char *offset = nullptr;
+    char * base = nullptr;
+    char * offset = nullptr;
 #ifdef _WIN32
-    void *file_handle = nullptr;
-    void *map_handle = nullptr;
+    void * file_handle = nullptr;
+    void * map_handle = nullptr;
     void open(std::string p, size_t size) {
         file_handle
             = ::CreateFileA(p.c_str(), GENERIC_READ | GENERIC_WRITE,
@@ -235,11 +236,11 @@ struct omapfile {
     void seek(size_t n) { offset = base + n; }
     void skip(size_t n) { offset += n; }
     template <typename T>
-    void write(T const &v) {
+    void write(T const & v) {
         *reinterpret_cast<T *>(offset) = v;
         offset += sizeof(T);
     }
-    void write(void const *buf, size_t size) {
+    void write(void const * buf, size_t size) {
         std::memcpy(offset, buf, size);
         offset += size;
     }
@@ -284,7 +285,7 @@ struct audio {
 };
 struct bitmap {
     uint64_t data;
-    uint8_t const *key;
+    uint8_t const * key;
 };
 // The main class itself
 struct wztonx {
@@ -298,10 +299,10 @@ struct wztonx {
     std::string str_buf;
     std::u16string wstr_buf;
 #ifndef NL_NO_CODECVT
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convert;
 #endif
-    char8_t const *u8key = nullptr;
-    char16_t const *u16key = nullptr;
+    char8_t const * u8key = nullptr;
+    char16_t const * u16key = nullptr;
     std::vector<std::pair<id_t, int32_t>> imgs;
     size_t file_start = 0;
     std::vector<id_t> uol_path;
@@ -313,9 +314,10 @@ struct wztonx {
     bool client, hc;
     std::string wzfilename, nxfilename;
     // Methods
-    std::string convert_str(std::u16string const &p_str) {
+    std::string convert_str(std::u16string const & p_str) {
 #ifndef NL_NO_CODECVT
-        return convert.to_bytes(p_str);
+        auto ptr = reinterpret_cast<wchar_t const *>(p_str.c_str());
+        return convert.to_bytes(ptr, ptr + p_str.size());
 #else
         std::array<char, 0x10000> buf;
         std::wstring wbuf{p_str.cbegin(), p_str.cend()};
@@ -331,7 +333,7 @@ struct wztonx {
             hash ^= c;
             hash *= 16777619u;
         }
-        auto &id = string_map[hash];
+        auto & id = string_map[hash];
         if (id != 0) return id;
         id = static_cast<id_t>(strings.size());
         strings.push_back(std::move(str));
@@ -358,7 +360,7 @@ struct wztonx {
             for (auto i = 0u; i < slen; ++i, ++mask)
                 str_buf[i] = static_cast<char8_t>(os[i] ^ u8key[i] ^ mask);
             if (std::any_of(str_buf.begin(), str_buf.end(),
-                            [](char const &c) { return static_cast<uint8_t>(c) >= 0x80; })) {
+                            [](char const & c) { return static_cast<uint8_t>(c) >= 0x80; })) {
                 std::transform(str_buf.cbegin(), str_buf.cend(), std::back_inserter(wstr_buf),
                                [](char c) { return cp1252[static_cast<unsigned char>(c)]; });
                 return add_string(convert_str(wstr_buf));
@@ -371,8 +373,7 @@ struct wztonx {
         auto a = in.read<uint8_t>();
         switch (a) {
         case 0x00:
-        case 0x73:
-            return read_enc_string();
+        case 0x73: return read_enc_string();
         case 0x01:
         case 0x1B: {
             auto o = in.read<int32_t>() + p_offset;
@@ -382,8 +383,7 @@ struct wztonx {
             in.seek(p);
             return s;
         }
-        default:
-            throw std::runtime_error("Unknown property string type: " + std::to_string(a));
+        default: throw std::runtime_error("Unknown property string type: " + std::to_string(a));
         }
     }
     void deduce_key() {
@@ -409,12 +409,13 @@ struct wztonx {
         in.skip(slen);
     }
     void sort_nodes(id_t first, id_t count) {
-        std::sort(
-            nodes.begin() + first, nodes.begin() + first + count,
-            [this](node const &n1, node const &n2) { return strings[n1.name] < strings[n2.name]; });
+        std::sort(nodes.begin() + first, nodes.begin() + first + count,
+                  [this](node const & n1, node const & n2) {
+                      return strings[n1.name] < strings[n2.name];
+                  });
     }
     void find_uols(id_t uol_node) {
-        auto &n = nodes[uol_node];
+        auto & n = nodes[uol_node];
         if (n.data_type == node::type::uol) {
             uol_path.push_back(uol_node);
             uols.push_back(uol_path);
@@ -425,12 +426,12 @@ struct wztonx {
             uol_path.pop_back();
         }
     }
-    id_t get_child(id_t parent_node, std::string const &str) {
+    id_t get_child(id_t parent_node, std::string const & str) {
         if (parent_node == 0) return 0;
-        auto &n = nodes[parent_node];
+        auto & n = nodes[parent_node];
         auto first = nodes.begin() + n.children;
         auto last = first + n.num;
-        auto it = std::lower_bound(first, last, str, [this](node const &n, std::string const &s) {
+        auto it = std::lower_bound(first, last, str, [this](node const & n, std::string const & s) {
             return strings[n.name] < s;
         });
         if (it == last) return 0;
@@ -438,10 +439,10 @@ struct wztonx {
         return static_cast<id_t>(it - nodes.begin());
     }
     bool resolve_uol(std::vector<id_t> uol) {
-        auto &n = nodes[uol.back()];
+        auto & n = nodes[uol.back()];
         uol.pop_back();
         if (n.data_type != node::type::uol) throw std::runtime_error("Welp. I failed.");
-        auto &s = strings[n.data.string];
+        auto & s = strings[n.data.string];
         auto b = 0u;
         for (auto i = 0u; i < s.size(); ++i)
             if (s[i] == '/') {
@@ -453,7 +454,7 @@ struct wztonx {
             }
         uol.push_back(get_child(uol.back(), s.substr(b)));
         if (uol.back() == 0) return false;
-        auto &nr = nodes[uol.back()];
+        auto & nr = nodes[uol.back()];
         if (nr.data_type == node::type::uol) return false;
         n.data_type = nr.data_type;
         n.children = nr.children;
@@ -461,13 +462,13 @@ struct wztonx {
         n.data.integer = nr.data.integer;
         return true;
     }
-    void uol_fail(std::vector<id_t> &uol) {
-        std::cerr << "Ivalid UOL: ";
+    void uol_fail(std::vector<id_t> & uol) {
+        std::cerr << "Invalid UOL: ";
         for (auto id : uol) {
-            auto &n = nodes[id];
+            auto & n = nodes[id];
             std::cerr << '/' << strings[n.name];
         }
-        auto &n = nodes[uol.back()];
+        auto & n = nodes[uol.back()];
         if (n.data_type == node::type::uol) {
             std::cerr << " = \"" << strings[n.data.string] << "\"" << std::endl;
             // If we failed to resolve any uols, just turn them into useless empty nodes
@@ -476,18 +477,17 @@ struct wztonx {
     }
     void directory(id_t dir_node) {
         std::vector<id_t> directories;
-        auto &n = nodes[dir_node];
+        auto & n = nodes[dir_node];
         auto count = static_cast<id_t>(in.read_cint());
         auto ni = static_cast<id_t>(nodes.size());
         n.num = static_cast<uint16_t>(count);
         n.children = ni;
         nodes.resize(ni + count);
         for (auto i = 0u; i < count; ++i) {
-            auto &nn = nodes[ni + i];
+            auto & nn = nodes[ni + i];
             auto type = in.read<uint8_t>();
             switch (type) {
-            case 1:
-                throw std::runtime_error("Found the elusive type 1 directory");
+            case 1: throw std::runtime_error("Found the elusive type 1 directory");
             case 2: {
                 auto s = in.read<int32_t>();
                 auto p = in.tell();
@@ -498,11 +498,8 @@ struct wztonx {
                 break;
             }
             case 3:
-            case 4:
-                nn.name = read_enc_string();
-                break;
-            default:
-                throw std::runtime_error("Unknown directory type");
+            case 4: nn.name = read_enc_string(); break;
+            default: throw std::runtime_error("Unknown directory type");
             }
             auto size = in.read_cint();
             if (size < 0) throw std::runtime_error("Directory/img has invalid size!");
@@ -519,8 +516,8 @@ struct wztonx {
         nodes_to_sort.emplace_back(ni, count);
     }
     void extended_property(id_t prop_node, size_t p_offset) {
-        auto &n = nodes[prop_node];
-        auto &st = strings[read_prop_string(p_offset)];
+        auto & n = nodes[prop_node];
+        auto & st = strings[read_prop_string(p_offset)];
         if (st == "Property") {
             in.skip(2);
             sub_property(prop_node, p_offset);
@@ -532,7 +529,7 @@ struct wztonx {
             }
             // Have to recalculate n, because address may have changed
             // because sub_property may increase the size of nodes
-            auto &nn = nodes[prop_node];
+            auto & nn = nodes[prop_node];
             nn.data_type = node::type::bitmap;
             nn.data.bitmap.id = static_cast<uint32_t>(bitmaps.size());
             bitmaps.push_back({in.tell(), reinterpret_cast<uint8_t const *>(u8key)});
@@ -549,7 +546,7 @@ struct wztonx {
             n.children = ni;
             nodes.resize(nodes.size() + count);
             for (auto i = 0u; i < count; ++i) {
-                auto &nn = nodes[ni + i];
+                auto & nn = nodes[ni + i];
                 auto es = std::to_string(i);
                 nn.name = add_string(std::move(es));
                 extended_property(ni, p_offset);
@@ -572,14 +569,14 @@ struct wztonx {
         } else { throw std::runtime_error("Unknown sub property type: " + st); }
     }
     void sub_property(id_t prop_node, size_t p_offset) {
-        auto &n = nodes[prop_node];
+        auto & n = nodes[prop_node];
         auto count = static_cast<id_t>(in.read_cint());
         auto ni = static_cast<id_t>(nodes.size());
         n.num = static_cast<uint16_t>(count);
         n.children = ni;
         nodes.resize(nodes.size() + count);
         for (auto i = 0u; i < count; ++i) {
-            auto &nn = nodes[ni + i];
+            auto & nn = nodes[ni + i];
             nn.name = read_prop_string(p_offset);
             auto type = in.read<uint8_t>();
             uint8_t num;
@@ -629,8 +626,7 @@ struct wztonx {
                     nn.data.integer = static_cast<int8_t>(num);
                 }
                 break;
-            default:
-                throw std::runtime_error("Unknown sub property type: " + std::to_string(type));
+            default: throw std::runtime_error("Unknown sub property type: " + std::to_string(type));
             }
         }
         nodes_to_sort.emplace_back(ni, count);
@@ -658,19 +654,21 @@ struct wztonx {
         in.seek(file_start + 2);
         add_string({});
         directory(0);
-        for (auto &it : imgs) img(it.first, it.second);
+        for (auto & it : imgs) img(it.first, it.second);
         finish_parse();
     }
     void finish_parse() {
-        for (auto const &n : nodes_to_sort) sort_nodes(n.first, n.second);
+        for (auto const & n : nodes_to_sort) sort_nodes(n.first, n.second);
         find_uols(0);
         for (;;) {
-            auto it = std::remove_if(uols.begin(), uols.end(),
-                                     [this](std::vector<id_t> const &v) { return resolve_uol(v); });
+            auto it = std::remove_if(uols.begin(), uols.end(), [this](std::vector<id_t> const & v) {
+                return resolve_uol(v);
+            });
+            auto diff = uols.end() - it;
             uols.erase(it, uols.end());
-            if (it == uols.begin() || it == uols.end()) break;
+            if (diff == 0) break;
         }
-        for (auto &it : uols) uol_fail(it);
+        for (auto & it : uols) uol_fail(it);
         std::cout << "Done!" << std::endl;
     }
     void calculate_offsets() {
@@ -685,9 +683,9 @@ struct wztonx {
         offset += 0x10 - (offset & 0xf);
         string_offset = offset;
         offset += std::accumulate(strings.begin(), strings.end(), 0ull,
-                                  [](size_t n, std::string const &s) {
-            return n + s.size() + 2 + (s.size() & 1 ? 1 : 0);
-        });
+                                  [](size_t n, std::string const & s) {
+                                      return n + s.size() + 2 + (s.size() & 1 ? 1 : 0);
+                                  });
         offset += 0x10 - (offset & 0xf);
         audio_table_offset = offset;
         if (client) {
@@ -702,7 +700,7 @@ struct wztonx {
         audio_offset = offset;
         if (client) {
             offset += std::accumulate(audios.begin(), audios.end(), 0ull,
-                                      [](size_t n, audio const &a) { return n + a.length; });
+                                      [](size_t n, audio const & a) { return n + a.length; });
             offset += 0x10 - (offset & 0xf);
         }
         bitmap_offset = offset;
@@ -740,13 +738,13 @@ struct wztonx {
         std::cout << "Writing strings.....";
         out.seek(string_table_offset);
         auto next_str = string_offset;
-        for (auto const &s : strings) {
+        for (auto const & s : strings) {
             out.write<uint64_t>(next_str);
             next_str += s.size() + 2;
             if (s.size() & 1) ++next_str;
         }
         out.seek(string_offset);
-        for (auto const &s : strings) {
+        for (auto const & s : strings) {
             out.write<uint16_t>(static_cast<uint16_t>(s.size()));
             out.write(s.data(), s.size());
             if (s.size() & 1) out.skip(1);
@@ -757,12 +755,12 @@ struct wztonx {
         std::cout << "Writing audio.......";
         out.seek(audio_table_offset);
         auto audio_off = audio_offset;
-        for (auto &a : audios) {
+        for (auto & a : audios) {
             out.write<uint64_t>(audio_off);
             audio_off += a.length;
         }
         out.seek(audio_offset);
-        for (auto &a : audios) out.write(in.base + a.data, a.length);
+        for (auto & a : audios) out.write(in.base + a.data, a.length);
         std::cout << "Done!" << std::endl;
     }
     void write_bitmaps() {
@@ -773,7 +771,7 @@ struct wztonx {
         std::vector<uint8_t> output;
         std::vector<uint8_t> fixed_output;
         std::vector<uint8_t> final_output;
-        for (auto &b : bitmaps) {
+        for (auto & b : bitmaps) {
             out.write<uint64_t>(bitmap_offset);
             in.seek(b.data);
             auto width = in.read_cint();
@@ -782,13 +780,13 @@ struct wztonx {
             format += in.read<uint8_t>();
             auto n1 = in.read<uint32_t>();
             if (n1) {
-                std::cerr << "Report this: "
+                std::cerr << "non-zero n1: "
                           << "0x" << std::setfill('0') << std::setw(8) << std::hex << n1;
             }
             auto length = in.read<uint32_t>();
             auto n2 = in.read<uint8_t>();
             if (n2) {
-                std::cerr << "Report this: "
+                std::cerr << "non-zero n2: "
                           << " 0x" << std::setfill('0') << std::setw(2) << std::hex
                           << static_cast<unsigned>(n2) << std::endl;
             }
@@ -806,13 +804,7 @@ struct wztonx {
                 strm.next_out = output.data();
                 strm.avail_out = static_cast<unsigned>(output.size());
                 auto err = inflate(&strm, Z_FINISH);
-                if (err != Z_BUF_ERROR) {
-                    std::cerr << "Report this: " << std::dec << err << ": 0x" << std::setfill('0')
-                              << std::setw(2) << std::hex << (unsigned)original[0] << " 0x"
-                              << std::setfill('0') << std::setw(2) << std::hex
-                              << static_cast<unsigned>(original[1]) << std::endl;
-                    return false;
-                }
+                if (err != Z_BUF_ERROR) { return false; }
                 inflateEnd(&strm);
                 return true;
             };
@@ -831,8 +823,12 @@ struct wztonx {
                 return true;
             };
             std::copy(original, original + length, input.begin());
-            if (!decompress())
-                if (decrypt()) decompress();
+            if (!decompress() && !decrypt() && !decompress()) {
+                std::cerr << "Unable to inflate: 0x" << std::setfill('0') << std::setw(2)
+                          << std::hex << (unsigned)original[0] << " 0x" << std::setfill('0')
+                          << std::setw(2) << std::hex << static_cast<unsigned>(original[1])
+                          << std::endl;
+            }
             auto pixels = width * height;
             struct color4444 {
                 uint8_t b : 4;
@@ -881,8 +877,7 @@ struct wztonx {
                     for (auto j = 0; j < 256; ++j) { pixelsout[i + j] = c; }
                 }
                 break;
-            default:
-                throw std::runtime_error("Unknown image type!");
+            default: throw std::runtime_error("Unknown image type!");
             }
             final_output.resize(static_cast<size_t>(LZ4_compressBound(size)));
             uint32_t final_size;
@@ -928,7 +923,7 @@ struct imgtonx : wztonx {
     }
 };
 }
-int main(int argc, char **argv) {
+int main(int argc, char ** argv) {
     auto a = std::chrono::high_resolution_clock::now();
 #ifdef NL_NO_CODECVT
     std::setlocale(LC_ALL, "en_US.utf8");
@@ -944,26 +939,26 @@ Converts WZ files into NX files
     std::vector<sys::path> paths;
     std::regex reg1{"--([a-z]+)"};
     std::regex reg2{"-([a-z]+)"};
-    for (auto &arg : args) {
+    for (auto & arg : args) {
         if (arg[0] != '-') {
             paths.emplace_back(arg);
             continue;
         }
-        for (auto &c : arg) { c = std::tolower(c, std::locale::classic()); }
+        for (auto & c : arg) { c = std::tolower(c, std::locale::classic()); }
         if (arg == "--client" || arg == "-c") {
             type = client;
         } else if (arg == "--server" || arg == "-s") {
             type = server;
         } else if (arg == "--lz4hc" || arg == "-h") { hc = true; }
     }
-    auto convert = [&](sys::path const &p) {
+    auto convert = [&](sys::path const & p) {
         try {
             if (u8string(p.extension()) == ".img") {
                 nl::imgtonx{p, type == client, hc}.convert_file();
             } else { nl::wztonx{p, type == client, hc}.convert_file(); }
-        } catch (std::exception const &e) { std::cerr << e.what() << std::endl; }
+        } catch (std::exception const & e) { std::cerr << e.what() << std::endl; }
     };
-    for (auto &p : paths) {
+    for (auto & p : paths) {
         if (sys::is_regular_file(p)) { convert(p); } else if (sys::is_directory(p)) {
             for (sys::recursive_directory_iterator it{p}, end{}; it != end; ++it) { convert(*it); }
         }

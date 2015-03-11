@@ -35,15 +35,15 @@ struct file::header {
 };
 #pragma pack(pop)
 struct _file_data {
-    void const *base = nullptr;
-    node::data const *node_table = nullptr;
-    uint64_t const *string_table = nullptr;
-    uint64_t const *bitmap_table = nullptr;
-    uint64_t const *audio_table = nullptr;
-    file::header const *header = nullptr;
+    void const * base = nullptr;
+    node::data const * node_table = nullptr;
+    uint64_t const * string_table = nullptr;
+    uint64_t const * bitmap_table = nullptr;
+    uint64_t const * audio_table = nullptr;
+    file::header const * header = nullptr;
 #ifdef _WIN32
-    void *file_handle = nullptr;
-    void *map = nullptr;
+    void * file_handle = nullptr;
+    void * map = nullptr;
 #else
     int file_handle = 0;
     size_t size = 0;

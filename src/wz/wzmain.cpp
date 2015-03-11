@@ -96,7 +96,7 @@ void File::Directory(Node n) {
     vector<Node> dirs;
     n.Reserve(count);
     for (int i = 0; i < count; ++i) {
-        char *name;
+        char * name;
         uint8_t type = file.Read<uint8_t>();
         if (type == 1) {
             file.Skip(10);
@@ -132,7 +132,7 @@ void Load(string name) {
     Base.InitTop(name);
     new File(Base);
     if (!Lazy) {
-        for (Img *img : Img::Imgs) img->Parse();
+        for (Img * img : Img::Imgs) img->Parse();
         Base.Resolve();
     }
 }

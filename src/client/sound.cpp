@@ -35,13 +35,13 @@ namespace nl {
 namespace music {
 node n = {};
 struct stream_t {
-    PaStream *stream = nullptr;
-    mpg123_handle *handle = nullptr;
+    PaStream * stream = nullptr;
+    mpg123_handle * handle = nullptr;
     audio a;
     int channels = 0;
     std::atomic_bool stop;
 };
-stream_t *active = nullptr;
+stream_t * active = nullptr;
 void init() {
     if (mpg123_init() != MPG123_OK) throw std::runtime_error("Failed to initialize mpg123");
     if (Pa_Initialize() != paNoError) throw std::runtime_error("Failed to initialize PortAudio");
@@ -50,8 +50,8 @@ void unload() {
     mpg123_exit();
     Pa_Terminate();
 }
-int callback(const void *, void *output, unsigned long frames, PaStreamCallbackTimeInfo const *,
-             PaStreamCallbackFlags, void *user) {
+int callback(const void *, void * output, unsigned long frames, PaStreamCallbackTimeInfo const *,
+             PaStreamCallbackFlags, void * user) {
     auto stream = reinterpret_cast<stream_t *>(user);
     auto todo = static_cast<size_t>(frames * 2 * stream->channels);
     auto buf = reinterpret_cast<unsigned char *>(output);
@@ -72,13 +72,12 @@ int callback(const void *, void *output, unsigned long frames, PaStreamCallbackT
         auto s = frames * stream->channels;
         for (auto i = 0ul; i < s; ++i)
             a[i] = static_cast<int16_t>(static_cast<double>(s - i) / s * a[i]);
-        std::thread([](stream_t *stream) {
-                        Pa_StopStream(stream->stream);
-                        Pa_CloseStream(stream->stream);
-                        mpg123_close(stream->handle);
-                        delete stream;
-                    },
-                    stream).detach();
+        std::thread([](stream_t * stream) {
+            Pa_StopStream(stream->stream);
+            Pa_CloseStream(stream->stream);
+            mpg123_close(stream->handle);
+            delete stream;
+        }, stream).detach();
         return paComplete;
     }
     return paContinue;

@@ -109,10 +109,10 @@ void update() {
     if (next != current) load_now();
 }
 void render() {
-    for (auto &b : backgrounds) { b.render(); }
+    for (auto & b : backgrounds) { b.render(); }
     layer::render();
-    for (auto &p : portals) { p.render(); }
-    for (auto &b : foregrounds) { b.render(); }
+    for (auto & p : portals) { p.render(); }
+    for (auto & b : foregrounds) { b.render(); }
     foothold::draw_lines();
     view::draw_edges();
 }

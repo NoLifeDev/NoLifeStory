@@ -6,9 +6,9 @@
 #include "wzmain.h"
 
 namespace WZ {
-uint8_t *Key = 0;
-uint8_t *AKey = 0;
-uint16_t *WKey = 0;
+uint8_t * Key = 0;
+uint8_t * AKey = 0;
+uint16_t * WKey = 0;
 int16_t EncVersion;
 uint16_t Version = 0;
 uint32_t VersionHash;
@@ -21,7 +21,7 @@ const uint8_t KMSKeyIV[4] = {0xB9, 0x7D, 0x63, 0xE9};
 const uint8_t AESKey[] = {0x13, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00,
                           0x00, 0xB4, 0x00, 0x00, 0x00, 0x1B, 0x00, 0x00, 0x00, 0x0F, 0x00,
                           0x00, 0x00, 0x33, 0x00, 0x00, 0x00, 0x52, 0x00, 0x00, 0x00};
-void GenKey(const uint8_t *IV, uint8_t *key) {
+void GenKey(const uint8_t * IV, uint8_t * key) {
     uint8_t BigIV[16];
     for (int i = 0; i < 16; i += 4) { memcpy(BigIV + i, IV, 4); }
     AESGen.SetParameters(256, 128);

@@ -26,8 +26,8 @@
 #include <sstream>
 
 namespace nl {
-node::node(node const &o) : m_data(o.m_data), m_file(o.m_file) {}
-node::node(data const *d, file::data const *f) : m_data(d), m_file(f) {}
+node::node(node const & o) : m_data(o.m_data), m_file(o.m_file) {}
+node::node(data const * d, file::data const * f) : m_data(d), m_file(f) {}
 node node::begin() const {
     if (!m_data) return {nullptr, m_file};
     return {m_file->node_table + m_data->children, m_file};
@@ -37,31 +37,31 @@ node node::end() const {
     return {m_file->node_table + m_data->children + m_data->num, m_file};
 }
 node node::operator*() const { return *this; }
-node &node::operator++() {
+node & node::operator++() {
     ++m_data;
     return *this;
 }
 node node::operator++(int) { return {m_data++, m_file}; }
-bool node::operator==(node const &o) const { return m_data == o.m_data; }
-bool node::operator!=(node const &o) const { return m_data != o.m_data; }
-bool node::operator<(node const &o) const { return m_data < o.m_data; }
+bool node::operator==(node const & o) const { return m_data == o.m_data; }
+bool node::operator!=(node const & o) const { return m_data != o.m_data; }
+bool node::operator<(node const & o) const { return m_data < o.m_data; }
 std::string operator+(std::string s, node n) { return s + n.get_string(); }
-std::string operator+(char const *s, node n) { return s + n.get_string(); }
+std::string operator+(char const * s, node n) { return s + n.get_string(); }
 std::string operator+(node n, std::string s) { return n.get_string() + s; }
-std::string operator+(node n, char const *s) { return n.get_string() + s; }
+std::string operator+(node n, char const * s) { return n.get_string() + s; }
 node node::operator[](unsigned int n) const { return operator[](std::to_string(n)); }
 node node::operator[](signed int n) const { return operator[](std::to_string(n)); }
 node node::operator[](unsigned long n) const { return operator[](std::to_string(n)); }
 node node::operator[](signed long n) const { return operator[](std::to_string(n)); }
 node node::operator[](unsigned long long n) const { return operator[](std::to_string(n)); }
 node node::operator[](signed long long n) const { return operator[](std::to_string(n)); }
-node node::operator[](std::string const &o) const {
+node node::operator[](std::string const & o) const {
     return get_child(o.c_str(), static_cast<uint16_t>(o.length()));
 }
-node node::operator[](char const *o) const {
+node node::operator[](char const * o) const {
     return get_child(o, static_cast<uint16_t>(std::strlen(o)));
 }
-node node::operator[](node const &o) const { return operator[](o.get_string()); }
+node node::operator[](node const & o) const { return operator[](o.get_string()); }
 node::operator unsigned char() const { return static_cast<unsigned char>(get_integer()); }
 node::operator signed char() const { return static_cast<signed char>(get_integer()); }
 node::operator unsigned short() const { return static_cast<unsigned short>(get_integer()); }
@@ -86,16 +86,11 @@ int64_t node::get_integer(int64_t def) const {
     case type::none:
     case type::vector:
     case type::bitmap:
-    case type::audio:
-        return def;
-    case type::integer:
-        return to_integer();
-    case type::real:
-        return static_cast<int64_t>(to_real());
-    case type::string:
-        return std::stoll(to_string());
-    default:
-        throw std::runtime_error("Unknown node type");
+    case type::audio: return def;
+    case type::integer: return to_integer();
+    case type::real: return static_cast<int64_t>(to_real());
+    case type::string: return std::stoll(to_string());
+    default: throw std::runtime_error("Unknown node type");
     }
 }
 double node::get_real(double def) const {
@@ -104,16 +99,11 @@ double node::get_real(double def) const {
     case type::none:
     case type::vector:
     case type::bitmap:
-    case type::audio:
-        return def;
-    case type::integer:
-        return static_cast<double>(to_integer());
-    case type::real:
-        return to_real();
-    case type::string:
-        return std::stod(to_string());
-    default:
-        throw std::runtime_error("Unknown node type");
+    case type::audio: return def;
+    case type::integer: return static_cast<double>(to_integer());
+    case type::real: return to_real();
+    case type::string: return std::stod(to_string());
+    default: throw std::runtime_error("Unknown node type");
     }
 }
 std::string node::get_string(std::string def) const {
@@ -122,16 +112,11 @@ std::string node::get_string(std::string def) const {
     case type::none:
     case type::vector:
     case type::bitmap:
-    case type::audio:
-        return def;
-    case type::integer:
-        return std::to_string(to_integer());
-    case type::real:
-        return std::to_string(to_real());
-    case type::string:
-        return to_string();
-    default:
-        throw std::runtime_error("Unknown node type");
+    case type::audio: return def;
+    case type::integer: return std::to_string(to_integer());
+    case type::real: return std::to_string(to_real());
+    case type::string: return to_string();
+    default: throw std::runtime_error("Unknown node type");
     }
 }
 vector2i node::get_vector(vector2i def) const {
@@ -162,7 +147,7 @@ std::string node::name() const {
 }
 size_t node::size() const { return m_data ? m_data->num : 0u; }
 node::type node::data_type() const { return m_data ? m_data->type : type::none; }
-node node::get_child(char const *const o, uint16_t const l) const {
+node node::get_child(char const * const o, uint16_t const l) const {
     if (!m_data) return {nullptr, m_file};
     auto p = m_file->node_table + m_data->children;
     auto n = m_data->num;
@@ -210,7 +195,7 @@ std::string node::to_string() const {
 vector2i node::to_vector() const { return {m_data->vector[0], m_data->vector[1]}; }
 bitmap node::to_bitmap() const {
     return {reinterpret_cast<char const *>(m_file->base)
-            + m_file->bitmap_table[m_data->bitmap.index],
+                + m_file->bitmap_table[m_data->bitmap.index],
             m_data->bitmap.width, m_data->bitmap.height};
 }
 audio node::to_audio() const {
@@ -224,7 +209,7 @@ node node::resolve(std::string path) const {
     std::string segment;
     while (std::getline(stream, segment, '/')) parts.push_back(segment);
     auto n = *this;
-    for (auto &part : parts) { n = n[part]; }
+    for (auto & part : parts) { n = n[part]; }
     return n;
 }
 }

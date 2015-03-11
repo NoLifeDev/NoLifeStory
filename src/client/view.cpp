@@ -46,7 +46,7 @@ double tx{0}, ty{0};
 float r{1}, g{1}, b{1};
 int bottomoffset{250};
 template <typename T>
-void restrict(T &p_x, T &p_y) {
+void restrict(T & p_x, T & p_y) {
     p_x = std::max<T>(std::min<T>(p_x, rightin), leftin);
     p_y = std::max<T>(std::min<T>(p_y, bottomin), topin);
 }
@@ -87,7 +87,7 @@ void reset() {
         right = std::numeric_limits<int>::min();
         top = std::numeric_limits<int>::max();
         bottom = std::numeric_limits<int>::min();
-        for (auto &f : footholds) {
+        for (auto & f : footholds) {
             left = std::min(left, f.x1);
             left = std::min(left, f.x2);
             right = std::max(right, f.x1);

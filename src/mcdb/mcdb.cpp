@@ -35,9 +35,9 @@ struct timemob {
     string message;
 };
 vector<timemob> timemob_data;
-std::regex make_reg(std::string const &s) {
+std::regex make_reg(std::string const & s) {
     return std::regex(s, std::regex_constants::extended | std::regex_constants::icase
-                         | std::regex_constants::optimize);
+                             | std::regex_constants::optimize);
 }
 namespace reg {
 auto endhour = make_reg("endhour");
@@ -48,7 +48,7 @@ auto message = make_reg("message");
 auto starthour = make_reg("starthour");
 auto timemob = make_reg("timemob");
 }
-bool match(node const &n, std::regex const &r) { return std::regex_match(n.name(), r); }
+bool match(node const & n, std::regex const & r) { return std::regex_match(n.name(), r); }
 class mcdb {
 public:
     mcdb() { nx::load_all(); }

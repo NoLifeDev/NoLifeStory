@@ -36,39 +36,17 @@ void character::part::set(unsigned p_id) {
     auto name = prefix + part + ".img";
     switch (category) {
     case 0:
-    case 1:
-        m_node = nx::character[name];
-        break;
-    case 2:
-        m_node = nx::character["Face"][name];
-        break;
-    case 3:
-        m_node = nx::character["Hair"][name];
-        break;
-    case 100:
-        m_node = nx::character["Cap"][name];
-        break;
-    case 104:
-        m_node = nx::character["Coat"][name];
-        break;
-    case 105:
-        m_node = nx::character["Longcoat"][name];
-        break;
-    case 106:
-        m_node = nx::character["Pants"][name];
-        break;
-    case 107:
-        m_node = nx::character["Shoes"][name];
-        break;
-    case 108:
-        m_node = nx::character["Glove"][name];
-        break;
-    case 109:
-        m_node = nx::character["Shield"][name];
-        break;
-    case 110:
-        m_node = nx::character["Cape"][name];
-        break;
+    case 1: m_node = nx::character[name]; break;
+    case 2: m_node = nx::character["Face"][name]; break;
+    case 3: m_node = nx::character["Hair"][name]; break;
+    case 100: m_node = nx::character["Cap"][name]; break;
+    case 104: m_node = nx::character["Coat"][name]; break;
+    case 105: m_node = nx::character["Longcoat"][name]; break;
+    case 106: m_node = nx::character["Pants"][name]; break;
+    case 107: m_node = nx::character["Shoes"][name]; break;
+    case 108: m_node = nx::character["Glove"][name]; break;
+    case 109: m_node = nx::character["Shield"][name]; break;
+    case 110: m_node = nx::character["Cape"][name]; break;
     case 101:
     case 102:
     case 103:
@@ -78,11 +56,8 @@ void character::part::set(unsigned p_id) {
     case 115:
     case 116:
     case 118:
-    case 119:
-        m_node = nx::character["Accessory"][name];
-        break;
-    default:
-        throw std::runtime_error{"Unknown part category"};
+    case 119: m_node = nx::character["Accessory"][name]; break;
+    default: throw std::runtime_error{"Unknown part category"};
     }
 }
 void character::render() {
@@ -118,7 +93,7 @@ void character::render() {
         if (!nx::character["00002000.img"][state][frame]) { frame = 0; }
     }
     auto zmap = nx::base["zmap.img"];
-    for (auto &p : m_parts) {
+    for (auto & p : m_parts) {
         auto n = p.m_node[state][frame];
         auto s0 = p.m_node.name();
         auto s1 = n.name();
@@ -138,7 +113,7 @@ void character::render() {
     bool done = false;
     while (!done) {
         done = true;
-        for (auto &p : sub_parts) {
+        for (auto & p : sub_parts) {
             if (!p.done) {
                 if (p.m_node.name() == "body") {
                     p.x = static_cast<int>(pos.x);
@@ -172,10 +147,10 @@ void character::render() {
         }
     }
     std::sort(sub_parts.begin(), sub_parts.end(),
-              [](sub_part const &a, sub_part const &b) { return a.z > b.z; });
+              [](sub_part const & a, sub_part const & b) { return a.z > b.z; });
     auto flags = sprite::relative;
     if (flipped) { flags |= sprite::flipped; }
-    for (auto &p : sub_parts) {
+    for (auto & p : sub_parts) {
         sprite spr = p.m_node;
         spr.draw(p.x, p.y, flags);
     }

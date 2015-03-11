@@ -29,11 +29,11 @@ public:
     // operator Sound() const;
     Node begin() const;
     Node end() const;
-    Node &operator++();
-    Node &operator--();
+    Node & operator++();
+    Node & operator--();
     bool operator==(const Node &) const;
     bool operator!=(const Node &) const;
-    Node &operator*();
+    Node & operator*();
 
     // For internal use only
     Node(Data *);
@@ -52,7 +52,7 @@ public:
     Node g(char *, int n);
 
 private:
-    Data *data;
+    Data * data;
 };
 extern Node Base;
 extern uint16_t Version;

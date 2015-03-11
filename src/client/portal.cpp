@@ -32,24 +32,16 @@ void portal::load() {
 }
 portal::portal(node n) : x(n["x"]), y(n["y"]), tm(n["tm"]), tn(n["tn"]), pt(n["pt"]), pn(n["pn"]) {
     switch (pt) {
-    case 2:
-        spr = portal_sprites["pv"];
-        break;
-    case 10:
-        spr = portal_sprites["ph"]["default"];
-        break;
-    case 11:
-        spr = portal_sprites["psh"]["default"];
-        break;
+    case 2: spr = portal_sprites["pv"]; break;
+    case 10: spr = portal_sprites["ph"]["default"]; break;
+    case 11: spr = portal_sprites["psh"]["default"]; break;
     }
 }
 void portal::render() {
     switch (pt) {
     case 2:
     case 10:
-    case 11:
-        spr.draw(x, y, sprite::relative);
-        break;
+    case 11: spr.draw(x, y, sprite::relative); break;
     }
 }
 }

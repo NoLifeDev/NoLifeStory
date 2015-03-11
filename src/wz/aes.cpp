@@ -444,7 +444,7 @@ uint32_t SubByte(uint32_t data) { // does the SBox on this 4 byte data
     return result;
 } // SubByte
 
-void DumpCharTable(ostream &out, const char *name, const uint8_t *table,
+void DumpCharTable(ostream & out, const char * name, const uint8_t * table,
                    int length) { // dump the contents of a table to a file
     int pos;
     out << name << endl << hex;
@@ -457,7 +457,7 @@ void DumpCharTable(ostream &out, const char *name, const uint8_t *table,
     out << dec;
 } // DumpCharTable
 
-void DumpLongTable(ostream &out, const char *name, const uint32_t *table,
+void DumpLongTable(ostream & out, const char * name, const uint32_t * table,
                    int length) { // dump te contents of a table to a file
     int pos;
     out << name << endl << hex;
@@ -522,7 +522,7 @@ bool CreateAESTables(bool create, bool create_file) {
     return retval;
 } // CreateAESTables
 
-void DumpHex(const uint8_t *table, int length) { // dump some hex values for debugging
+void DumpHex(const uint8_t * table, int length) { // dump some hex values for debugging
     int pos;
     cerr << hex;
     for (pos = 0; pos < length; pos++) {
@@ -536,7 +536,7 @@ void DumpHex(const uint8_t *table, int length) { // dump some hex values for deb
 } // end of anonymous namespace
 
 // Key expansion code - makes local copy
-void AES::KeyExpansion(const uint8_t *key) {
+void AES::KeyExpansion(const uint8_t * key) {
     assert(Nk > 0);
     int i;
     uint32_t temp, *Wb = reinterpret_cast<uint32_t *>(W); // todo not portable - Endian problems
@@ -570,10 +570,11 @@ void AES::SetParameters(int keylength, int blocklength) {
     if ((blocklength != 128) && (blocklength != 192) && (blocklength != 256))
         return; // nothing - todo - throw error?
 
-    static int const parameters[] = {// Nk*32 128     192     256
-                                     10, 12, 14, // Nb*32 = 128
-                                     12, 12, 14, // Nb*32 = 192
-                                     14, 14, 14, // Nb*32 = 256
+    static int const parameters[] = {
+        // Nk*32 128     192     256
+        10, 12, 14, // Nb*32 = 128
+        12, 12, 14, // Nb*32 = 192
+        14, 14, 14, // Nb*32 = 256
     };
 
     // legal parameters, so fire it up
@@ -582,19 +583,19 @@ void AES::SetParameters(int keylength, int blocklength) {
     Nr = parameters[((Nk - 4) / 2 + 3 * (Nb - 4) / 2)];
 } // SetParameters
 
-void AES::StartEncryption(const uint8_t *key) { KeyExpansion(key); } // StartEncryption
+void AES::StartEncryption(const uint8_t * key) { KeyExpansion(key); } // StartEncryption
 
-void AES::EncryptBlock(const uint8_t *datain1,
-                       uint8_t *dataout1) { // todo ? allow in place encryption
+void AES::EncryptBlock(const uint8_t * datain1,
+                       uint8_t * dataout1) { // todo ? allow in place encryption
     // todo - clean up - lots of repeated macros
     // we only encrypt one block from now on
 
     uint32_t state[8 * 2]; // 2 buffers
-    uint32_t *r_ptr = reinterpret_cast<uint32_t *>(W);
-    uint32_t *dest = state;
-    uint32_t *src = state;
-    const uint32_t *datain = reinterpret_cast<const uint32_t *>(datain1);
-    uint32_t *dataout = reinterpret_cast<uint32_t *>(dataout1);
+    uint32_t * r_ptr = reinterpret_cast<uint32_t *>(W);
+    uint32_t * dest = state;
+    uint32_t * src = state;
+    const uint32_t * datain = reinterpret_cast<const uint32_t *>(datain1);
+    uint32_t * dataout = reinterpret_cast<uint32_t *>(dataout1);
 
     if (Nb == 4) {
         AddRoundKey4(dest, datain);
@@ -665,7 +666,7 @@ void AES::EncryptBlock(const uint8_t *datain1,
 } // Encrypt
 
 // call this to encrypt any size block
-void AES::Encrypt(const uint8_t *datain, uint8_t *dataout, uint32_t numBlocks, BlockMode mode) {
+void AES::Encrypt(const uint8_t * datain, uint8_t * dataout, uint32_t numBlocks, BlockMode mode) {
     if (0 == numBlocks) return;
     uint32_t blocksize = Nb * 4;
     switch (mode) {
@@ -689,13 +690,11 @@ void AES::Encrypt(const uint8_t *datain, uint8_t *dataout, uint32_t numBlocks, B
             --numBlocks;
         }
     } break;
-    default:
-        assert(!"Unknown mode!");
-        break;
+    default: assert(!"Unknown mode!"); break;
     }
 } // Encrypt
 
-void AES::StartDecryption(const uint8_t *key) {
+void AES::StartDecryption(const uint8_t * key) {
     KeyExpansion(key);
 
     uint8_t a0, a1, a2, a3, b0, b1, b2, b3, *W_ptr = W;
@@ -723,19 +722,19 @@ void AES::StartDecryption(const uint8_t *key) {
     }
 
     // we reverse the rounds to make decryption faster
-    uint32_t *WL = reinterpret_cast<uint32_t *>(W);
+    uint32_t * WL = reinterpret_cast<uint32_t *>(W);
     for (int pos = 0; pos < Nr / 2; pos++)
         for (int col = 0; col < Nb; col++) swap(WL[col + pos * Nb], WL[col + (Nr - pos) * Nb]);
 } // StartDecryption
 
-void AES::DecryptBlock(const uint8_t *datain1, uint8_t *dataout1) {
+void AES::DecryptBlock(const uint8_t * datain1, uint8_t * dataout1) {
     uint32_t state[8 * 2]; // 2 buffers
-    uint32_t *r_ptr = reinterpret_cast<uint32_t *>(W);
-    uint32_t *dest = state;
-    uint32_t *src = state;
+    uint32_t * r_ptr = reinterpret_cast<uint32_t *>(W);
+    uint32_t * dest = state;
+    uint32_t * src = state;
 
-    const uint32_t *datain = reinterpret_cast<const uint32_t *>(datain1);
-    uint32_t *dataout = reinterpret_cast<uint32_t *>(dataout1);
+    const uint32_t * datain = reinterpret_cast<const uint32_t *>(datain1);
+    uint32_t * dataout = reinterpret_cast<uint32_t *>(dataout1);
 
     if (Nb == 4) {
         AddRoundKey4(dest, datain);
@@ -805,7 +804,7 @@ void AES::DecryptBlock(const uint8_t *datain1, uint8_t *dataout1) {
 } // Decrypt
 
 // call this to decrypt any size block
-void AES::Decrypt(const uint8_t *datain, uint8_t *dataout, uint32_t numBlocks, BlockMode mode) {
+void AES::Decrypt(const uint8_t * datain, uint8_t * dataout, uint32_t numBlocks, BlockMode mode) {
     if (0 == numBlocks) return;
     uint32_t blocksize = Nb * 4;
     switch (mode) {
@@ -834,12 +833,11 @@ void AES::Decrypt(const uint8_t *datain, uint8_t *dataout, uint32_t numBlocks, B
             --numBlocks;
         }
     } break;
-    default:
-        assert(!"Unknown mode!");
+    default: assert(!"Unknown mode!");
     }
 } // Decrypt
 
-void AES::TransformOFB(uint8_t *buffer, uint8_t *iv, int size) {
+void AES::TransformOFB(uint8_t * buffer, uint8_t * iv, int size) {
     uint8_t IV[16];
     for (int i = 0; i < 16; i++) { IV[i] = iv[i % 4]; }
     int numBlocks = size / 16 + (size % 16 != 0);

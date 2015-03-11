@@ -39,11 +39,11 @@ public:
     // Files cannot be copied
     file(file const &) = delete;
     // Files cannot be copied
-    file &operator=(file const &) = delete;
+    file & operator=(file const &) = delete;
     // Transfers ownership of the file handle to another file
     file(file &&);
     // Transfers ownership of the file handle to another file
-    file &operator=(file &&);
+    file & operator=(file &&);
     // Opens the file with the given name
     void open(std::string name);
     // Closes the given file
@@ -67,7 +67,7 @@ public:
     std::string get_string(uint32_t) const;
 
 private:
-    data *m_data = nullptr;
+    data * m_data = nullptr;
     friend node;
     friend bitmap;
     friend audio;

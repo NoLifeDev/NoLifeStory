@@ -33,8 +33,8 @@
 
 namespace nl {
 namespace window {
-GLFWwindow *window = nullptr;
-GLFWwindow *context = nullptr;
+GLFWwindow * window = nullptr;
+GLFWwindow * context = nullptr;
 std::string title = "NoLifeStory";
 std::chrono::steady_clock::time_point last_title;
 // Callbacks for GLFW events
@@ -63,51 +63,32 @@ void key(GLFWwindow *, int key, int, int action, int mod) {
     case GLFW_REPEAT:
         switch (key) {
         case GLFW_KEY_LEFT_ALT:
-        case GLFW_KEY_RIGHT_ALT:
-            player::ch.pos.jump();
-            break;
-        default:
-            ;
+        case GLFW_KEY_RIGHT_ALT: player::ch.pos.jump(); break;
+        default: ;
         }
         break;
     case GLFW_PRESS:
         switch (key) {
-        case GLFW_KEY_LEFT:
-            player::ch.pos.left = true;
-            break;
-        case GLFW_KEY_RIGHT:
-            player::ch.pos.right = true;
-            break;
-        case GLFW_KEY_UP:
-            player::ch.pos.up = true;
-            break;
-        case GLFW_KEY_DOWN:
-            player::ch.pos.down = true;
-            break;
+        case GLFW_KEY_LEFT: player::ch.pos.left = true; break;
+        case GLFW_KEY_RIGHT: player::ch.pos.right = true; break;
+        case GLFW_KEY_UP: player::ch.pos.up = true; break;
+        case GLFW_KEY_DOWN: player::ch.pos.down = true; break;
         case GLFW_KEY_LEFT_SHIFT:
-        case GLFW_KEY_RIGHT_SHIFT:
-            player::mouse_fly = true;
-            break;
+        case GLFW_KEY_RIGHT_SHIFT: player::mouse_fly = true; break;
         case GLFW_KEY_LEFT_ALT:
-        case GLFW_KEY_RIGHT_ALT:
-            player::ch.pos.jump();
-            break;
+        case GLFW_KEY_RIGHT_ALT: player::ch.pos.jump(); break;
         case GLFW_KEY_ENTER:
             if (mod & GLFW_MOD_ALT) recreate(!config::fullscreen);
             break;
-        case GLFW_KEY_M:
-            map::load_random();
-            break;
+        case GLFW_KEY_M: map::load_random(); break;
         case GLFW_KEY_R:
             config::rave = !config::rave;
             music::play();
             break;
-        default:
-            ;
+        default: ;
         }
         break;
-    default:
-        ;
+    default: ;
     }
 }
 void character(GLFWwindow *, unsigned int) {}
@@ -144,8 +125,10 @@ void init() {
     glfwWindowHint(GLFW_DEPTH_BITS, 0);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    // glfwWindowHint(GLFW_CONTEXT_ROBUSTNESS, GLFW_NO_RESET_NOTIFICATION);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_ROBUSTNESS, GLFW_NO_RESET_NOTIFICATION);
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+    glfwWindowHint(GLFW_SRGB_CAPABLE, 1);
     // We have to make an invisible context so we don't have to recreate everything whenever
     // fullscreen is toggled
     // Once GLFW supports fullscreen toggling better, this can be removed.
@@ -154,8 +137,7 @@ void init() {
     glfwMakeContextCurrent(context);
     auto err = glewInit();
     switch (err) {
-    case GLEW_OK:
-        break;
+    case GLEW_OK: break;
     case GLEW_ERROR_NO_GL_VERSION:
         throw std::runtime_error(
             "Your OpenGL does not exist. Please update your drivers and/or buy a new GPU.");
@@ -164,8 +146,7 @@ void init() {
             "Your OpenGL is out of date. Please update your drivers and/or buy a new GPU.");
     case GLEW_ERROR_GLX_VERSION_11_ONLY:
         throw std::runtime_error("Your GLX is out of date. Please update your X window system.");
-    default:
-        throw std::runtime_error("Unknown GLEW error code: " + std::to_string(err));
+    default: throw std::runtime_error("Unknown GLEW error code: " + std::to_string(err));
     }
     if (!GLEW_ARB_texture_non_power_of_two || !GLEW_VERSION_1_5)
         throw std::runtime_error(
@@ -174,20 +155,14 @@ void init() {
 void check_errors() {
     auto err = glGetError();
     switch (err) {
-    case GL_NO_ERROR:
-        break;
-    case GL_INVALID_ENUM:
-        throw std::runtime_error("Invalid enum");
-    case GL_INVALID_VALUE:
-        throw std::runtime_error("Invalid value");
-    case GL_INVALID_OPERATION:
-        throw std::runtime_error("Invalid operation");
+    case GL_NO_ERROR: break;
+    case GL_INVALID_ENUM: throw std::runtime_error("Invalid enum");
+    case GL_INVALID_VALUE: throw std::runtime_error("Invalid value");
+    case GL_INVALID_OPERATION: throw std::runtime_error("Invalid operation");
     case GL_INVALID_FRAMEBUFFER_OPERATION:
         throw std::runtime_error("Invalid framebuffer operation");
-    case GL_OUT_OF_MEMORY:
-        throw std::runtime_error("Out of memory");
-    default:
-        throw std::runtime_error("Unknown OpenGL error code " + std::to_string(err));
+    case GL_OUT_OF_MEMORY: throw std::runtime_error("Out of memory");
+    default: throw std::runtime_error("Unknown OpenGL error code " + std::to_string(err));
     }
 }
 void update() {

@@ -60,8 +60,9 @@ bool bound{false};
 GLuint vbo{};
 GLuint atlas{};
 std::vector<vertex> vertices{};
-texture &get_texture(bitmap const &);
+texture & get_texture(bitmap const &);
 void reinit() {
+    glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -89,10 +90,10 @@ block get_block(GLint p_width, GLint p_height) {
     if (p_width <= 0 || p_height <= 0) { throw std::runtime_error{"Invalid texture size"}; }
     auto itw = std::find_if(
         wblocks.lower_bound(p_width), wblocks.end(),
-        [&](std::pair<GLint const, block> const &p) { return p_height <= p.second.h; });
+        [&](std::pair<GLint const, block> const & p) { return p_height <= p.second.h; });
     auto ith = std::find_if(
         hblocks.lower_bound(p_height), hblocks.end(),
-        [&](std::pair<GLint const, block> const &p) { return p_width <= p.second.w; });
+        [&](std::pair<GLint const, block> const & p) { return p_width <= p.second.w; });
     block b;
     if (itw != wblocks.end()
         && (ith == hblocks.end() || itw->first - p_width <= ith->first - p_height)) {
@@ -116,7 +117,7 @@ block get_block(GLint p_width, GLint p_height) {
     }
     return b;
 }
-texture &get_texture(bitmap const &p_bitmap) {
+texture & get_texture(bitmap const & p_bitmap) {
     auto it = textures.find(p_bitmap.id());
     if (it != textures.end()) {
         if (!bound) { reinit(); }
@@ -126,8 +127,8 @@ texture &get_texture(bitmap const &p_bitmap) {
     auto bl = get_block(p_bitmap.width(), p_bitmap.height());
     if (!bound) { reinit(); }
     glTexSubImage2D(GL_TEXTURE_2D, 0, bl.x, bl.y, p_bitmap.width(), p_bitmap.height(), GL_BGRA,
-                    GL_UNSIGNED_BYTE, p_bitmap.data());
-    auto &tex = textures[p_bitmap.id()];
+                    GL_UNSIGNED_INT_8_8_8_8_REV, p_bitmap.data());
+    auto & tex = textures[p_bitmap.id()];
     auto sf = static_cast<GLfloat>(config::atlas_size);
     tex.left = bl.x / sf;
     tex.right = (bl.x + p_bitmap.width()) / sf;
@@ -139,10 +140,11 @@ texture &get_texture(bitmap const &p_bitmap) {
 }
 void sprite::init() {
     log << "Using an atlas size of " << config::atlas_size << std::endl;
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glGenTextures(1, &atlas);
     glBindTexture(GL_TEXTURE_2D, atlas);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config::atlas_size, config::atlas_size, 0, GL_BGRA,
-                 GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, config::atlas_size, config::atlas_size, 0, GL_BGRA,
+                 GL_UNSIGNED_INT_8_8_8_8_REV, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     reset_blocks();
@@ -271,19 +273,11 @@ void sprite::draw(int x, int y, flags f, int cx, int cy) {
     // Handling movetypes
     float angle{0};
     switch (movetype) {
-    case 0:
-        break;
-    case 1:
-        x += static_cast<int>(movew * sin(tau * 1000 * time::delta_total / movep));
-        break;
-    case 2:
-        y += static_cast<int>(moveh * sin(tau * 1000 * time::delta_total / movep));
-        break;
-    case 3:
-        angle = static_cast<float>(tau * 1000 * time::delta_total / mover);
-        break;
-    default:
-        log << "Unknown move type: " << movetype << std::endl;
+    case 0: break;
+    case 1: x += static_cast<int>(movew * sin(tau * 1000 * time::delta_total / movep)); break;
+    case 2: y += static_cast<int>(moveh * sin(tau * 1000 * time::delta_total / movep)); break;
+    case 3: angle = static_cast<float>(tau * 1000 * time::delta_total / mover); break;
+    default: log << "Unknown move type: " << movetype << std::endl;
     }
     auto xbegin = x;
     auto xend = x;
@@ -320,7 +314,7 @@ void sprite::draw(int x, int y, flags f, int cx, int cy) {
         auto dif = delay / next_delay;
         alpha = static_cast<GLfloat>(dif * a1 + (1 - dif) * a0);
     }
-    auto &tex = get_texture(curbit);
+    auto & tex = get_texture(curbit);
     std::array<std::complex<float>, 4> vex;
     if (angle != 0) {
         vex = {{{static_cast<float>(f & flipped ? originx - width : 0 - originx),
@@ -332,10 +326,10 @@ void sprite::draw(int x, int y, flags f, int cx, int cy) {
                 {static_cast<float>(f & flipped ? originx - width : 0 - originx),
                  static_cast<float>(height - originy)}}};
         std::complex<float> rot{std::cos(angle), std::sin(angle)};
-        for (auto &v : vex) { v *= rot; }
+        for (auto & v : vex) { v *= rot; }
         std::complex<float> trans{static_cast<float>(f & flipped ? width - originx : originx),
                                   static_cast<float>(originy)};
-        for (auto &v : vex) { v += trans; }
+        for (auto & v : vex) { v += trans; }
     } else {
         float zero{0.f}; // Work around GCC 4.9.0 specific bug
         vex = {{
@@ -350,7 +344,7 @@ void sprite::draw(int x, int y, flags f, int cx, int cy) {
         for (y = ybegin; y <= yend; y += cy) {
             std::complex<float> pos{static_cast<float>(x), static_cast<float>(y)};
             auto tvex = vex;
-            for (auto &v : tvex) { v += pos; }
+            for (auto & v : tvex) { v += pos; }
             vertices.push_back({view::r, view::g, view::b, alpha, tvex[0].real(), tvex[0].imag(),
                                 f & flipped ? tex.right : tex.left, tex.top});
             vertices.push_back({view::r, view::g, view::b, alpha, tvex[1].real(), tvex[1].imag(),
@@ -362,7 +356,7 @@ void sprite::draw(int x, int y, flags f, int cx, int cy) {
         }
     }
 }
-sprite::flags &operator|=(sprite::flags &a, sprite::flags b) {
+sprite::flags & operator|=(sprite::flags & a, sprite::flags b) {
     return a = static_cast<sprite::flags>(static_cast<unsigned>(a) | static_cast<unsigned>(b));
 }
 sprite::flags operator|(sprite::flags a, sprite::flags b) {

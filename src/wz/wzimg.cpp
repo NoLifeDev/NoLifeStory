@@ -7,20 +7,20 @@
 
 namespace WZ {
 vector<Img *> Img::Imgs;
-void *Img::operator new(size_t size) {
-    static char *nbuf = nullptr;
+void * Img::operator new(size_t size) {
+    static char * nbuf = nullptr;
     static size_t nrem = 0;
     if (size > nrem) {
         nbuf = (char *)malloc(0x10000);
         nrem = 0x10000;
     }
     nrem -= size;
-    void *r = nbuf;
+    void * r = nbuf;
     nbuf += size;
     return r;
 }
 void Img::ExtendedProperty(Node n) {
-    char *name = file.ReadPropString(offset);
+    char * name = file.ReadPropString(offset);
     if (strcmp(name, "Property") == 0) {
         file.Skip(2);
         SubProperty(n);
@@ -55,31 +55,21 @@ void Img::SubProperty(Node n) {
     int32_t count = file.ReadCInt();
     n.Reserve(count);
     for (int i = 0; i < count; ++i) {
-        char *name = file.ReadPropString(offset);
+        char * name = file.ReadPropString(offset);
         uint8_t a = file.Read<uint8_t>();
         switch (a) {
-        case 0x00:
-            n.g(name, i).Set(i);
-            break;
+        case 0x00: n.g(name, i).Set(i); break;
         case 0x0B:
-        case 0x02:
-            n.g(name, i).Set(file.Read<uint16_t>());
-            break;
-        case 0x03:
-            n.g(name, i).Set(file.ReadCInt());
-            break;
+        case 0x02: n.g(name, i).Set(file.Read<uint16_t>()); break;
+        case 0x03: n.g(name, i).Set(file.ReadCInt()); break;
         case 0x04:
             if (file.Read<uint8_t>() == 0x80)
                 n.g(name, i).Set(file.Read<float>());
             else
                 n.g(name, i).Set(0);
             break;
-        case 0x05:
-            n.g(name, i).Set(file.Read<double>());
-            break;
-        case 0x08:
-            n.g(name, i).Set(file.ReadPropString(offset));
-            break;
+        case 0x05: n.g(name, i).Set(file.Read<double>()); break;
+        case 0x08: n.g(name, i).Set(file.ReadPropString(offset)); break;
         case 0x09: {
             uint32_t p = file.Read<uint32_t>();
             p += file.Tell();
@@ -87,9 +77,7 @@ void Img::SubProperty(Node n) {
             file.Seek(p);
             break;
         }
-        default:
-            die();
-            return;
+        default: die(); return;
         }
     }
 };

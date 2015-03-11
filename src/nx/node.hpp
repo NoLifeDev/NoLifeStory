@@ -46,12 +46,12 @@ public:
     // Constructors
     node() = default;
     node(node const &); // Only reason this isn't defaulted is because msvc has issues
-    node &operator=(node const &) = default;
+    node & operator=(node const &) = default;
     // These methods are primarily so nodes can be used as iterators and iterated over
     node begin() const;
     node end() const;
     node operator*() const;
-    node &operator++();
+    node & operator++();
     node operator++(int);
     bool operator==(node const &) const;
     bool operator!=(node const &) const;
@@ -133,8 +133,8 @@ private:
     bitmap to_bitmap() const;
     audio to_audio() const;
     // Internal variables
-    data const *m_data = nullptr;
-    _file_data const *m_file = nullptr;
+    data const * m_data = nullptr;
+    _file_data const * m_file = nullptr;
     friend file;
 };
 // More convenience string concatenation operators

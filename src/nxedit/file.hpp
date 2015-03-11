@@ -26,7 +26,7 @@ public:
     // Please note that this file is kept open until this object is destroyed
     efile(std::string filename);
     efile(efile const &) = delete;
-    efile &operator=(efile const &) = delete;
+    efile & operator=(efile const &) = delete;
     ~efile();
     // Because the loaded file is still open, you have to save to a different file
     void save(std::string filename);
