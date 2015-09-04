@@ -9,7 +9,7 @@
   <Import Project="NoLife.props" />
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>lz4.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lz4.lib;zlib.lib;squish.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
