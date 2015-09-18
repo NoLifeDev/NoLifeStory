@@ -855,7 +855,7 @@ struct wztonx {
                 return true;
             };
             std::copy(original, original + length, input.begin());
-            if (!decompress() && !decrypt() && !decompress()) {
+            if (!decompress() && decrypt() && !decompress()) {
                 std::cerr << "Unable to inflate: 0x" << std::setfill('0') << std::setw(2)
                     << std::hex << (unsigned)original[0] << " 0x" << std::setfill('0')
                     << std::setw(2) << std::hex << static_cast<unsigned>(original[1])
