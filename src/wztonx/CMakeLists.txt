@@ -6,6 +6,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 aux_source_directory(. NOLIFEWZTONX_SOURCES)
 add_executable(NoLifeWzToNx ${NOLIFEWZTONX_SOURCES})
-target_link_libraries(NoLifeWzToNx z lz4 ${Boost_LIBRARIES})
+target_link_libraries(NoLifeWzToNx z lz4 squish ${Boost_LIBRARIES})
 
 install(TARGETS NoLifeWzToNx DESTINATION bin)
