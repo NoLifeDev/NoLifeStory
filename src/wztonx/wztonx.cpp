@@ -428,7 +428,9 @@ struct wztonx {
             bool valid = true;
             for (auto i = 0u; i < slen; ++i, ++mask) {
                 auto c = static_cast<uint8_t>(os[i] ^ k[i] ^ mask);
-                if (c < 0x20 || c >= 0x80) valid = false;
+                if (c < 0x20 || c >= 0x80) {
+                    valid = false;
+                }
             }
             if (valid) {
                 u8key = reinterpret_cast<char8_t const *>(key);
@@ -664,11 +666,30 @@ struct wztonx {
     }
     void img(id_t img_node, int32_t size) {
         auto p = in.tell();
-        in.skip(1);
-        deduce_key();
-        in.skip(2);
-        sub_property(img_node, p);
+        auto n1 = in.read<uint8_t>();
+        if (n1 == 1) {
+            lua_script(img_node);
+        } else {
+            deduce_key();
+            in.seek(p);
+            extended_property(img_node, p);
+        }
         in.seek(p + size);
+    }
+    void lua_script(id_t script_node) {
+        auto slen = static_cast<uint32_t>(in.read_cint());
+        if (slen > 0x1ffff) throw std::runtime_error("Lua script is too long");
+        auto os = reinterpret_cast<char8_t const *>(in.offset);
+        str_buf.resize(slen);
+        auto key = key_kms;
+        u8key = reinterpret_cast<char8_t const *>(key);
+        for (auto i = 0u; i < slen; ++i) {
+            str_buf[i] = static_cast<char8_t>(os[i] ^ u8key[i]);
+        }
+        auto string = add_string(str_buf);
+        auto & n = nodes[script_node];
+        n.data_type = node::type::string;
+        n.data.string = string;
     }
     virtual void parse_file() {
         std::cerr << "Working on " << wzfilename << std::endl;
