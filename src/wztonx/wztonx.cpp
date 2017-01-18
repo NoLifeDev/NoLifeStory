@@ -928,11 +928,18 @@ struct wztonx {
             case 2: break;
             case 513: check *= 2; break;
             case 1026: check *= 4; break;
+            case 2050: check *= 4; break;
+            default:
+                std::cerr << "Unknown image format1 of" << std::dec << f1 << std::endl;
+                throw std::runtime_error("Unknown image type!");
             }
             auto pixels = width * height;
             switch (f2) {
             case 0: break;
             case 4: pixels /= 256; break;
+            default:
+                std::cerr << "Unknown image format2 of" << std::dec << static_cast<unsigned>(f2) << std::endl;
+                throw std::runtime_error("Unknown image type!");
             }
             if (check != pixels * 4) {
                 std::cerr << "Size mismatch: " << std::dec << width << "," << height << "," << decompressed << "," << f1 << "," << f2 << std::endl;
@@ -960,9 +967,10 @@ struct wztonx {
                 squish::DecompressImage(output.data(), width, height, input.data(), squish::kDxt3);
                 input.swap(output);
                 break;
-            default:
-                std::cerr << "Unknown image format1 of" << std::dec << f1 << std::endl;
-                throw std::runtime_error("Unknown image type!");
+            case 2050:
+                squish::DecompressImage(output.data(), width, height, input.data(), squish::kDxt5);
+                input.swap(output);
+                break;
             }
             switch (f2) {
             case 0:
@@ -973,9 +981,6 @@ struct wztonx {
                 scale<16>(input, output, width, height);
                 input.swap(output);
                 break;
-            default:
-                std::cerr << "Unknown image format2 of" << std::dec << static_cast<unsigned>(f2) << std::endl;
-                throw std::runtime_error("Unknown image type!");
             }
             output.resize(static_cast<size_t>(LZ4_compressBound(size)));
             uint32_t final_size;
